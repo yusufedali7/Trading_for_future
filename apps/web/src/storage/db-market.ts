@@ -61,28 +61,18 @@ export function createDexieMarketRepo(
         throw new Error(`Dataset ${id} is incomplete: ${n} of ${meta.candleCount} candles stored`);
       }
       const hasVolume = chunks.every((ch) => ch.v !== null) && chunks.length > 0;
+      const col = (key: 't' | 'o' | 'h' | 'l' | 'c') =>
+        concat(
+          chunks.map((ch) => ch[key]),
+          n,
+        );
       const series: CandleSeries = {
         length: n,
-        t: concat(
-          chunks.map((ch) => ch.t),
-          n,
-        ),
-        o: concat(
-          chunks.map((ch) => ch.o),
-          n,
-        ),
-        h: concat(
-          chunks.map((ch) => ch.h),
-          n,
-        ),
-        l: concat(
-          chunks.map((ch) => ch.l),
-          n,
-        ),
-        c: concat(
-          chunks.map((ch) => ch.c),
-          n,
-        ),
+        t: col('t'),
+        o: col('o'),
+        h: col('h'),
+        l: col('l'),
+        c: col('c'),
         v: hasVolume
           ? concat(
               chunks.map((ch) => ch.v!),
