@@ -5,3 +5,17 @@ export { TIMEFRAMES, compareTimeframes, isTimeframe, timeframeMs } from './core/
 export type { Timeframe } from './core/timeframe';
 export { isValidTimeZone, localToUtc, offsetMinutes, utcToLocal } from './core/tz';
 export type { LocalDateTime, LocalParts, LocalToUtcResult } from './core/tz';
+export {
+  getInstrument,
+  listInstruments,
+  pipsToPrice,
+  priceToPips,
+  roundToTick,
+  withOverrides,
+} from './instruments/registry';
+export type {
+  AssetClass,
+  Instrument,
+  InstrumentOverrides,
+  TradingHours,
+} from './instruments/registry';
