@@ -19,3 +19,17 @@ export type {
   InstrumentOverrides,
   TradingHours,
 } from './instruments/registry';
+export { marketState } from './instruments/hours';
+export type { MarketState } from './instruments/hours';
+export { KNOWN_DATE_FORMATS, guessMapping, parseCsvRows, parseDate } from './data/csv-rows';
+export type {
+  CsvMapping,
+  DateFormat,
+  ParseError,
+  ParseErrorReason,
+  RawRecord,
+  RecordTime,
+  TimeColumns,
+} from './data/csv-rows';
+export { resolveTimes, validateRecords } from './data/validate';
+export type { DstIssue, TimedRecord, ValidationReport } from './data/validate';
