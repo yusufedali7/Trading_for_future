@@ -81,6 +81,13 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Karar:** Uzak repo `https://github.com/yusufedali7/Trading_for_future.git`, dal `main`. Her görev bitip testler geçtiğinde küçük bir commit yapılır ve push edilir. Veri dosyaları (`data/`, gerçek `*.csv`) repoya girmez; yalnızca `SYNTHETIC_*.csv` test fixture'ları girer.
 - **Açık:** Repo şu an **public**. Önerilen private. Public kalırsa commit'lerdeki yazar e-postası herkese görünür.
 
+## D16 — Kurulan sürümler; TypeScript 6.0 (7 değil)
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi
+- **Bağlam:** npm'de `typescript@latest` = 7.0.2, ama `typescript-eslint@8.71` yalnızca `typescript >=4.8.4 <6.1.0` destekliyor.
+- **Karar:** TypeScript **6.0.3**. Diğer sürümler: vitest 5.0.3, vite 8.3.1, @vitejs/plugin-react 6.1.1, react 19.3.0, lightweight-charts 5.2.1, luxon 3.7.2, @noble/hashes 2.4.0, papaparse 5.7.0, dexie 4.4.6, eslint 10.11.0, typescript-eslint 8.71.0, prettier 3.9.9. Test için jsdom 30 ve @testing-library/react 16 (MIT) eklendi: React bileşen testleri için gerekli.
+- **Ertelendi:** `zod` strateji şemasıyla (M5) birlikte eklenecek; M1'de ihtiyaç yok.
+- **Sonuç:** typescript-eslint TS 7'yi desteklediğinde yükseltme ayrı bir commit'te yapılır.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

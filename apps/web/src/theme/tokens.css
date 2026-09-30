@@ -1,0 +1,49 @@
+/* Dark-first terminal theme. Green/red carry direction or P&L meaning only. */
+:root {
+  color-scheme: dark;
+  --bg: #0e1116;
+  --bg-panel: #151a21;
+  --bg-raised: #1c222b;
+  --border: #2a313c;
+  --text: #d6dbe2;
+  --text-muted: #8a94a3;
+  --accent: #5b9bd5;
+  --up: #26a69a;
+  --down: #ef5350;
+  --warn: #d4a72c;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --gap: 8px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 13px/1.4 var(--font-ui);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.app-header h1 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+}
