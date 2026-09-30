@@ -1,13 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { App, type AppProps } from '../src/App';
+import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
 import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 
 function renderApp(overrides: Partial<AppProps> = {}) {
+  const repo = createMemoryRepo();
   const props: AppProps = {
-    repo: createMemoryRepo(),
+    repo,
+    candleSource: createInProcessCandleSource(repo),
     prefs: createMemoryPrefsRepo(),
     createImporter: createInProcessImporter,
     ChartComponent: () => <div data-testid="chart" />,

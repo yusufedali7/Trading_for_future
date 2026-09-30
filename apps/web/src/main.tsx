@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { createWorkerCandleSource } from './compute/candle-source';
 import { createWorkerImporter } from './import/importer';
 import { createDexieMarketRepo } from './storage/db-market';
 import { createDexiePrefsRepo } from './storage/db-user';
@@ -15,6 +16,7 @@ createRoot(root).render(
       repo={createDexieMarketRepo()}
       prefs={createDexiePrefsRepo()}
       createImporter={createWorkerImporter}
+      candleSource={createWorkerCandleSource()}
     />
   </StrictMode>,
 );

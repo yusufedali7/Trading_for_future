@@ -2,14 +2,13 @@ import { useCallback, useEffect, useState, type ComponentType } from 'react';
 import {
   compareTimeframes,
   getInstrument,
-  type CandleSeries,
   type DataSetMeta,
   type ResampledCandle,
 } from '@trw/engine';
 import { ChartView } from './chart/ChartView';
 import type { ChartViewProps } from './chart/types';
 import { EmptyState } from './components/EmptyState';
-import { candlesFor } from './compute';
+import type { CandleSource } from './compute/candle-source';
 import { ImportWizard } from './features/import/ImportWizard';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
@@ -21,14 +20,20 @@ export interface AppProps {
   repo: MarketRepo;
   prefs: PrefsRepo;
   createImporter: () => Importer;
+  candleSource: CandleSource;
   ChartComponent?: ComponentType<ChartViewProps>;
 }
 
-export function App({ repo, prefs, createImporter, ChartComponent = ChartView }: AppProps) {
+export function App({
+  repo,
+  prefs,
+  createImporter,
+  candleSource,
+  ChartComponent = ChartView,
+}: AppProps) {
   const [datasets, setDatasets] = useState<DataSetMeta[] | null>(null);
   const [settings, setSettings] = useState<Prefs | null>(null);
   const [importing, setImporting] = useState(false);
-  const [loaded, setLoaded] = useState<{ id: string; series: CandleSeries } | null>(null);
   const [candles, setCandles] = useState<ResampledCandle[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,29 +54,20 @@ export function App({ repo, prefs, createImporter, ChartComponent = ChartView }:
       ? settings.timeframe
       : (active?.baseTimeframe ?? settings?.timeframe ?? '15m');
 
-  const activeId = active?.id;
   useEffect(() => {
-    if (!activeId) return;
+    if (!active) return;
     let cancelled = false;
     setError(null);
-    repo
-      .loadSeries(activeId)
-      .then((series) => !cancelled && setLoaded({ id: activeId, series }))
+    setCandles(null);
+    candleSource
+      .candles(active, timeframe)
+      .then((c) => !cancelled && setCandles(c))
       .catch((e: unknown) => !cancelled && setError(String(e)));
     return () => {
       cancelled = true;
     };
-  }, [repo, activeId]);
-
-  useEffect(() => {
-    if (!active || !loaded || loaded.id !== active.id) return;
-    let cancelled = false;
-    setCandles(null);
-    void candlesFor(active, loaded.series, timeframe).then((c) => !cancelled && setCandles(c));
-    return () => {
-      cancelled = true;
-    };
-  }, [active, loaded, timeframe]);
+    // The dataset is identified by id + content hash; the object itself is re-created on refresh.
+  }, [candleSource, active?.id, active?.contentHash, timeframe]);
 
   const update = (patch: Partial<Prefs>) => {
     setSettings((s) => (s ? { ...s, ...patch } : s));
