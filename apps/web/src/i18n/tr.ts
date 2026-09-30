@@ -1,13 +1,129 @@
 // All user-facing strings live here (CLAUDE.md: UI text in Turkish, in a single translation file).
+import type { Blocker, Fix, PriceType } from '@trw/engine';
+
 export const tr = {
   app: {
     title: 'Trading Research Workstation',
     loading: 'Yükleniyor…',
     attribution: 'Grafikler TradingView Lightweight Charts™ ile çizilir',
+    loadError: 'Veri yüklenemedi',
   },
   empty: {
     title: 'Henüz veri yok',
     body: 'Grafik, backtest ve istatistikler yalnızca gerçek geçmiş veriyle çalışır. Başlamak için bir CSV dosyası içe aktar.',
     importButton: 'CSV içe aktar',
   },
+  toolbar: {
+    dataset: 'Veri kümesi',
+    datasetOption: (symbol: string, source: string, from: string, to: string) =>
+      `${symbol} · ${source} · ${from} → ${to}`,
+    timeframe: 'Zaman dilimi',
+    displayTz: 'Saat dilimi',
+    importButton: 'CSV içe aktar',
+    goTo: 'Tarihe git',
+    goToButton: 'Git',
+  },
+  displayTimezones: [
+    { value: 'Europe/Istanbul', label: 'İstanbul' },
+    { value: 'Europe/London', label: 'Londra' },
+    { value: 'America/New_York', label: 'New York' },
+    { value: 'Asia/Tokyo', label: 'Tokyo' },
+    { value: 'UTC', label: 'UTC' },
+  ],
+  import: {
+    title: 'CSV içe aktar',
+    file: 'Dosya',
+    instrument: 'Enstrüman',
+    sourceName: 'Kaynak adı',
+    sourceNameHint:
+      'Verinin nereden geldiği (ör. Dukascopy). Veri sağlayıcının kullanım koşulları senin sorumluluğunda.',
+    sourceTz: 'Dosyanın saat dilimi',
+    sourceTzHint: 'Dukascopy’de dışa aktarırken GMT seçtiysen “UTC / GMT”yi seç.',
+    priceType: 'Fiyat tipi',
+    read: 'Dosyayı oku',
+    reading: 'Okunuyor…',
+    preview: 'Önizleme (ilk satırlar)',
+    rowsInFile: (n: number) => `Dosyada ${n.toLocaleString('tr-TR')} satır var.`,
+    mappingTitle: 'Kolon eşlemesi',
+    noGuess: 'Kolon düzeni tanınamadı; eşlemeyi elle seç.',
+    hasHeader: 'İlk satır başlık',
+    dateFormat: 'Tarih/saat biçimi',
+    dateColumn: 'Tarih/saat kolonu',
+    timeColumn: 'Saat kolonu (ayrıysa)',
+    open: 'Açılış',
+    high: 'En yüksek',
+    low: 'En düşük',
+    close: 'Kapanış',
+    volume: 'Hacim',
+    none: '— yok —',
+    column: (i: number, label: string) => `${i + 1}. kolon: ${label}`,
+    analyze: 'Analiz et',
+    analyzing: 'Analiz ediliyor…',
+    reportTitle: 'Doğrulama raporu',
+    save: 'Kaydet',
+    saving: 'Kaydediliyor…',
+    cancel: 'İptal',
+    noFixes: 'Düzeltme gerekmiyor.',
+    fixesTitle: 'Onayın gereken düzeltmeler',
+    fixesHint:
+      'Veri sessizce değiştirilmez. Kabul ettiğin her düzeltme veri kümesiyle birlikte kaydedilir.',
+    unknownTimeframe:
+      'Mumların zaman dilimi belirlenemedi. Dosyanın düzenli aralıklı mumlar içerdiğinden emin ol.',
+    failed: (msg: string) => `İşlem başarısız: ${msg}`,
+  },
+  report: {
+    records: 'Okunan mum',
+    range: 'Tarih aralığı',
+    timeframe: 'Mum aralığı',
+    unknown: 'belirlenemedi',
+    gaps: 'Veri boşlukları (piyasa açıkken)',
+    gapsValue: (gaps: number, bars: number) =>
+      gaps === 0 ? 'yok' : `${gaps} boşluk, toplam ${bars.toLocaleString('tr-TR')} eksik mum`,
+    gapLine: (from: string, to: string, n: number) => `${from} → ${to}: ${n} eksik mum`,
+    closedGaps: 'Beklenen kapanış boşlukları',
+    closedGapsValue: (n: number) => `${n} (hafta sonu / günlük ara, sorun değil)`,
+    parseErrors: 'Okunamayan satır',
+    dstIssues: 'Yaz/kış saati geçişinde belirsiz satır',
+    identicalDuplicates: 'Birebir aynı tekrar',
+    conflictingDuplicates: 'Farklı fiyatlı tekrar',
+    outOfOrder: 'Sırası bozuk satır',
+    closedMarketCandles: 'Piyasa kapalıyken mum',
+    invalidPriceRows: 'Geçersiz fiyatlı satır',
+    precisionOverflow: 'Tick’ten ince fiyat',
+    moreGaps: (n: number) => `…ve ${n} boşluk daha`,
+  },
+  fixes: {
+    SKIP_UNPARSEABLE_ROWS: (n: number) => `Okunamayan ${n} satırı atla`,
+    SKIP_DST_ROWS: (n: number) =>
+      `Yaz/kış saati geçişinde belirsiz ya da var olmayan saatteki ${n} satırı atla`,
+    SORT_BY_TIME: (n: number) => `Satırları zamana göre sırala (${n} satır geriye gidiyor)`,
+    DROP_IDENTICAL_DUPLICATES: (n: number) =>
+      `Birebir aynı tekrar eden mumlardan birer kopya bırak (${n} grup)`,
+    DROP_CLOSED_MARKET_CANDLES: (n: number) =>
+      `Piyasa kapalıyken oluşan ${n} mumu çıkar (hafta sonu / günlük ara)`,
+    DROP_INVALID_PRICES: (n: number) =>
+      `Geçersiz fiyatlı ${n} satırı çıkar (sıfır/negatif ya da OHLC tutarsız)`,
+    ROUND_TO_TICK: (n: number) => `Tick’ten ince fiyat içeren ${n} satırı tick’e yuvarla`,
+  } satisfies Record<Fix, (n: number) => string>,
+  blockers: {
+    CONFLICTING_DUPLICATES: (n: number) =>
+      `${n} zaman damgasında farklı fiyatlarla tekrar eden mum var. Hangisinin doğru olduğu bilinemez; kaynak dosyayı düzeltip tekrar dene.`,
+    NO_DATA: () =>
+      'Dosyada kullanılabilir mum bulunamadı. Kolon eşlemesini ve tarih biçimini kontrol et.',
+  } satisfies Record<Blocker['kind'], (n: number) => string>,
+  priceTypes: {
+    BID: 'BID (alış fiyatı)',
+    ASK: 'ASK (satış fiyatı)',
+    MID: 'Orta fiyat',
+    UNKNOWN: 'Bilinmiyor',
+  } satisfies Record<PriceType, string>,
+  sourceTimezones: [
+    { value: 'UTC', label: 'UTC / GMT' },
+    { value: 'Europe/Istanbul', label: 'İstanbul (UTC+3)' },
+    { value: 'Europe/London', label: 'Londra (yaz saatli)' },
+    { value: 'America/New_York', label: 'New York (yaz saatli)' },
+    { value: 'Etc/GMT-2', label: 'Sabit UTC+2 (yaz saatsiz)' },
+    { value: 'Etc/GMT-3', label: 'Sabit UTC+3 (yaz saatsiz)' },
+    { value: 'Etc/GMT+5', label: 'Sabit UTC−5 (yaz saatsiz)' },
+  ],
 } as const;

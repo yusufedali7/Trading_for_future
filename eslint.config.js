@@ -9,6 +9,12 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     languageOptions: { globals: { ...globals.es2022 } },
+    rules: {
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_', destructuredArrayIgnorePattern: '^_' },
+      ],
+    },
   },
   {
     // Engine purity (CLAUDE.md): no clock, randomness, DOM, network or Node APIs.
