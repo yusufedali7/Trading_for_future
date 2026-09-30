@@ -88,6 +88,34 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Ertelendi:** `zod` strateji şemasıyla (M5) birlikte eklenecek; M1'de ihtiyaç yok.
 - **Sonuç:** typescript-eslint TS 7'yi desteklediğinde yükseltme ayrı bir commit'te yapılır.
 
+## D17 — Gün içi mumlar işlem günü başlangıcından sayılır
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi (M1)
+- **Karar:** 5m…4H mumları, işlem gününün başlangıcından (17:00 NY) geçen süreye göre bölünür; yani başlangıç + k × süre. Normal günlerde bu, NY duvar saatine hizalamayla aynıdır: 4H için 17, 21, 01, 05, 09, 13.
+- **Gerekçe:** Yaz/kış saati geçişleri Pazar 02:00 NY'de olur ve o sırada forex ile altın kapalıdır. Böylece işlem günlerinde belirsiz ya da var olmayan saatle uğraşmak gerekmez. 7/24 işlem gören enstrümanlar (kripto) eklenirse bu karar yeniden ele alınmalı.
+
+## D18 — Günlük/haftalık mum etiketi = işlem günü tarihi
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi (M1)
+- **Karar:** Pazartesi 17:00 NY'de açılan günlük mum "Salı" olarak etiketlenir; forex geleneğinde gün kapandığı tarihle anılır. Haftalık mum, haftanın ilk işlem günüyle (Pazartesi) etiketlenir. Bu etiketler seçilen gösterim saat diliminden bağımsızdır. Gün içi etiketler seçilen saat dilimindedir.
+
+## D19 — Doğrulama raporu ve düzeltmelerin son hali
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi (M1; PLAN §5'teki `ValidationReport` taslağının yerine geçer)
+- **Karar:**
+  - Hafta sonu ve günlük aradaki boşluklar "beklenen kapanış boşluğu" olarak sayılır (`closedMarketGaps`), sorun olarak listelenmez.
+  - Piyasa kapalıyken oluşan mumlar `closedMarketCandles` altında nedeniyle birlikte raporlanır (`WEEKEND` ya da `DAILY_BREAK`).
+  - Okunamayan satırlar ve yaz/kış saati sorunlu satırlar ayrı listelerde tutulur.
+  - Düzeltme listesi: `SKIP_UNPARSEABLE_ROWS`, `SKIP_DST_ROWS`, `SORT_BY_TIME`, `DROP_IDENTICAL_DUPLICATES`, `DROP_CLOSED_MARKET_CANDLES`, `DROP_INVALID_PRICES`, `ROUND_TO_TICK`.
+  - Engelleyiciler: `CONFLICTING_DUPLICATES` (aynı zamanda farklı fiyat; hangisinin doğru olduğu bilinemez) ve `NO_DATA`.
+  - Boşluklar düzeltilmez; yeniden örneklenen mumda `sourceCount/expectedCount` olarak görünür.
+
+## D20 — Hesaplama worker'ı veriyi IndexedDB'den kendisi okur
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi (M1)
+- **Karar:** İçe aktarma (`import.worker`) ve yeniden örnekleme (`compute.worker`) Web Worker'da çalışır. Hesaplama worker'ı seriyi doğrudan IndexedDB'den okur ve etkin veri kümesini önbellekte tutar. Böylece ana iş parçacığı büyük dizileri kopyalamaz ve zaman dilimi değiştirmek arayüzü dondurmaz.
+- **Ölçüm (sentetik 750 bin 1m mum):** doğrulama ≈ 1,0 sn; seri + hash ≈ 0,9 sn; her zaman dilimi için yeniden örnekleme ≈ 0,6 sn.
+
+## D21 — `trw-strategy` ve `trw-research` veritabanları ertelendi
+- **Tarih:** 2026-09-30 · **Durum:** Kabul edildi
+- **Karar:** M1'de yalnızca `trw-market` ve `trw-user` (tercihler) oluşturuldu. Diğer iki veritabanı ilk kullanılacakları taşta (M3/M5) eklenecek. Boş şema oluşturmak şimdilik bir şey kazandırmıyor.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

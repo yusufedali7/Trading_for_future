@@ -141,3 +141,40 @@ Virgülle (ya da noktalı virgülle) ayrılmış düz metin tablo dosyası. Geç
 
 ### Veri boşluğu (gap)
 Olması gereken mumların eksik olması. Hafta sonu forex kapalı olduğu için oluşan boşluk **beklenen** boşluktur. Hafta içindeki boşluklar raporlanır.
+
+---
+
+## M1'de eklenenler: veri ve grafik
+
+### İşlem günü
+Forex'te bir gün, New York saatiyle 17:00'de başlar ve ertesi gün 17:00'de biter. Gün, **kapandığı tarihle** anılır: Pazartesi 17:00'de açılan günlük mum "Salı" mumudur.
+*Uygulamada:* Günlük (1D) mumların altındaki tarih, hangi saat dilimini seçersen seç işlem gününün tarihidir (karar D18).
+
+### Yeniden örnekleme (resampling)
+Küçük zaman dilimindeki mumları birleştirerek büyük zaman dilimi mumu üretmek. On beş tane 1 dakikalık mumdan bir 15 dakikalık mum oluşturmak buna örnek:
+- **açılış** = ilk mumun açılışı
+- **en yüksek** = en yüksek değer
+- **en düşük** = en düşük değer
+- **kapanış** = son mumun kapanışı
+- **hacim** = toplam
+
+*Uygulamada:* Uygulama yalnızca 1 dakikalık veriyi saklar. 15m, 1h, 4h, 1D ve 1W mumlarını her seferinde bu veriden hesaplar; böylece bütün zaman dilimleri birbiriyle tutarlı kalır.
+
+### Eksik mum
+Piyasa açıkken olması gereken ama veride bulunmayan 1 dakikalık mum. Örneğin veri sağlayıcı o dakikada fiyat kaydetmemiş olabilir.
+*Uygulamada:* Grafiğin üstündeki bilgi şeridinde "eksik 1m mum: 3/15" gibi bir uyarı görürsen, o 15 dakikalık mum 15 yerine 12 dakikalık veriden oluşmuş demektir.
+
+### Henüz kapanmamış mum
+Süresi dolmamış, hâlâ oluşan mum. Açılışı belli ama en yüksek, en düşük ve kapanış değerleri daha değişebilir. Bu yüzden kapanmamış bir mumla analiz yapmak "ileriye bakma" hatasına yol açabilir.
+*Uygulamada:* Grafikte gri gösterilir ve bilgi şeridinde "mum henüz kapanmadı" yazar.
+
+### Doğrulama raporu
+CSV içe aktarılırken verinin kontrol edildiği rapor. Tekrar eden satırlar, sırası bozuk satırlar, eksik mumlar, hafta sonu mumları ve tutarsız fiyatlar burada listelenir.
+*Uygulamada:* Uygulama hiçbir düzeltmeyi kendiliğinden yapmaz. Her düzeltme için senin kutucuğu işaretlemen gerekir ve kabul ettiğin düzeltmeler veriyle birlikte kaydedilir.
+
+### Veri parmak izi (içerik özeti / hash)
+Verinin tamamından hesaplanan kısa bir kod (64 karakter). Veride tek bir fiyat bile değişse bu kod tamamen değişir.
+*Uygulamada:* İleride her backtest sonucunun yanında saklanacak. Böylece "bu sonuç tam olarak hangi veriyle üretildi?" sorusu her zaman cevaplanabilecek.
+
+### Bilgi şeridindeki kısaltmalar
+Grafiğin üstündeki satırda: **A** açılış, **Y** en yüksek, **D** en düşük, **K** kapanış. ▲ mumun yükselişle, ▼ düşüşle kapandığını gösterir.
