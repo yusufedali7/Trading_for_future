@@ -23,6 +23,16 @@ export const tr = {
     goTo: 'Tarihe git',
     goToButton: 'Git',
   },
+  legend: {
+    o: 'A',
+    h: 'Y',
+    l: 'D',
+    c: 'K',
+    v: 'Hacim',
+    missing: (missing: number, expected: number) => `eksik 1m mum: ${missing}/${expected}`,
+    forming: 'mum henüz kapanmadı',
+  },
+  months: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],
   displayTimezones: [
     { value: 'Europe/Istanbul', label: 'İstanbul' },
     { value: 'Europe/London', label: 'Londra' },

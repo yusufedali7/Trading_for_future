@@ -35,6 +35,7 @@ body {
 
 .app-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--gap);
   padding: 6px 12px;
@@ -120,7 +121,7 @@ body {
   flex-wrap: wrap;
   align-items: center;
   gap: 6px 12px;
-  flex: 1;
+  flex: 1 1 520px;
   min-width: 0;
 }
 
@@ -128,7 +129,16 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+  max-width: 100%;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.field select {
+  min-width: 0;
+  max-width: min(60vw, 380px);
+  text-overflow: ellipsis;
 }
 
 select,
@@ -146,9 +156,10 @@ input[type='file'] {
 
 .segmented {
   display: inline-flex;
+  max-width: 100%;
   border: 1px solid var(--border);
   border-radius: 3px;
-  overflow: hidden;
+  overflow-x: auto;
 }
 
 .seg {
@@ -329,4 +340,63 @@ input[type='file'] {
   flex: 1;
   min-height: 300px;
   position: relative;
+}
+
+.chart-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.chart-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text);
+}
+
+.legend-sym {
+  font-weight: 600;
+}
+
+.legend .up {
+  color: var(--up);
+}
+
+.legend .down {
+  color: var(--down);
+}
+
+.legend .warn {
+  color: var(--warn);
+}
+
+.goto {
+  display: flex;
+  gap: 4px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
