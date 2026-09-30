@@ -37,3 +37,5 @@ export { hashColumns, seriesFromRows } from './data/columnar';
 export type { CandleRow, CandleSeries } from './data/columnar';
 export { FIXES, analyzeImport, normalize, requiredFixes } from './data/normalize';
 export type { Blocker, Fix, ImportAnalysis } from './data/normalize';
+export { bucketStart, resample } from './data/resample';
+export type { ResampledCandle } from './data/resample';

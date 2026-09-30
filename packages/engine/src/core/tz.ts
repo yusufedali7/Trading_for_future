@@ -38,9 +38,28 @@ export function isValidTimeZone(tz: string): boolean {
   return tz !== '' && IANAZone.isValidZone(tz);
 }
 
+// Modern zone transitions fall on quarter-hour UTC instants, so the offset is constant within
+// each 15-minute UTC slot. Caching per slot keeps minute-by-minute scans (market hours,
+// resampling) fast without changing results.
+const SLOT_MS = 15 * 60_000;
+const MAX_CACHED_SLOTS = 500_000;
+const offsetCache = new Map<IanaTz, Map<number, number>>();
+
 /** Offset of the zone from UTC at the given instant, in minutes (east positive). */
 export function offsetMinutes(utc: UtcMs, tz: IanaTz): number {
-  return zone(tz).offset(utc);
+  let byZone = offsetCache.get(tz);
+  if (!byZone) {
+    byZone = new Map();
+    offsetCache.set(tz, byZone);
+  }
+  const slot = Math.floor(utc / SLOT_MS);
+  let off = byZone.get(slot);
+  if (off === undefined) {
+    off = zone(tz).offset(slot * SLOT_MS);
+    if (byZone.size >= MAX_CACHED_SLOTS) byZone.clear();
+    byZone.set(slot, off);
+  }
+  return off;
 }
 
 function assertValidLocal(l: LocalDateTime): void {
@@ -64,7 +83,8 @@ function assertValidLocal(l: LocalDateTime): void {
  */
 export function localToUtc(local: LocalDateTime, tz: IanaTz): LocalToUtcResult {
   assertValidLocal(local);
-  const z = zone(tz);
+  zone(tz); // validates the name
+  const offsetAt = (t: UtcMs) => offsetMinutes(t, tz);
   // Wall time read as if it were UTC; the real instant is naive - offset.
   const naive = Date.UTC(
     local.year,
@@ -76,13 +96,13 @@ export function localToUtc(local: LocalDateTime, tz: IanaTz): LocalToUtcResult {
   );
   // Any offset valid for this wall time is in effect within a day of it.
   const candidateOffsets = new Set([
-    z.offset(naive - DAY_MS),
-    z.offset(naive),
-    z.offset(naive + DAY_MS),
+    offsetAt(naive - DAY_MS),
+    offsetAt(naive),
+    offsetAt(naive + DAY_MS),
   ]);
   const matches = [...candidateOffsets]
     .map((off) => naive - off * 60_000)
-    .filter((t) => z.offset(t) * 60_000 === naive - t)
+    .filter((t) => offsetAt(t) * 60_000 === naive - t)
     .sort((a, b) => a - b);
   const unique = [...new Set(matches)];
   if (unique.length === 0) return { kind: 'NONEXISTENT' };

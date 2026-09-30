@@ -105,6 +105,15 @@ describe('offsetMinutes', () => {
     expect(offsetMinutes(before, 'Europe/London')).toBe(0);
   });
 
+  it('switches exactly at the transition instant (repeated lookups stay correct)', () => {
+    for (let pass = 0; pass < 2; pass++) {
+      expect(offsetMinutes(utc('2026-03-29T00:59:59Z'), 'Europe/London')).toBe(0);
+      expect(offsetMinutes(utc('2026-03-29T01:00:00Z'), 'Europe/London')).toBe(60);
+      expect(offsetMinutes(utc('2026-11-01T05:59:59Z'), 'America/New_York')).toBe(-240);
+      expect(offsetMinutes(utc('2026-11-01T06:00:00Z'), 'America/New_York')).toBe(-300);
+    }
+  });
+
   it('knows Tokyo has no DST', () => {
     expect(offsetMinutes(utc('2026-01-01T00:00:00Z'), 'Asia/Tokyo')).toBe(540);
     expect(offsetMinutes(utc('2026-07-01T00:00:00Z'), 'Asia/Tokyo')).toBe(540);
