@@ -39,3 +39,4 @@ export { FIXES, analyzeImport, normalize, requiredFixes } from './data/normalize
 export type { Blocker, Fix, ImportAnalysis } from './data/normalize';
 export { bucketStart, resample } from './data/resample';
 export type { ResampledCandle } from './data/resample';
+export type { DataSetMeta, PriceType } from './data/dataset';
