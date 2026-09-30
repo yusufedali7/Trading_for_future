@@ -33,3 +33,7 @@ export type {
 } from './data/csv-rows';
 export { resolveTimes, validateRecords } from './data/validate';
 export type { DstIssue, TimedRecord, ValidationReport } from './data/validate';
+export { hashColumns, seriesFromRows } from './data/columnar';
+export type { CandleRow, CandleSeries } from './data/columnar';
+export { FIXES, analyzeImport, normalize, requiredFixes } from './data/normalize';
+export type { Blocker, Fix, ImportAnalysis } from './data/normalize';
