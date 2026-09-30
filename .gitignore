@@ -1,0 +1,18 @@
+# Dependencies & build output
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Market data — never committed (size + data provider terms, see docs/DECISIONS.md D12/D15)
+data/
+*.csv
+*.zip
+# Hand-written synthetic test fixtures are allowed
+!**/SYNTHETIC_*.csv
+
+# Environment & OS
+.env
+.env.*
+.DS_Store
+Thumbs.db

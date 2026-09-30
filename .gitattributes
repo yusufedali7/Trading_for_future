@@ -1,0 +1,6 @@
+# Normalize line endings to LF in the repo and working tree.
+# Deterministic hashes of test fixtures depend on this (CLAUDE.md rule 5).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.zip binary
