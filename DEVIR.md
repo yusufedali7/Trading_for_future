@@ -35,18 +35,25 @@ Tarayıcıda doğrulananlar (sentetik test verisiyle, sonra silindi):
 - 375 px telefon genişliğinde yatay kaydırma olmaması.
 
 ## Kullanıcıdan beklenen: Görev 13, gerçek veriyle kabul
-Adımlar **doğrulanmadı**; Dukascopy ekranındaki adlar farklı olabilir. Farklıysa bana ekran görüntüsü at.
-1. dukascopy.com → geçmiş veri (Historical Data Feed) sayfasında ücretsiz hesapla giriş yap.
-2. Enstrüman **EUR/USD**, zaman dilimi **1 dakika**, fiyat **BID**, saat dilimi **GMT**, son 2 yıl → CSV indir.
-   - Tek dosyada 2 yıl indirilemiyorsa bana söyle. Birden fazla dosyayı tek veri kümesinde birleştirme özelliği henüz yok.
-3. Uygulamayı başlat (`npm run dev`), **CSV içe aktar** → dosyayı seç. Ayarlar: kaynak adı "Dukascopy", saat dilimi **UTC / GMT**, fiyat tipi **BID** → Dosyayı oku → Analiz et.
-4. Doğrulama raporunu bana gönder (ekran görüntüsü yeterli). Özellikle bakacağım yerler: hafta sonu "düz mum" uyarısı, boşluklar, tick hassasiyeti.
-5. Kaydet → 1m, 15m, 1h ve 4H'ye geç. Rastgele 3 tane 4H mumunun A/Y/D/K değerlerini Dukascopy'nin kendi grafiğiyle karşılaştıracağız.
-6. Aynısını XAU/USD için tekrarla.
+Dukascopy web aracı 2026-09-30'da incelendi (https://widgets.dukascopy.com/en/historical-data-export).
+**Kısıt:** Periyot "Minute" seçiliyken yalnızca **tek gün** seçilebiliyor; "Hour" seçiliyken **tarih aralığı** seçilebiliyor. Yani 2 yıllık 1m veri bu araçla ancak günlük parçalar halinde (≈520 dosya) indirilebilir.
+Alanlar: enstrüman listesi → Export → Period (sayı + Tick/Second/Minute/Hour), Date, Timezone (UTC, Local time, şehirler), Offer side (Bid/Ask) → Download.
+Doğrulanmayanlar: indirmenin giriş gerektirip gerektirmediği, saat aralığının üst sınırı, CSV'nin kolon ve tarih biçimi.
+
+Önerilen kabul yolu (kullanıcı onayı bekleniyor, D14'ü değiştirir):
+1. EUR/USD, **1 Hour**, son 2 yıl, **UTC**, **Bid** → tek dosya. Taban zaman dilimi 1h olarak içe aktarılır.
+2. EUR/USD, **1 Minute**, tek bir gün (örn. bir Salı), UTC, Bid → 1m biçimini ve 1m→15m/1h/4H yolunu doğrulamak için.
+3. Aynısını XAU/USD için tekrarla.
+4. Doğrulama raporlarının ekran görüntüleri → 4H mumları Dukascopy'nin kendi grafiğiyle karşılaştırılır.
+
+Uzun 1m geçmişi için seçenekler (karar bekliyor):
+- (a) JForex demo hesabı → Historical Data Manager: aralıkla 1m dışa aktarımı mümkün görünüyor; doğrulanmadı.
+- (b) Birden çok günlük dosyayı tek veri kümesinde birleştirme özelliği.
+- (c) Otomatik veri adaptörü: CLAUDE.md gereği ayrı faz; önce kullanım koşulları kontrol edilir.
 
 ## Açık konular / doğrulanmamışlar
-- **Dukascopy CSV biçimi** (kolonlar, tarih biçimi, GMT seçeneği, hafta sonu düz mumları): ilk gerçek dosyayla netleşecek. Biçim tanınmazsa sihirbazdaki kolon eşlemesi elle ayarlanabilir.
-- **Birden çok dosyayı birleştirme** yok. Dukascopy indirmeyi parçalara bölerse eklenecek.
+- **Dukascopy CSV biçimi** (kolonlar, tarih biçimi, hafta sonu düz mumları): ilk gerçek dosyayla netleşecek. Biçim tanınmazsa sihirbazdaki kolon eşlemesi elle ayarlanabilir.
+- **Birden çok dosyayı birleştirme** yok. Dukascopy web aracı 1m veriyi günlük veriyor (yukarıya bak).
 - **Grafik tick yerleşimi:** Lightweight Charts ana tick'leri UTC gün sınırlarına göre seçiyor. Etiketler seçilen saat diliminde doğru, ama "gün" tick'i yerel gece yarısına denk gelmeyebilir. Özel yatay ölçek alternatifi doğrulanmadı.
 - **Altın (XAUUSD) tick hassasiyeti** 0.001 varsayıldı. Gerçek veride daha ince fiyat varsa doğrulama raporu gösterecek.
 - **1m görünümünde çok büyük veri:** 750 bin mumu grafiğe tek seferde vermek yavaş olabilir. Gerçek veriyle ölçülecek; gerekirse görünür aralık yüklenir.
