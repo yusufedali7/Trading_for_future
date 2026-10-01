@@ -1,6 +1,6 @@
-# PLAN — M2: Session ve manuel analiz
+﻿# PLAN — M2: Session ve manuel analiz
 
-> Durum: kullanıcı 2026-10-01'de "M2'ye başla, hız kesme" dedi; plan bu belgeyle kaydedildi ve uygulamaya geçildi. Kararlar `docs/DECISIONS.md` (D23+).
+> Durum: kullanıcı 2026-10-01'de "M2'ye başla, hız kesme" dedi; plan bu belgeyle kaydedildi ve uygulamaya geçildi. Görev 1–9 tamamlandı (2026-10-01). Kararlar `docs/DECISIONS.md` (D23–D25).
 
 ## Amaç
 Grafikte Asya, Londra ve New York seanslarını, her birinin en yüksek ve en düşük seviyesiyle kutu olarak görmek. Elle çizim yapmak: yatay çizgi, trend çizgisi, bölge, fiyat aralığı ve long/short pozisyon aracı. Destek/direnç seviyelerini meta verileriyle (tür, zaman dilimi, not, durum) kaydetmek. Bunların hepsi kalıcı olacak.

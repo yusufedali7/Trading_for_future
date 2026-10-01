@@ -137,6 +137,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Karar:** Kesirli konumlar iki komşu tam sayı konumun koordinatı arasında doğrusal olarak hesaplanır (`chart/lwc-coords.ts`). Zaman ↔ konum dönüşümü (`chart/coords.ts`) bar içinde orantılıdır, veri boşluğunda bir önceki barın sağ kenarına yaslanır, son bardan sonrası için uzatılır. Böylece çizimler ve kutular her zaman diliminde aynı zamana denk gelir.
 - **Ek:** Zaman dilimi değişince grafik görünür zaman aralığını korur. Yeni veri yüklenirken eski grafik ekranda kalır; grafik bileşeni yeniden kurulmaz.
 
+## D25 — Çizim modeli ve etkileşim
+- **Tarih:** 2026-10-01 · **Durum:** Kabul edildi (M2)
+- **Model:** Çizim noktaları UTC zaman + fiyat olarak saklanır (`Anchor`). Bu yüzden zaman dilimi değişince yerinde kalırlar. Fiyat tick'e yuvarlanır. Yalnızca kullanıcı çizimleri (`source: USER`) saklanır; motor katmanları (seans kutuları, ileride M4 adayları) her seferinde türetilir.
+  - Pozisyon aracı 3 noktadır: giriş, stop, hedef. Stop ve hedef aynı bitiş zamanını paylaşır. Varsayılan: 20 pip stop, 2R hedef, 20 bar genişlik. Lot hesabı yok (M5).
+- **Destek/direnç seviyesi:** Bir çizime bağlıdır (`drawingId`). Fiyatı ya da bölgesi o çizimden gelir; çizim silinince seviye de silinir. Durum değişiklikleri (Aktif / Kırıldı / Retest / Geçersiz) zaman ve isteğe bağlı notla geçmişe eklenir; değişiklikler değişmez kopyayla yapılır. Yeni seviye, son kapanışın altındaysa "Destek", üstündeyse "Direnç" olarak başlar; kullanıcı değiştirebilir.
+- **Etkileşim:**
+  - Tıklama, grafik kütüphanesinin tıklama olayıyla değil pointer olaylarıyla algılanır: fiyat paneli içinde basma ve bırakma arasında 4 pikselden az hareket. Sebep: Lightweight Charts 5.2.1, yaklaşık 500 ms içinde gelen ve ilkinden 5 pikselden uzak ikinci tıklamayı hiç bildirmiyor (kaynak kodda doğrulandı); bu yüzden hızlı çizilen ikinci nokta kayboluyordu.
+  - Tutamak sürüklenirken grafiğin kaydırma ve yakınlaştırması geçici olarak kapatılır.
+  - Çizim bitince araç otomatik olarak "Seç"e döner. Delete seçili çizimi siler, Esc aracı ve seçimi iptal eder.
+- **Görünüm:** Kullanıcı çizimleri düz çizgilidir. Motor katmanı kesik çizgili ve etiketlidir. Yeşil ve kırmızı yalnızca fiyat aralığının yönünde ve pozisyonun kâr/zarar bölgelerinde kullanılır; her ikisi de işaretli metinle desteklenir.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

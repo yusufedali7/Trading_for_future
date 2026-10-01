@@ -178,3 +178,45 @@ Verinin tamamından hesaplanan kısa bir kod (64 karakter). Veride tek bir fiyat
 
 ### Bilgi şeridindeki kısaltmalar
 Grafiğin üstündeki satırda: **A** açılış, **Y** en yüksek, **D** en düşük, **K** kapanış. ▲ mumun yükselişle, ▼ düşüşle kapandığını gösterir.
+
+---
+
+## M2'de eklenenler: seanslar ve elle analiz
+
+### Seans kutusu
+Bir seansın başlangıç ve bitiş saatleri arasında fiyatın en yükseği ile en düşüğünü gösteren kutu.
+*Uygulamada:* Asya mor, Londra mavi, New York bakır renginde, kesik çizgili ve isim etiketlidir. Seans henüz bitmediyse kutu soluk görünür ve "devam ediyor" yazar. Çünkü o seansın en yükseği ve en düşüğü daha kesinleşmemiştir; bunu kesinmiş gibi kullanmak "ileriye bakma" hatası olur.
+
+### Seans çakışması (overlap)
+İki seansın aynı anda açık olduğu saatler. Londra–New York çakışması genelde günün en hareketli zamanıdır.
+*Bilgi:* ABD ve İngiltere yaz saatine farklı haftalarda geçer. Örneğin 2026'da 8–29 Mart arasında Londra–New York çakışması 4 yerine 5 saat sürer. Uygulama bunu otomatik hesaplar.
+
+### Destek ve direnç
+- **Destek:** Fiyatın düşerken durup döndüğü düşünülen seviye.
+- **Direnç:** Fiyatın yükselirken durup döndüğü düşünülen seviye.
+- **Rol değişimi (flip):** Kırılan bir direncin sonradan destek olarak çalışması ya da tersi.
+
+Bunlar kesin kurallar değil, gözlemdir. Bir seviyenin "çalışıp çalışmadığı" ancak çok sayıda örnekle ölçülebilir; M5'te bunu yapabileceğiz.
+*Uygulamada:* Yatay çizgi ya da bölge çiz, "Destek/direnç olarak kaydet" de. Her seviyenin türü, zaman dilimi, notu ve durumu olur.
+
+### Kırılım ve retest
+- **Kırılım:** Fiyatın bir seviyenin ötesinde kapanması.
+- **Retest:** Kırılan seviyeye geri dönüp test etmesi.
+
+*Uygulamada:* Seviyenin durumunu "Kırıldı" ya da "Retest" yaptığında bu değişiklik tarih ve notla geçmişe yazılır. Böylece ileride kendi gözlemlerini geriye dönük inceleyebilirsin.
+
+### Trend çizgisi
+Ardışık diplerden (yükselen trend) ya da tepelerden (düşen trend) geçen eğimli çizgi.
+
+### Bölge (zone)
+Tek bir fiyat yerine bir fiyat aralığı. Fiyat genelde tam bir çizgiye değil, bir bölgeye tepki verir.
+
+### Fiyat aralığı aracı
+İki nokta arasındaki farkı ölçer: kaç pip, yüzde kaç, ne kadar sürede. Yukarı hareket yeşil ve "+", aşağı hareket kırmızı ve "−" ile gösterilir.
+
+### Long / short pozisyon aracı ve R:R
+- **Long:** Yükselişten kazanç bekleyen işlem. **Short:** Düşüşten kazanç bekleyen işlem.
+- **R:R (risk/ödül oranı):** Hedefe kadar olan mesafenin stop'a kadar olan mesafeye oranı. 20 pip stop ve 40 pip hedef → R:R 2,00.
+
+Yüksek R:R tek başına iyi bir işlem demek değildir; hedefe ulaşma olasılığı da önemlidir. Bu olasılık ancak backtest ile ölçülür (M5).
+*Uygulamada:* Araç 20 pip stop ve 2R hedefle başlar; fiyatları panelden değiştirebilirsin. Stop girişin yanlış tarafındaysa araç "Geçersiz" der.
