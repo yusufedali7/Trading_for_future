@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
 import { fileURLToPath } from 'node:url';
 
@@ -12,6 +12,12 @@ async function ruleIdsFor(code: string): Promise<string[]> {
   const [result] = await eslint.lintText(code, { filePath: engineFile });
   return (result?.messages ?? []).map((m) => m.ruleId ?? 'fatal');
 }
+
+// Loading the ESLint + typescript-eslint config is slow when the whole suite runs in parallel;
+// warm it up once with a generous timeout so individual tests measure only the rule check.
+beforeAll(async () => {
+  await ruleIdsFor('export {};\n');
+}, 60_000);
 
 describe('engine purity lint rules', () => {
   it.each([

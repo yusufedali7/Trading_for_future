@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { guessMapping, parseCsvRows, type CsvMapping } from '../src/data/csv-rows';
+import { guessMapping, parseCsvRows, parseDate, type CsvMapping } from '../src/data/csv-rows';
 import { fixtureRows } from './helpers/csv';
 
 const dukascopyLike: CsvMapping = {
@@ -132,5 +132,44 @@ describe('guessMapping', () => {
 
   it('returns null when it cannot recognise the layout', () => {
     expect(guessMapping([['hello', 'world']])).toBeNull();
+  });
+});
+
+describe('ISO 8601 timestamps (Dukascopy web export layout)', () => {
+  it('guesses the layout from an "Etc/UTC" header and ISO dates', () => {
+    expect(guessMapping(fixtureRows('SYNTHETIC_dukascopy_iso.csv'))).toEqual({
+      hasHeader: true,
+      time: { kind: 'SINGLE', column: 0 },
+      dateFormat: 'ISO_8601',
+      open: 1,
+      high: 2,
+      low: 3,
+      close: 4,
+      volume: 5,
+    });
+  });
+
+  it('reads the explicit offset as an exact UTC instant', () => {
+    const rows = fixtureRows('SYNTHETIC_dukascopy_iso.csv');
+    const { records, errors } = parseCsvRows(rows, guessMapping(rows)!);
+    expect(errors).toEqual([]);
+    expect(records[0]!.time).toEqual({ kind: 'UTC', utc: Date.parse('2026-01-06T15:00:00Z') });
+  });
+
+  it('applies non-zero offsets and Z', () => {
+    expect(parseDate('2026-01-06T17:00:00+02:00', 'ISO_8601')).toEqual({
+      kind: 'UTC',
+      utc: Date.parse('2026-01-06T15:00:00Z'),
+    });
+    expect(parseDate('2026-01-06T15:00:00Z', 'ISO_8601')).toEqual({
+      kind: 'UTC',
+      utc: Date.parse('2026-01-06T15:00:00Z'),
+    });
+  });
+
+  it('rejects ISO dates without an offset or with impossible values', () => {
+    expect(parseDate('2026-01-06T15:00:00', 'ISO_8601')).toBeNull();
+    expect(parseDate('2026-02-30T15:00:00+00:00', 'ISO_8601')).toBeNull();
+    expect(parseDate('2026-01-06T15:00:00.500+00:00', 'ISO_8601')).toBeNull();
   });
 });

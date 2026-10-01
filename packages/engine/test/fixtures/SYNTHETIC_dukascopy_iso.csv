@@ -1,0 +1,4 @@
+# SYNTHETIC test fixture: hand-written in the Dukascopy web-export layout, not market data.
+Etc/UTC,Open,High,Low,Close,Volume
+2026-01-06T15:00:00+00:00,1.085,1.0852,1.0849,1.0851,117970000
+2026-01-06T15:01:00+00:00,1.0851,1.0853,1.08505,1.08525,191520000
