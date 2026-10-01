@@ -118,6 +118,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Tarih:** 2026-09-30 · **Durum:** Kabul edildi
 - **Karar:** M1'de yalnızca `trw-market` ve `trw-user` (tercihler) oluşturuldu. Diğer iki veritabanı ilk kullanılacakları taşta (M3/M5) eklenecek. Boş şema oluşturmak şimdilik bir şey kazandırmıyor.
 
+## D22 — Uzun geçmiş verisi dukascopy-node ile alınır (uygulamanın dışında, tek seferlik)
+- **Tarih:** 2026-10-01 · **Durum:** Kabul edildi (kullanıcı onayıyla)
+- **Bağlam:** Dukascopy web aracı 1m veriyi tek gün, 1h veriyi en fazla 1 ay indiriyor (D12). İncelenen GitHub veri repolarının çoğu kaynak, saat dilimi ve fiyat tipi belirtmiyor; bu yüzden elendi (kural 1–2: kaynağı bilinmeyen veri yok).
+- **Karar:** `dukascopy-node@1.50.0` (MIT, npm; sürüm sabitlenmiş) kullanıcının makinesinde tek seferlik CSV üretmek için çalıştırılır: `-t m1 -p bid -v -vu units -f csv`, UTC, hafta sonu düz mumları hariç. Çıktı proje kökündeki `/data/` klasörüne yazılır; git dışıdır. Sonra normal içe aktarma sihirbazından geçer. Uygulama içinde otomatik veri adaptörü **değildir**; o ayrı bir faz olarak kalır (CLAUDE.md).
+- **Doğrulama:** Aynı günler için Dukascopy web aracından indirilen resmi dosyalarla karşılaştırıldı. 2024-10-01 1h: 24/24 satır aynı. 2026-10-01 1m: 582/582 satırda OHLC birebir aynı, hacimler sayısal olarak eşit.
+- **Kısıtlar:** Dukascopy hız sınırı uyguluyor (HTTP 429). İndirme düşük paralellik ve beklemeyle yapılır (`-bs 2 -bp 3000`, yeniden deneme 5 sn). Dukascopy toplu indirme hakkında açık bir koşul yazmıyor (doğrulanmadı); kullanım kişisel araştırma ile sınırlıdır ve veri paylaşılmaz.
+- **Biçim:** başlık `timestamp,open,high,low,close,volume`, zaman Unix ms (UTC). Motor bunu `UNIX_MS` olarak okur.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
