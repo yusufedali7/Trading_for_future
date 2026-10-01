@@ -1,13 +1,36 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-01 (M1 oturumu, veri indirme)_
+_Son güncelleme: 2026-10-01 (M1 oturumu, gerçek veriyle kabul)_
 
 ## Durum özeti
-- **Aktif kilometre taşı:** M1 (Veri ve grafik): görev 1–12 tamamlandı. **Görev 13 (gerçek veriyle kabul): 2 yıllık 1m veri indiriliyor** (D22).
-- **İndirme durumu:** gün dosyaları `data/.dukascopy-cache/` altında (git dışı). EURUSD 632/730, XAUUSD 424/730 gün. Eksik günler, sırayla ve kibar hızda indiren bir betikle tamamlanıyor; betik yalnızca eksik günleri indirir. Sonra CSV, `npx dukascopy-node@1.50.0 ... -ch -chpath data/.dukascopy-cache` ile tamamen önbellekten üretilir.
-- **Ağ notu:** Bazı ağlarda (ör. 2026-10-01 kafe Wi-Fi) Dukascopy alan adları idari tedbirle erişime kapalı ("erişime engellenmiş" sayfası). Engel aşılmaya çalışılmaz (VPN/DNS değişikliği yok). İndirme, erişimin normal olduğu ev bağlantısında tamamlanır.
-- Testler: **154 test yeşil**. Lint, tip kontrolü ve üretim derlemesi temiz; temiz clone ile doğrulandı.
-- Git: tüm işler yerel `main` dalında commit edildi. **Push'u kullanıcı kendisi yapıyor** (`git push`). Son push'tan beri 7 commit bekliyor; içlerinde daha önce `.gitignore` yüzünden GitHub'a gitmemiş motor `data/` modülleri de var.
+- **Aktif kilometre taşı:** M1 (Veri ve grafik): görev 1–13 tamamlandı. **Kullanıcının kendi tarayıcısında içe aktarıp onaylaması bekleniyor**; onaydan sonra M1 kapanır ve M2 planı sunulur.
+- **Veri (git dışı, `data/`):** `eurusd_m1_bid_2024-10-01_2026-09-30.csv` (38,7 MB, 736.706 mum), `xauusd_m1_bid_2024-10-01_2026-09-30.csv` (38,1 MB, 708.763 mum), karşılaştırma için `*_h1_*` dosyaları. Gün önbelleği: `data/.dukascopy-cache/` (730/730 gün, iki enstrüman).
+- **Ağ notu:** Bazı ağlarda (ör. 2026-10-01 kafe Wi-Fi) Dukascopy alan adları idari tedbirle erişime kapalı ("erişime engellenmiş" sayfası). Kalan indirme, kullanıcının kendi bağladığı VPN üzerinden tamamlandı.
+- Testler: **155 test yeşil**. Lint, tip kontrolü ve üretim derlemesi temiz; temiz clone ile doğrulandı.
+- Git: tüm işler yerel `main` dalında commit edildi. **Push'u kullanıcı kendisi yapıyor** (`git push`). İçlerinde daha önce `.gitignore` yüzünden GitHub'a gitmemiş motor `data/` modülleri de var.
+
+## Görev 13: gerçek veriyle kabul (2026-10-01)
+**Uygulamada (gömülü tarayıcı, EURUSD 2 yıl, 1m):** okuma 1,0 sn; analiz 1,8 sn; kayıt 1,3 sn; ilk grafik 1,1 sn. Zaman dilimi geçişleri: 4H ≈ 0,6 sn, 1D ≈ 0,6 sn, 1h ≈ 1,9 sn, **1m ≈ 7,6 sn** (736 bin mum tek seferde; iyileştirme listesinde).
+
+**Sayısal kabul:** 1m'den üretilen 4H/1D mumları, Dukascopy'nin kendi 1h verisinden üretilenlerle karşılaştırıldı (OHLC birebir).
+| | 4H aynı | 1D aynı |
+|---|---|---|
+| XAUUSD | 3078 / 3094 (%99,5) | 510 / 517 |
+| EURUSD | 2872 / 3091 (%93) | 444 / 521 |
+Farklar yeniden örneklemeden değil, **kaynaktan** geliyor. Örnek: XAUUSD 2025-01-16 02:00'da 1m verisinin ilk dakikası 2695,919 ile açılıyor; Dukascopy'nin kendi 1h mumu ise 2697,705 (02:02'nin açılışı) diyor. EURUSD farkları Ekim 2024'te (neredeyse her mum 1–3 puan) ve 2–6 Aralık 2024'te yoğunlaşıyor.
+
+**Kaynak veri kalitesi bulguları (Dukascopy):**
+- **EURUSD 2024-10-10:** 617 dakikada OHLC kendi içinde tutarsız. Ham JSON elle çözülerek doğrulandı; kesirli delta değerleri var. İçe aktarmada `DROP_INVALID_PRICES` kabul edilerek çıkarıldı.
+- **EURUSD 2–6 Aralık 2024:** 1 dakikalık veride günde 1 mum var, 1h veride 24 saat tam. Taze indirme de aynı sonucu verdi. Gelecekte tick verisinden yeniden oluşturulabilir.
+- **Tatiller** (25 Aralık, 1 Ocak, Paskalya öncesi Cuma, ABD tatillerinde altının erken kapanışı): piyasa kapalı, ama tatil takvimi henüz modelde yok; "boşluk" olarak raporlanıyor.
+- **EURUSD'de 2.136 küçük boşluk:** çoğu 1 dakikalık sessiz an. Araç sıfır hacimli "düz" dakikaları dışarıda bırakıyor (`--flats` kapalı).
+- **XAUUSD:** düzeltme gerektirmedi.
+
+## İyileştirme listesi (M1 sonrası, önceliğe göre)
+1. 1m görünümünde yalnızca görünür aralığı grafiğe vermek (7,6 sn → hedef < 1 sn).
+2. Tatil / erken kapanış takvimi (boşluk raporunu sadeleştirir; M2 session engine ile birlikte).
+3. 2–6 Aralık 2024 EURUSD boşluğunu tick verisinden doldurma (isteğe bağlı).
+4. Sıfır hacimli dakikaları (flats) "beklenen" olarak ayırmak.
 
 ## M1'de yapılanlar
 | # | Görev | Sonuç |
