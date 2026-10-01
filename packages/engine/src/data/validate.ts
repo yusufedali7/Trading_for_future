@@ -134,7 +134,7 @@ export function validateRecords(
   const sorted = [...records].sort((a, b) => a.t - b.t || a.row - b.row);
   const duplicates: ValidationReport['duplicates'] = [];
   const uniqueTimes: UtcMs[] = [];
-  for (let i = 0; i < sorted.length; ) {
+  for (let i = 0; i < sorted.length;) {
     let j = i + 1;
     while (j < sorted.length && sorted[j]!.t === sorted[i]!.t) j++;
     const group = sorted.slice(i, j);

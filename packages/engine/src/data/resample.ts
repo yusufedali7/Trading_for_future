@@ -26,7 +26,6 @@ interface Range {
   end: UtcMs;
 }
 
-
 /** UTC instant of the daily-close wall time on the given local calendar date. */
 function closeOn(inst: Instrument, year: number, month: number, day: number): UtcMs {
   const [hh, mm] = inst.dailyClose.time.split(':').map(Number);
@@ -43,7 +42,9 @@ function closeOn(inst: Instrument, year: number, month: number, day: number): Ut
   );
   // A daily close inside a DST gap/overlap would be a misconfiguration; fail loudly.
   if (res.kind !== 'OK') {
-    throw new Error(`Daily close ${inst.dailyClose.time} is ${res.kind} on ${year}-${month}-${day}`);
+    throw new Error(
+      `Daily close ${inst.dailyClose.time} is ${res.kind} on ${year}-${month}-${day}`,
+    );
   }
   return res.utc;
 }
@@ -148,4 +149,3 @@ export function resample(
   finish();
   return out;
 }
-

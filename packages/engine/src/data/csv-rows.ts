@@ -78,7 +78,14 @@ function parseIso(v: string): RecordTime | null {
   if (!isValidCalendar(local)) return null;
   const offsetMin =
     m[8] === 'Z' ? 0 : (m[9] === '-' ? -1 : 1) * (Number(m[10]) * 60 + Number(m[11]));
-  const wall = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute, local.second);
+  const wall = Date.UTC(
+    local.year,
+    local.month - 1,
+    local.day,
+    local.hour,
+    local.minute,
+    local.second,
+  );
   // An explicit offset pins the instant exactly; the user's source time zone is not needed.
   return { kind: 'UTC', utc: wall - offsetMin * 60_000 };
 }
@@ -258,14 +265,23 @@ function withVolume(m: CsvMapping, volume: number | undefined): CsvMapping {
   return volume === undefined ? m : { ...m, volume };
 }
 
-function guessWithHeader(rows: readonly (readonly string[])[], headerIndex: number): CsvMapping | null {
+function guessWithHeader(
+  rows: readonly (readonly string[])[],
+  headerIndex: number,
+): CsvMapping | null {
   const header = rows[headerIndex]!;
   const sample = rows.slice(headerIndex + 1).find((r) => !isBlank(r));
   const open = findColumn(header, HEADER_NAMES.open);
   const high = findColumn(header, HEADER_NAMES.high);
   const low = findColumn(header, HEADER_NAMES.low);
   const close = findColumn(header, HEADER_NAMES.close);
-  if (!sample || open === undefined || high === undefined || low === undefined || close === undefined) {
+  if (
+    !sample ||
+    open === undefined ||
+    high === undefined ||
+    low === undefined ||
+    close === undefined
+  ) {
     return null;
   }
   const dateCol = findColumn(header, HEADER_NAMES.date);

@@ -91,7 +91,10 @@ export function normalize(
   let recs: TimedRecord[] = a.records;
 
   if (fixes.includes('DROP_INVALID_PRICES')) {
-    const bad = new Set([...v.nonPositive.map((x) => x.row), ...v.ohlcInconsistent.map((x) => x.row)]);
+    const bad = new Set([
+      ...v.nonPositive.map((x) => x.row),
+      ...v.ohlcInconsistent.map((x) => x.row),
+    ]);
     recs = recs.filter((r) => !bad.has(r.row));
   }
   if (fixes.includes('DROP_CLOSED_MARKET_CANDLES')) {
