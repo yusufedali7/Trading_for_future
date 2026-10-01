@@ -1,5 +1,5 @@
 ﻿import { useEffect, useRef, type RefObject } from 'react';
-import type { IChartApi, ISeriesApi, MouseEventParams, Time } from 'lightweight-charts';
+import type { IChartApi, ISeriesApi } from 'lightweight-charts';
 import {
   defaultPosition,
   roundToTick,
@@ -14,6 +14,7 @@ import {
 import { positionToTime, timeToPosition } from './coords';
 import { hitTestDrawings, hitTestHandle, type PixelMapper, type Point } from './drawing-geometry';
 import { logicalToX, timeScaleAdapter, xToLogical } from './lwc-coords';
+import { isClick, isInPane } from './pointer-click';
 import { DrawingsPrimitive } from './primitives/drawings';
 
 export type Tool = 'SELECT' | DrawingKind;
@@ -61,7 +62,6 @@ export function useDrawingLayer(
   const pendingRef = useRef<Anchor | null>(null);
   const previewRef = useRef<Drawing | null>(null);
   const draftRef = useRef<Drawing | null>(null);
-  const suppressClickRef = useRef(false);
 
   const mapper = (): PixelMapper | null => {
     const chart = chartRef.current;
@@ -131,23 +131,31 @@ export function useDrawingLayer(
     render();
   });
 
-  // Clicks: create or select.
+  // Pointer handling on the chart container. Clicks are detected here rather than via the
+  // chart's click event, which drops a second click within ~500 ms (DECISIONS D25).
   useEffect(() => {
+    const el = containerRef.current;
     const chart = chartRef.current;
-    if (!chart) return;
-    const onClick = (param: MouseEventParams<Time>) => {
-      if (suppressClickRef.current) {
-        suppressClickRef.current = false;
-        return;
-      }
-      if (!param.point) return;
+    if (!el || !chart) return;
+    let drag: { index: number; base: Drawing; pointerId: number } | null = null;
+    let press: Point | null = null;
+    const local = (e: PointerEvent): Point => {
+      const r = el.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+    const pane = () => ({
+      width: chart.timeScale().width(),
+      height: chart.panes()[0]?.getHeight() ?? 0,
+    });
+
+    const handleClick = (pt: Point) => {
       const s = latest.current;
       if (s.tool === 'SELECT') {
         const m = mapper();
-        s.onSelect(m ? hitTestDrawings(s.drawings, param.point, m) : null);
+        s.onSelect(m ? hitTestDrawings(s.drawings, pt, m) : null);
         return;
       }
-      const a = anchorAt(param.point);
+      const a = anchorAt(pt);
       if (!a) return;
       const kind = s.tool;
       if (kind === 'HLINE') s.onDrawn(kind, [a]);
@@ -162,11 +170,43 @@ export function useDrawingLayer(
         s.onDrawn(kind, [first, a]);
       }
     };
-    const onMove = (param: MouseEventParams<Time>) => {
+
+    const onDown = (e: PointerEvent) => {
+      if (e.button !== 0) return;
+      const pt = local(e);
+      if (!isInPane(pt, pane())) return;
+      const s = latest.current;
+      const selected =
+        s.tool === 'SELECT' && s.selectedId
+          ? s.drawings.find((d) => d.id === s.selectedId)
+          : undefined;
+      const m = mapper();
+      const index = selected && !selected.locked && m ? hitTestHandle(selected, pt, m) : null;
+      if (selected && index !== null) {
+        // Grabbing a handle: keep the chart from panning (capture phase runs before the chart).
+        e.preventDefault();
+        e.stopPropagation();
+        chart.applyOptions({ handleScroll: false, handleScale: false });
+        drag = { index, base: selected, pointerId: e.pointerId };
+        el.setPointerCapture(e.pointerId);
+        return;
+      }
+      press = pt;
+    };
+
+    const onMove = (e: PointerEvent) => {
+      const pt = local(e);
+      if (drag) {
+        const a = anchorAt(pt);
+        if (!a) return;
+        draftRef.current = moveAnchor(drag.base, drag.index, a);
+        render();
+        return;
+      }
       const first = pendingRef.current;
       const s = latest.current;
-      if (!first || !param.point || s.tool === 'SELECT') return;
-      const b = anchorAt(param.point);
+      if (!first || s.tool === 'SELECT' || !isInPane(pt, pane())) return;
+      const b = anchorAt(pt);
       if (!b) return;
       previewRef.current = {
         id: '__preview__',
@@ -183,66 +223,43 @@ export function useDrawingLayer(
       };
       render();
     };
-    chart.subscribeClick(onClick);
-    chart.subscribeCrosshairMove(onMove);
-    return () => {
-      chart.unsubscribeClick(onClick);
-      chart.unsubscribeCrosshairMove(onMove);
-    };
-  }, []);
 
-  // Dragging handles of the selected drawing (select tool only).
-  useEffect(() => {
-    const el = containerRef.current;
-    const chart = chartRef.current;
-    if (!el || !chart) return;
-    let drag: { index: number; base: Drawing; pointerId: number } | null = null;
-    const local = (e: PointerEvent): Point => {
-      const r = el.getBoundingClientRect();
-      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    const onUp = (e: PointerEvent) => {
+      if (drag) {
+        const draft = draftRef.current;
+        el.releasePointerCapture(drag.pointerId);
+        drag = null;
+        draftRef.current = null;
+        chart.applyOptions({ handleScroll: true, handleScale: true });
+        if (draft) latest.current.onChange(draft);
+        render();
+        return;
+      }
+      const start = press;
+      press = null;
+      const pt = local(e);
+      if (start && isClick(start, pt) && isInPane(pt, pane())) handleClick(pt);
     };
-    const onDown = (e: PointerEvent) => {
-      const s = latest.current;
-      if (s.tool !== 'SELECT' || !s.selectedId) return;
-      const selected = s.drawings.find((d) => d.id === s.selectedId);
-      const m = mapper();
-      if (!selected || selected.locked || !m) return;
-      const index = hitTestHandle(selected, local(e), m);
-      if (index === null) return;
-      e.preventDefault();
-      e.stopPropagation();
-      chart.applyOptions({ handleScroll: false, handleScale: false });
-      drag = { index, base: selected, pointerId: e.pointerId };
-      el.setPointerCapture(e.pointerId);
+
+    const onCancel = () => {
+      press = null;
+      if (drag) {
+        drag = null;
+        draftRef.current = null;
+        chart.applyOptions({ handleScroll: true, handleScale: true });
+        render();
+      }
     };
-    const onMovePtr = (e: PointerEvent) => {
-      if (!drag) return;
-      const a = anchorAt(local(e));
-      if (!a) return;
-      draftRef.current = moveAnchor(drag.base, drag.index, a);
-      render();
-    };
-    const onUp = () => {
-      if (!drag) return;
-      const draft = draftRef.current;
-      el.releasePointerCapture(drag.pointerId);
-      drag = null;
-      draftRef.current = null;
-      chart.applyOptions({ handleScroll: true, handleScale: true });
-      suppressClickRef.current = true;
-      if (draft) latest.current.onChange(draft);
-      render();
-    };
-    // Capture phase so the chart does not start panning when a handle is grabbed.
+
     el.addEventListener('pointerdown', onDown, { capture: true });
-    el.addEventListener('pointermove', onMovePtr);
+    el.addEventListener('pointermove', onMove);
     el.addEventListener('pointerup', onUp);
-    el.addEventListener('pointercancel', onUp);
+    el.addEventListener('pointercancel', onCancel);
     return () => {
       el.removeEventListener('pointerdown', onDown, { capture: true });
-      el.removeEventListener('pointermove', onMovePtr);
+      el.removeEventListener('pointermove', onMove);
       el.removeEventListener('pointerup', onUp);
-      el.removeEventListener('pointercancel', onUp);
+      el.removeEventListener('pointercancel', onCancel);
     };
   }, []);
 }
