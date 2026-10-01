@@ -48,6 +48,19 @@ describe('ImportSession', () => {
     });
   });
 
+  it('lists the largest gaps first so real holes are not hidden behind one-minute gaps', () => {
+    const lines = ['Gmt time,Open,High,Low,Close,Volume'];
+    // 15:00-15:09 continuous; then a 1-bar gap; then a 20-bar gap.
+    const m = (min: number) =>
+      `06.01.2026 ${String(15 + Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}:00.000,1.085,1.0852,1.0849,1.0851,1`;
+    for (let i = 0; i < 10; i++) lines.push(m(i));
+    lines.push(m(11), m(32), m(33));
+    const s = new ImportSession();
+    const { guess } = s.read(lines.join('\n'), 'SYNTHETIC_gaps.csv');
+    const a = s.analyze(guess!, 'UTC', 'EURUSD');
+    expect(a.samples.gaps.map((g) => g.missingBars)).toEqual([20, 1]);
+  });
+
   it('caps issue samples but keeps exact counts', () => {
     const lines = ['Gmt time,Open,High,Low,Close,Volume'];
     for (let i = 0; i < 30; i++)

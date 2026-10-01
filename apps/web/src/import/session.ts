@@ -138,7 +138,8 @@ export class ImportSession {
         dstIssues: cap(a.dstIssues),
         duplicates: cap(v.duplicates),
         outOfOrder: cap(v.outOfOrder),
-        gaps: cap(v.gaps),
+        // Largest first: real holes must not hide behind many one-minute quiet gaps.
+        gaps: cap([...v.gaps].sort((x, y) => y.missingBars - x.missingBars || x.from - y.from)),
         closedMarketCandles: cap(v.closedMarketCandles),
         nonPositive: cap(v.nonPositive),
         ohlcInconsistent: cap(v.ohlcInconsistent),
