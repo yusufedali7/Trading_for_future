@@ -44,3 +44,20 @@ export { BUILTIN_SESSIONS, getBuiltinSession, sessionInstances } from './session
 export type { SessionDefinition, SessionInstance } from './session/sessions';
 export { sessionLevels } from './session/levels';
 export type { SessionLevels } from './session/levels';
+export {
+  ANCHOR_COUNT,
+  defaultPosition,
+  positionStats,
+  priceRangeStats,
+  setLevelStatus,
+  validateDrawing,
+} from './user/drawings';
+export type {
+  Anchor,
+  Drawing,
+  DrawingKind,
+  DrawingProblem,
+  LevelKind,
+  LevelStatus,
+  SupportResistanceLevel,
+} from './user/drawings';
