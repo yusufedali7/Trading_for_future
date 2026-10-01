@@ -5,12 +5,15 @@ export interface Prefs {
   datasetId: string | null;
   timeframe: Timeframe;
   displayTz: IanaTz;
+  /** Ids of sessions drawn on the chart. */
+  sessions: string[];
 }
 
 export const DEFAULT_PREFS: Prefs = {
   datasetId: null,
   timeframe: '15m',
   displayTz: 'Europe/Istanbul',
+  sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
 };
 
 export interface PrefsRepo {

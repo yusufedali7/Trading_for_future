@@ -1,10 +1,12 @@
 import {
+  BUILTIN_SESSIONS,
   TIMEFRAMES,
   compareTimeframes,
   type DataSetMeta,
   type IanaTz,
   type Timeframe,
 } from '@trw/engine';
+import { SESSION_COLORS } from '../../chart/theme';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
 
@@ -16,6 +18,8 @@ export interface ToolbarProps {
   onDataset: (id: string) => void;
   onTimeframe: (tf: Timeframe) => void;
   onDisplayTz: (tz: IanaTz) => void;
+  visibleSessions: readonly string[];
+  onToggleSession: (id: string) => void;
   onImport: () => void;
 }
 
@@ -63,6 +67,21 @@ export function Toolbar(p: ToolbarProps) {
           ))}
         </select>
       </label>
+
+      <div className="segmented" role="group" aria-label={tr.toolbar.sessions}>
+        {BUILTIN_SESSIONS.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            className="seg seg-session"
+            aria-pressed={p.visibleSessions.includes(s.id)}
+            onClick={() => p.onToggleSession(s.id)}
+          >
+            <span className="dot" style={{ background: SESSION_COLORS[s.id] }} aria-hidden="true" />
+            {s.name}
+          </button>
+        ))}
+      </div>
 
       <span className="spacer" />
       <button type="button" className="btn" onClick={p.onImport}>

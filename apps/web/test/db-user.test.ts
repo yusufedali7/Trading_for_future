@@ -1,4 +1,4 @@
-import 'fake-indexeddb/auto';
+﻿import 'fake-indexeddb/auto';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_PREFS, createDexiePrefsRepo } from '../src/storage/db-user';
 
@@ -10,11 +10,12 @@ describe('user preferences repo', () => {
     expect(await fresh().load()).toEqual(DEFAULT_PREFS);
   });
 
-  it('defaults to 15m and Europe/Istanbul display time', () => {
+  it('defaults to 15m, Europe/Istanbul display time and all built-in sessions visible', () => {
     expect(DEFAULT_PREFS).toEqual({
       datasetId: null,
       timeframe: '15m',
       displayTz: 'Europe/Istanbul',
+      sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
     });
   });
 
@@ -22,10 +23,12 @@ describe('user preferences repo', () => {
     const repo = fresh();
     await repo.save({ timeframe: '4h' });
     await repo.save({ displayTz: 'America/New_York' });
+    await repo.save({ sessions: ['LONDON'] });
     expect(await repo.load()).toEqual({
-      datasetId: null,
+      ...DEFAULT_PREFS,
       timeframe: '4h',
       displayTz: 'America/New_York',
+      sessions: ['LONDON'],
     });
   });
 });

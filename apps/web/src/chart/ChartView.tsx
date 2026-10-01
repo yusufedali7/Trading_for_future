@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   CandlestickSeries,
   ColorType,
@@ -10,30 +10,28 @@ import {
   type MouseEventParams,
   type Time,
 } from 'lightweight-charts';
-import type { ResampledCandle } from '@trw/engine';
+import { BUILTIN_SESSIONS, timeframeMs, type ResampledCandle } from '@trw/engine';
 import { tr } from '../i18n/tr';
+import { positionToTime, timeToPosition } from './coords';
 import { indexAtOrAfter, startOfLocalDay } from './goto';
 import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from './lwc-adapter';
+import { SessionBoxesPrimitive } from './primitives/session-boxes';
+import { THEME } from './theme';
 import type { ChartViewProps } from './types';
 
-// Keep in sync with theme/tokens.css.
-const THEME = {
-  bg: '#0e1116',
-  text: '#8a94a3',
-  grid: '#1c222b',
-  border: '#2a313c',
-  up: '#26a69a',
-  down: '#ef5350',
-  incomplete: '#5c6573',
-};
 const COLORS = { up: THEME.up, down: THEME.down, incomplete: THEME.incomplete };
 const VOLUME_PANE_HEIGHT = 80;
+const INITIAL_BARS = 150;
+const SESSION_LABELS = Object.fromEntries(BUILTIN_SESSIONS.map((s) => [s.id, s.name]));
 
-export function ChartView({ candles, instrument, timeframe, displayTz }: ChartViewProps) {
+export function ChartView({ candles, sessions, instrument, timeframe, displayTz }: ChartViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
+  const sessionBoxesRef = useRef<SessionBoxesPrimitive | null>(null);
+  // Previous bar times + timeframe, to keep the same time span visible across timeframe switches.
+  const shownRef = useRef<{ times: number[]; tfMs: number } | null>(null);
   const [hovered, setHovered] = useState<ResampledCandle | null>(null);
   const [gotoValue, setGotoValue] = useState('');
 
@@ -66,12 +64,17 @@ export function ChartView({ candles, instrument, timeframe, displayTz }: ChartVi
       wickUpColor: THEME.up,
       wickDownColor: THEME.down,
     });
+    const boxes = new SessionBoxesPrimitive();
+    candleSeriesRef.current.attachPrimitive(boxes);
+    sessionBoxesRef.current = boxes;
     chartRef.current = chart;
     return () => {
       chart.remove();
       chartRef.current = null;
       candleSeriesRef.current = null;
       volumeSeriesRef.current = null;
+      sessionBoxesRef.current = null;
+      shownRef.current = null;
     };
   }, []);
 
@@ -107,6 +110,16 @@ export function ChartView({ candles, instrument, timeframe, displayTz }: ChartVi
     const chart = chartRef.current;
     const candleSeries = candleSeriesRef.current;
     if (!chart || !candleSeries) return;
+    // Remember which time span was on screen before replacing the bars.
+    const prev = shownRef.current;
+    const prevRange = chart.timeScale().getVisibleLogicalRange();
+    const keep =
+      prev && prevRange && prev.times.length > 0
+        ? {
+            from: positionToTime(prev.times, prev.tfMs, prevRange.from),
+            to: positionToTime(prev.times, prev.tfMs, prevRange.to),
+          }
+        : null;
     candleSeries.setData(toCandleData(candles, COLORS));
     const volume = toVolumeData(candles, COLORS);
     if (volume) {
@@ -123,8 +136,31 @@ export function ChartView({ candles, instrument, timeframe, displayTz }: ChartVi
       chart.removeSeries(volumeSeriesRef.current);
       volumeSeriesRef.current = null;
     }
-    chart.timeScale().fitContent();
+    const tfMs = timeframeMs(timeframe);
+    const n = times.length;
+    if (keep) {
+      chart.timeScale().setVisibleLogicalRange({
+        from: timeToPosition(times, tfMs, keep.from),
+        to: timeToPosition(times, tfMs, keep.to),
+      });
+    } else if (n > 0) {
+      chart.timeScale().setVisibleLogicalRange({ from: n - INITIAL_BARS, to: n + 5 });
+    }
+    shownRef.current = { times, tfMs };
+    // timeframe/times change together with candles; candles is the trigger.
   }, [candles]);
+
+  // Session boxes (engine layer). Hidden on daily/weekly charts where a session is narrower than a bar.
+  useEffect(() => {
+    const daily = timeframe === '1D' || timeframe === '1W';
+    sessionBoxesRef.current?.setData(
+      daily ? [] : sessions,
+      times,
+      timeframeMs(timeframe),
+      SESSION_LABELS,
+      tr.sessions.running,
+    );
+  }, [sessions, times, timeframe]);
 
   // Legend follows the crosshair; falls back to the last candle.
   useEffect(() => {

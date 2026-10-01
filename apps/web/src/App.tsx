@@ -1,14 +1,9 @@
-import { useCallback, useEffect, useState, type ComponentType } from 'react';
-import {
-  compareTimeframes,
-  getInstrument,
-  type DataSetMeta,
-  type ResampledCandle,
-} from '@trw/engine';
+﻿import { useCallback, useEffect, useState, type ComponentType } from 'react';
+import { compareTimeframes, getInstrument, type DataSetMeta, type Timeframe } from '@trw/engine';
 import { ChartView } from './chart/ChartView';
 import type { ChartViewProps } from './chart/types';
 import { EmptyState } from './components/EmptyState';
-import type { CandleSource } from './compute/candle-source';
+import type { CandleSource, ChartData } from './compute/candle-source';
 import { ImportWizard } from './features/import/ImportWizard';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
@@ -34,7 +29,8 @@ export function App({
   const [datasets, setDatasets] = useState<DataSetMeta[] | null>(null);
   const [settings, setSettings] = useState<Prefs | null>(null);
   const [importing, setImporting] = useState(false);
-  const [candles, setCandles] = useState<ResampledCandle[] | null>(null);
+  // Kept while the next timeframe loads so the chart (and its visible range) is not remounted.
+  const [data, setData] = useState<(ChartData & { tf: Timeframe }) | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -58,10 +54,9 @@ export function App({
     if (!active) return;
     let cancelled = false;
     setError(null);
-    setCandles(null);
     candleSource
-      .candles(active, timeframe)
-      .then((c) => !cancelled && setCandles(c))
+      .load(active, timeframe)
+      .then((d) => !cancelled && setData({ ...d, tf: timeframe }))
       .catch((e: unknown) => !cancelled && setError(String(e)));
     return () => {
       cancelled = true;
@@ -93,6 +88,14 @@ export function App({
             onDataset={(id) => update({ datasetId: id })}
             onTimeframe={(tf) => update({ timeframe: tf })}
             onDisplayTz={(tz) => update({ displayTz: tz })}
+            visibleSessions={settings.sessions}
+            onToggleSession={(id) =>
+              update({
+                sessions: settings.sessions.includes(id)
+                  ? settings.sessions.filter((s) => s !== id)
+                  : [...settings.sessions, id],
+              })
+            }
             onImport={() => setImporting(true)}
           />
         )}
@@ -106,11 +109,12 @@ export function App({
             {tr.app.loadError}: {error}
           </p>
         )}
-        {active && settings && candles && (
+        {active && settings && data && (
           <ChartComponent
-            candles={candles}
+            candles={data.candles}
+            sessions={data.sessions.filter((s) => settings.sessions.includes(s.sessionId))}
             instrument={getInstrument(active.instrument)}
-            timeframe={timeframe}
+            timeframe={data.tf}
             displayTz={settings.displayTz}
           />
         )}

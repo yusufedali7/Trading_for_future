@@ -1,4 +1,4 @@
-// All user-facing strings live here (CLAUDE.md: UI text in Turkish, in a single translation file).
+﻿// All user-facing strings live here (CLAUDE.md: UI text in Turkish, in a single translation file).
 import type { Blocker, Fix, PriceType } from '@trw/engine';
 
 export const tr = {
@@ -22,6 +22,10 @@ export const tr = {
     importButton: 'CSV içe aktar',
     goTo: 'Tarihe git',
     goToButton: 'Git',
+    sessions: 'Seanslar',
+  },
+  sessions: {
+    running: 'devam ediyor',
   },
   legend: {
     o: 'A',

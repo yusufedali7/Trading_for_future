@@ -126,6 +126,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kısıtlar:** Dukascopy hız sınırı uyguluyor (HTTP 429). İndirme düşük paralellik ve beklemeyle yapılır (`-bs 2 -bp 3000`, yeniden deneme 5 sn). Dukascopy toplu indirme hakkında açık bir koşul yazmıyor (doğrulanmadı); kullanım kişisel araştırma ile sınırlıdır ve veri paylaşılmaz.
 - **Biçim:** başlık `timestamp,open,high,low,close,volume`, zaman Unix ms (UTC). Motor bunu `UNIX_MS` olarak okur.
 
+## D23 — Seans varsayılanları ve seviyelerin kaynağı
+- **Tarih:** 2026-10-01 · **Durum:** Kabul edildi (M2)
+- **Karar:** Yerleşik seanslar: Asya (Tokyo) 09:00–18:00 Asia/Tokyo, Londra 08:00–17:00 Europe/London, New York 08:00–17:00 America/New_York, Pazartesi–Cuma. Seans high/low değerleri **1m taban veriden** hesaplanır; bu yüzden hangi zaman diliminde bakılırsa bakılsın aynıdır. Seans bitene kadar `complete: false` olur; grafikte daha soluk ve "devam ediyor" etiketiyle çizilir. Seans kutuları 1D/1W grafiklerde gösterilmez. Ayrıntı: `docs/definitions/session-v1.md`.
+- **Arayüz:** Kutular motor çıktısıdır (ENGINE katmanı). Kesik kenar ve isim etiketiyle gösterilir; renk tek başına bilgi taşımaz. Görünür seanslar kullanıcı tercihlerinde saklanır.
+
+## D24 — Lightweight Charts koordinat ayrıntıları (doğrulandı)
+- **Tarih:** 2026-10-01 · **Durum:** Kabul edildi
+- **Bulgular (5.2.1, tarayıcıda ölçüldü):** `timeScale().logicalToCoordinate()` tam sayı konumlarda doğru çalışıyor, **kesirli konumlarda 0 döndürüyor**. Primitive arayüzlerinde `hitTest(x, y)` mevcut; M0'daki "doğrulanmadı" notu kapandı.
+- **Karar:** Kesirli konumlar iki komşu tam sayı konumun koordinatı arasında doğrusal olarak hesaplanır (`chart/lwc-coords.ts`). Zaman ↔ konum dönüşümü (`chart/coords.ts`) bar içinde orantılıdır, veri boşluğunda bir önceki barın sağ kenarına yaslanır, son bardan sonrası için uzatılır. Böylece çizimler ve kutular her zaman diliminde aynı zamana denk gelir.
+- **Ek:** Zaman dilimi değişince grafik görünür zaman aralığını korur. Yeni veri yüklenirken eski grafik ekranda kalır; grafik bileşeni yeniden kurulmaz.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
