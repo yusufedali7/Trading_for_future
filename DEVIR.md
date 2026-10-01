@@ -36,7 +36,7 @@ Tarayıcıda doğrulananlar (sentetik test verisiyle, sonra silindi):
 
 ## Kullanıcıdan beklenen: Görev 13, gerçek veriyle kabul
 Dukascopy web aracı 2026-09-30'da incelendi (https://widgets.dukascopy.com/en/historical-data-export).
-**Kısıt:** Periyot "Minute" seçiliyken yalnızca **tek gün** seçilebiliyor; "Hour" seçiliyken **tarih aralığı** seçilebiliyor. Yani 2 yıllık 1m veri bu araçla ancak günlük parçalar halinde (≈520 dosya) indirilebilir.
+**Kısıt (2026-10-01'de doğrulandı):** Period "Minute" iken yalnızca **tek gün** seçilebiliyor. Period "Hour" iken tarih aralığı açılıyor ama **en fazla tam 1 ay** seçtiriyor (takvimde başlangıçtan 1 ay sonrası dışındaki her gün devre dışı/gri). Yani 2 yıllık saatlik veri için ~24 aylık dosya, 2 yıllık 1 dakikalık veri için ~520 günlük dosya gerekiyor.
 Alanlar: enstrüman listesi → Export → Period (sayı + Tick/Second/Minute/Hour), Date, Timezone (UTC, Local time, şehirler), Offer side (Bid/Ask) → Download.
 Doğrulanmayanlar: indirmenin giriş gerektirip gerektirmediği, saat aralığının üst sınırı, CSV'nin kolon ve tarih biçimi.
 
