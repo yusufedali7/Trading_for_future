@@ -1,10 +1,9 @@
-import type {
+﻿import type {
   IChartApiBase,
   IPrimitivePaneRenderer,
   IPrimitivePaneView,
   ISeriesApi,
   ISeriesPrimitive,
-  Logical,
   SeriesAttachedParameter,
   SeriesType,
   Time,
