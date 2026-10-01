@@ -61,7 +61,9 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Tarih:** 2026-09-30 · **Durum:** Kabul edildi (kullanıcı kararı)
 - **Karar:** MVP verisi Dukascopy'nin geçmiş veri dışa aktarımından alınan 1 dakikalık CSV'dir. Birincil seri **BID**'dir. Aynı dönemin **ASK** dosyası da indirilebilirse ayrı bir veri kümesi olarak eşlenir; M5'te sabit spread yerine veriden gerçek spread hesaplamak için kullanılır. Kaynak adı metadata'da "Dukascopy" olarak saklanır.
 - **Kullanıcının sorumluluğu:** Dukascopy hesabı ve indirme işlemi kullanıcı tarafından yapılır; kullanım koşullarını kullanıcı okur. Veri dosyaları GitHub'a **gönderilmez** (`.gitignore`).
-- **Doğrulanmadı:** CSV kolon düzeni, tarih biçimi, saat dilimi seçeneği (GMT/yerel) ve hafta sonu "düz mum" (flat) davranışı. Resmi sayfa bunları açıklamıyor. M1 görev 4'te kullanıcının ilk dosyasının başlığı ve ilk satırlarına bakılarak kesinleştirilecek. Varsa dışa aktarımda **GMT** seçilmesi önerilir.
+- **Doğrulandı (2026-10-01, gerçek dosyalarla):** Web aracı (widgets.dukascopy.com/en/historical-data-export) hesap istemiyor. Timezone seçeneklerinde `UTC` var. CSV başlığı `Etc/UTC,Open,High,Low,Close,Volume`, tarih biçimi ISO 8601 ve ofset içeriyor (`2026-10-01T00:00:00+00:00`). Volume büyük tam sayılar (birimi doğrulanmadı). Motor bu biçimi `ISO_8601` olarak okur; 1m ve 1h örnek dosyalar temiz doğrulandı.
+- **Kısıt:** "Minute" periyodu tek gün, "Hour" periyodu en fazla 1 ay indirir. Uzun geçmiş için bkz. DEVIR "Uzun 1m geçmişi".
+- **Hâlâ doğrulanmadı:** hafta sonu "düz mum" davranışı (örnek dosyalar hafta içi).
 - **Alternatif (elendi):** HistData.com (kayıtsız, yalnızca BID, sabit UTC−5). Kullanıcı daha kaliteli kaynağı tercih etti.
 
 ## D13 — Başlangıç enstrümanları: EURUSD ve XAUUSD
