@@ -18,13 +18,15 @@ import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from 
 import { SessionBoxesPrimitive } from './primitives/session-boxes';
 import { THEME } from './theme';
 import type { ChartViewProps } from './types';
+import { useDrawingLayer } from './use-drawing-layer';
 
 const COLORS = { up: THEME.up, down: THEME.down, incomplete: THEME.incomplete };
 const VOLUME_PANE_HEIGHT = 80;
 const INITIAL_BARS = 150;
 const SESSION_LABELS = Object.fromEntries(BUILTIN_SESSIONS.map((s) => [s.id, s.name]));
 
-export function ChartView({ candles, sessions, instrument, timeframe, displayTz }: ChartViewProps) {
+export function ChartView(props: ChartViewProps) {
+  const { candles, sessions, instrument, timeframe, displayTz } = props;
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
@@ -161,6 +163,9 @@ export function ChartView({ candles, sessions, instrument, timeframe, displayTz 
       tr.sessions.running,
     );
   }, [sessions, times, timeframe]);
+
+  // User drawings (create, select, drag handles).
+  useDrawingLayer(chartRef, candleSeriesRef, containerRef, { ...props, times });
 
   // Legend follows the crosshair; falls back to the last candle.
   useEffect(() => {
