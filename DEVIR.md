@@ -1,11 +1,13 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-09-30 (M1 oturumu)_
+_Son güncelleme: 2026-10-01 (M1 oturumu, veri indirme)_
 
 ## Durum özeti
-- **Aktif kilometre taşı:** M1 (Veri ve grafik): görev 1–12 tamamlandı. **Görev 13 (gerçek veriyle kabul) kullanıcının Dukascopy dosyasını bekliyor.** M1, kabul yapılmadan "bitti" sayılmaz.
-- Testler: **150 test yeşil** (motor 111, web 39). Lint, tip kontrolü ve üretim derlemesi temiz.
-- Git: tüm işler yerel `main` dalında commit edildi. **Push'u kullanıcı kendisi yapıyor** (`git push -u origin main`).
+- **Aktif kilometre taşı:** M1 (Veri ve grafik): görev 1–12 tamamlandı. **Görev 13 (gerçek veriyle kabul): 2 yıllık 1m veri indiriliyor** (D22).
+- **İndirme durumu:** gün dosyaları `data/.dukascopy-cache/` altında (git dışı). EURUSD 632/730, XAUUSD 424/730 gün. Eksik günler, sırayla ve kibar hızda indiren bir betikle tamamlanıyor; betik yalnızca eksik günleri indirir. Sonra CSV, `npx dukascopy-node@1.50.0 ... -ch -chpath data/.dukascopy-cache` ile tamamen önbellekten üretilir.
+- **Ağ notu:** Bazı ağlarda (ör. 2026-10-01 kafe Wi-Fi) Dukascopy alan adları idari tedbirle erişime kapalı ("erişime engellenmiş" sayfası). Engel aşılmaya çalışılmaz (VPN/DNS değişikliği yok). İndirme, erişimin normal olduğu ev bağlantısında tamamlanır.
+- Testler: **154 test yeşil**. Lint, tip kontrolü ve üretim derlemesi temiz; temiz clone ile doğrulandı.
+- Git: tüm işler yerel `main` dalında commit edildi. **Push'u kullanıcı kendisi yapıyor** (`git push`). Son push'tan beri 7 commit bekliyor; içlerinde daha önce `.gitignore` yüzünden GitHub'a gitmemiş motor `data/` modülleri de var.
 
 ## M1'de yapılanlar
 | # | Görev | Sonuç |
