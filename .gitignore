@@ -5,7 +5,8 @@ coverage/
 .vite/
 
 # Market data — never committed (size + data provider terms, see docs/DECISIONS.md D12/D15)
-data/
+# Anchored to the repo root: source folders named "data" (packages/engine/src/data) are code.
+/data/
 *.csv
 *.zip
 # Hand-written synthetic test fixtures are allowed
