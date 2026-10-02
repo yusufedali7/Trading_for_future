@@ -102,3 +102,38 @@ export type {
   ReplayTrade,
   TradeStats,
 } from './user/journal';
+export { bucketEnds } from './data/resample';
+export { sliceBars, toBars } from './features/bars';
+export type { Bars } from './features/bars';
+export {
+  FEATURE_DEFAULTS,
+  FEATURE_DEFINITIONS,
+  computeFeatures,
+  featuresAsOf,
+  previousPeriods,
+} from './features/compute';
+export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
+export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
+export { periodLevels } from './features/periods';
+export { STRUCTURE_DEFAULTS, detectStructureBreaks } from './features/structure';
+export { SWEEP_DEFAULTS, detectSweeps, liquidityLevels } from './features/sweep';
+export type { LiquiditySources } from './features/sweep';
+export { SWING_DEFAULTS, detectSwings } from './features/swing';
+export type {
+  BreakBy,
+  Detection,
+  DetectionTiming,
+  FeatureDirection,
+  Fvg,
+  FvgParams,
+  LiquidityKind,
+  LiquidityLevel,
+  LiquiditySweep,
+  PeriodKind,
+  PeriodLevel,
+  StructureBreak,
+  StructureBreakParams,
+  SweepParams,
+  Swing,
+  SwingParams,
+} from './features/types';

@@ -90,6 +90,18 @@ export function bucketStart(inst: Instrument, tf: Timeframe, t: UtcMs): UtcMs {
   return bucketRange(inst, tf, t).start;
 }
 
+/**
+ * Close time (UTC) of each bucket given its open time: the next boundary, or the end of the
+ * trading day for the last intraday bucket. `starts` must be ascending bucket open times.
+ */
+export function bucketEnds(inst: Instrument, tf: Timeframe, starts: readonly UtcMs[]): UtcMs[] {
+  let day: Range | undefined;
+  return starts.map((t) => {
+    if (tf !== '1W' && (!day || t < day.start || t >= day.end)) day = tradingDay(inst, t);
+    return bucketRange(inst, tf, t, day).end;
+  });
+}
+
 function openSlots(inst: Instrument, from: UtcMs, to: UtcMs, step: number): number {
   let n = 0;
   for (let s = from; s < to; s += step) if (marketState(inst, s) === 'OPEN') n++;
