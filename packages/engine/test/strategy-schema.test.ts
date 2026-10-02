@@ -1,0 +1,109 @@
+import { describe, expect, it } from 'vitest';
+import {
+  availableRefs,
+  canonicalJson,
+  defaultSpec,
+  newVersion,
+  setVersionStatus,
+  specHash,
+  specWarnings,
+  validateSpec,
+  type StrategySpec,
+} from '../src/strategy/schema';
+import { LONDON_SWEEP } from './helpers/strategies';
+
+const codes = (s: StrategySpec) => validateSpec(s).map((p) => `${p.code}@${p.path}`);
+
+describe('strategy schema v1', () => {
+  it('accepts the default and a multi-step strategy', () => {
+    expect(validateSpec(defaultSpec())).toEqual([]);
+    expect(validateSpec(LONDON_SWEEP)).toEqual([]);
+    expect(availableRefs(LONDON_SWEEP.steps)).toEqual([
+      'sweep.level',
+      'sweep.extreme',
+      'mss.level',
+      'fvg.top',
+      'fvg.bottom',
+      'fvg.mid',
+    ]);
+  });
+
+  it('names every problem with its place in the spec', () => {
+    const bad: StrategySpec = {
+      ...LONDON_SWEEP,
+      instrument: 'XYZ',
+      steps: [
+        { id: 'Sweep', type: 'LIQUIDITY_SWEEP' },
+        { id: 'mss', type: 'STRUCTURE_BREAK' },
+        { id: 'mss', type: 'FVG', maxBars: 0 },
+      ],
+      entry: { type: 'LIMIT_AT', ref: 'fvg.top', expireBars: 0 },
+      stop: { type: 'BEYOND_REF', ref: 'later.low', bufferPips: -1 },
+      target: { type: 'R_MULTIPLE', r: 0 },
+      risk: { percentPerTrade: 6 },
+      window: { start: '25:00', end: '11:00', tz: 'Europe/London' },
+      maxTradesPerDay: 0,
+    };
+    expect(codes(bad)).toEqual([
+      'UNKNOWN_INSTRUMENT@instrument',
+      'BAD_STEP_ID@steps.0.id',
+      'MAX_BARS@steps.1.maxBars',
+      'DUPLICATE_STEP_ID@steps.2.id',
+      'MAX_BARS@steps.2.maxBars',
+      'BAD_REF@entry.ref',
+      'EXPIRE_BARS@entry.expireBars',
+      'BAD_REF@stop.ref',
+      'BAD_NUMBER@stop.bufferPips',
+      'BAD_NUMBER@target.r',
+      'RISK_RANGE@risk.percentPerTrade',
+      'BAD_WINDOW@window',
+      'MAX_PER_DAY@maxTradesPerDay',
+    ]);
+    expect(codes({ ...defaultSpec(), steps: [] })).toContain('NO_STEPS@steps');
+  });
+
+  it('warns about a step against the trade direction', () => {
+    const s: StrategySpec = {
+      ...LONDON_SWEEP,
+      steps: [
+        LONDON_SWEEP.steps[0]!,
+        { id: 'mss', type: 'STRUCTURE_BREAK', direction: 'BEARISH', maxBars: 5 },
+      ],
+      entry: { type: 'MARKET' },
+    };
+    expect(specWarnings(s)).toEqual([{ code: 'DIRECTION_MISMATCH', path: 'steps.1.direction' }]);
+  });
+
+  it('hashes the content, not the key order', () => {
+    const reordered = JSON.parse(canonicalJson(LONDON_SWEEP)) as StrategySpec;
+    const { schema, ...rest } = LONDON_SWEEP;
+    expect(specHash({ ...rest, schema } as StrategySpec)).toBe(specHash(LONDON_SWEEP));
+    expect(specHash(reordered)).toBe(specHash(LONDON_SWEEP));
+    expect(specHash({ ...LONDON_SWEEP, risk: { percentPerTrade: 1 } })).not.toBe(
+      specHash(LONDON_SWEEP),
+    );
+    expect(specHash(LONDON_SWEEP)).toMatch(/^[0-9a-f]{64}$/);
+  });
+
+  it('creates numbered immutable versions; only the status changes later', () => {
+    const strategy = {
+      id: 's1',
+      name: 'Londra süpürme',
+      description: '',
+      latestVersion: 2,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    const v = newVersion(strategy, LONDON_SWEEP, 'ilk deneme', 100);
+    expect(v).toMatchObject({ strategyId: 's1', version: 3, status: 'IDEA', createdAt: 100 });
+    expect(v.spec).not.toBe(LONDON_SWEEP);
+    expect(v.specHash).toBe(specHash(LONDON_SWEEP));
+    const t = setVersionStatus(v, 'TESTING', 200, 'backtest başladı');
+    expect(t.statusHistory).toEqual([
+      { status: 'IDEA', at: 100 },
+      { status: 'TESTING', at: 200, note: 'backtest başladı' },
+    ]);
+    expect(t.spec).toBe(v.spec);
+    expect(() => newVersion(strategy, { ...LONDON_SWEEP, steps: [] }, '', 1)).toThrow(/NO_STEPS/);
+  });
+});

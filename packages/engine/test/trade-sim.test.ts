@@ -159,6 +159,30 @@ describe('spread', () => {
     expect(r).toMatchObject({ entryPrice: P(2), exitPrice: P(20), exitReason: 'TP' });
   });
 
+  it('applies slippage to stop-loss and manual exits, not to target (limit) exits (D8)', () => {
+    const slip = { spread: 0, slippage: 0.0001 };
+    const opts = { baseMs: MIN, cutoff: at(3), costs: slip, ambiguity: 'STOP_FIRST' as const };
+    // Long market fill at 0 + 1 slip = P(1); stop P(-10) hit in bar 2 → exit P(-11).
+    const stopped = bars([0, 1, -1, 0], [0, 2, -1, 1], [1, 2, -12, -5]);
+    expect(simulateTrade(order({}), stopped, opts)).toMatchObject({
+      exitReason: 'SL',
+      entryPrice: P(1),
+      exitPrice: P(-11),
+    });
+    // Target exits at the target price exactly.
+    const won = bars([0, 1, -1, 0], [0, 2, -1, 1], [1, 25, 0, 22]);
+    expect(simulateTrade(order({}), won, opts)).toMatchObject({
+      exitReason: 'TP',
+      exitPrice: P(20),
+    });
+    // Manual close at the last close (1) minus slippage.
+    const open = bars([0, 1, -1, 0], [0, 2, -1, 1], [1, 2, 0, 1]);
+    expect(simulateTrade(order({}), open, { ...opts, closeAt: at(3) })).toMatchObject({
+      exitReason: 'MANUAL',
+      exitPrice: P(0),
+    });
+  });
+
   it('closes shorts at the ask: the stop triggers when bid + spread reaches it', () => {
     const s = bars([0, 1, -1, 0], [0, 9, -1, 5]);
     const short = order({ direction: 'SHORT', stop: P(10), target: P(-20) });

@@ -137,3 +137,59 @@ export type {
   Swing,
   SwingParams,
 } from './features/types';
+export {
+  REF_FIELDS,
+  STRATEGY_STATUSES,
+  availableRefs,
+  canonicalJson,
+  defaultSpec,
+  newVersion,
+  setVersionStatus,
+  specHash,
+  specWarnings,
+  validateSpec,
+} from './strategy/schema';
+export type {
+  BreakStep,
+  EntryRule,
+  EventStep,
+  FvgStep,
+  Ref,
+  SpecProblem,
+  SpecProblemCode,
+  SpecWarning,
+  StepType,
+  StopRule,
+  Strategy,
+  StrategySpec,
+  StrategyStatus,
+  StrategyVersion,
+  SweepStep,
+  SwingStep,
+  TargetRule,
+  TimeWindow,
+} from './strategy/schema';
+export { findSetups, inWindow } from './strategy/matcher';
+export type { Setup, StepMatch } from './strategy/matcher';
+export {
+  DEFAULT_LOT_RULES,
+  pipValuePerLot,
+  positionSize,
+  quoteToUsd,
+  tradePnl,
+} from './risk/sizing';
+export type { LotRules, SizeResult } from './risk/sizing';
+export { SKIP_REASONS, orderFor, runBacktest } from './backtest/run';
+export type {
+  BacktestConfig,
+  BacktestCosts,
+  BacktestExit,
+  BacktestInput,
+  BacktestResult,
+  BacktestTrade,
+  SkipReason,
+} from './backtest/run';
+export { backtestStats } from './backtest/stats';
+export type { BacktestStats, BreakdownRow } from './backtest/stats';
+export { runRecord, splitRange } from './backtest/record';
+export type { BacktestRun, SplitRole, StoredBacktest } from './backtest/record';

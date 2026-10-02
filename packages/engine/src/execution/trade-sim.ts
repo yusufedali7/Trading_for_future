@@ -180,6 +180,9 @@ export function simulateTrade(order: TradeOrder, series: CandleSeries, opt: SimO
     } else if (stopHit) exit = { at: t, price: order.stop, reason: 'SL' };
     else if (targetHit) exit = { at: t, price: order.target, reason: 'TP' };
 
+    // A stop-loss is a stop (market) order: slippage goes against the trader (D8).
+    if (exit?.reason === 'SL') exit.price = long ? exit.price - slippage : exit.price + slippage;
+
     // Excursions: bar extremes, or only the exit price on the exit bar.
     const adverse = exit ? exit.price : long ? xl : xh;
     const favourable = exit ? exit.price : long ? xh : xl;
@@ -216,14 +219,16 @@ export function simulateTrade(order: TradeOrder, series: CandleSeries, opt: SimO
   }
   const markPrice = fix(long ? series.c[last]! : series.c[last]! + spread);
   if (opt.closeAt !== undefined && opt.closeAt <= opt.cutoff) {
+    // A manual close is a market order: slippage against the trader.
+    const price = fix(long ? markPrice - slippage : markPrice + slippage);
     return {
       ...base,
       ...common,
       status: 'CLOSED',
       exitAt: series.t[last]!,
-      exitPrice: markPrice,
+      exitPrice: price,
       exitReason: 'MANUAL',
-      r: resultR(markPrice),
+      r: resultR(price),
     };
   }
   return { ...base, ...common, status: 'OPEN', markPrice, r: resultR(markPrice) };
