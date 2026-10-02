@@ -1,6 +1,11 @@
 import {
   BUILTIN_SESSIONS,
+  backtestStats,
   bucketStart,
+  canonicalJson,
+  findSetups,
+  runBacktest,
+  toBars,
   computeFeatures,
   featuresAsOf,
   previousPeriods,
@@ -11,12 +16,17 @@ import {
   sessionLevels,
   simulateTrade,
   timeframeMs,
+  type BacktestConfig,
+  type BacktestResult,
+  type BacktestStats,
   type CandleSeries,
   type DataSetMeta,
   type FeatureSet,
   type PeriodLevel,
   type ResampledCandle,
   type SessionLevels,
+  type Setup,
+  type StrategySpec,
   type SimOptions,
   type SimResult,
   type Timeframe,
@@ -47,11 +57,20 @@ export interface ReplayTail {
 
 export type SimulateOptions = Omit<SimOptions, 'baseMs'>;
 
+export interface BacktestOutcome {
+  result: BacktestResult;
+  stats: BacktestStats;
+}
+
 /** Supplies chart data for a dataset; heavy work may run in a worker. */
 export interface CandleSource {
   load(meta: DataSetMeta, tf: Timeframe): Promise<ChartData>;
   replay(meta: DataSetMeta, tf: Timeframe, cursor: UtcMs): Promise<ReplayTail>;
   simulate(meta: DataSetMeta, order: TradeOrder, opts: SimulateOptions): Promise<SimResult>;
+  /** Deterministic backtest of a strategy version on this dataset (D32). */
+  backtest(meta: DataSetMeta, spec: StrategySpec, config: BacktestConfig): Promise<BacktestOutcome>;
+  /** Every setup of a strategy on the whole dataset (for the chart). */
+  setups(meta: DataSetMeta, spec: StrategySpec): Promise<Setup[]>;
   dispose(): void;
 }
 
@@ -108,6 +127,30 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
     }
     return cached;
   };
+  // Candles and features of one strategy's timeframe and detector parameters.
+  let strategyCache: { key: string; candles: ResampledCandle[]; features: FeatureSet } | null =
+    null;
+  const forStrategy = async (meta: DataSetMeta, spec: StrategySpec) => {
+    if (spec.instrument !== meta.instrument)
+      throw new Error(`strategy is for ${spec.instrument}, dataset is ${meta.instrument}`);
+    const c = await get(meta);
+    const key = `${c.key}:${spec.timeframe}:${canonicalJson(spec.features)}`;
+    if (strategyCache?.key !== key) {
+      const candles = await candlesFor(meta, c.series, spec.timeframe);
+      const features = computeFeatures(
+        {
+          candles,
+          inst: getInstrument(meta.instrument),
+          tf: spec.timeframe,
+          periods: c.periods,
+          sessions: c.sessions,
+        },
+        spec.features,
+      );
+      strategyCache = { key, candles, features };
+    }
+    return { c, ...strategyCache };
+  };
   return {
     async load(meta, tf) {
       const c = await get(meta);
@@ -149,8 +192,31 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       const c = await get(meta);
       return simulateTrade(order, c.series, { ...opts, baseMs: timeframeMs(meta.baseTimeframe) });
     },
+    async backtest(meta, spec, config) {
+      const { c, candles, features } = await forStrategy(meta, spec);
+      const inst = getInstrument(meta.instrument);
+      const result = runBacktest({
+        spec,
+        inst,
+        series: c.series,
+        baseMs: timeframeMs(meta.baseTimeframe),
+        candles,
+        features,
+        config,
+      });
+      return { result, stats: backtestStats(result, inst, config.range.from) };
+    },
+    async setups(meta, spec) {
+      const { candles, features } = await forStrategy(meta, spec);
+      return findSetups(
+        spec,
+        toBars(candles, getInstrument(meta.instrument), spec.timeframe),
+        features,
+      );
+    },
     dispose() {
       cached = null;
+      strategyCache = null;
     },
   };
 }
@@ -158,22 +224,40 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
 export type CandleRequest =
   | { id: number; method: 'load'; meta: DataSetMeta; tf: Timeframe }
   | { id: number; method: 'replay'; meta: DataSetMeta; tf: Timeframe; cursor: UtcMs }
-  | { id: number; method: 'simulate'; meta: DataSetMeta; order: TradeOrder; opts: SimulateOptions };
+  | { id: number; method: 'simulate'; meta: DataSetMeta; order: TradeOrder; opts: SimulateOptions }
+  | {
+      id: number;
+      method: 'backtest';
+      meta: DataSetMeta;
+      spec: StrategySpec;
+      config: BacktestConfig;
+    }
+  | { id: number; method: 'setups'; meta: DataSetMeta; spec: StrategySpec };
 
 type Response =
   { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };
+
+function dispatch(source: CandleSource, req: CandleRequest): Promise<unknown> {
+  switch (req.method) {
+    case 'load':
+      return source.load(req.meta, req.tf);
+    case 'replay':
+      return source.replay(req.meta, req.tf, req.cursor);
+    case 'simulate':
+      return source.simulate(req.meta, req.order, req.opts);
+    case 'backtest':
+      return source.backtest(req.meta, req.spec, req.config);
+    case 'setups':
+      return source.setups(req.meta, req.spec);
+  }
+}
 
 export async function handleCandleRequest(
   source: CandleSource,
   req: CandleRequest,
 ): Promise<Response> {
   try {
-    const result =
-      req.method === 'load'
-        ? await source.load(req.meta, req.tf)
-        : req.method === 'replay'
-          ? await source.replay(req.meta, req.tf, req.cursor)
-          : await source.simulate(req.meta, req.order, req.opts);
+    const result = await dispatch(source, req);
     return { id: req.id, ok: true, result };
   } catch (err) {
     return { id: req.id, ok: false, error: err instanceof Error ? err.message : String(err) };
@@ -203,6 +287,9 @@ export function createWorkerCandleSource(): CandleSource {
     load: (meta, tf) => call<ChartData>({ method: 'load', meta, tf }),
     replay: (meta, tf, cursor) => call<ReplayTail>({ method: 'replay', meta, tf, cursor }),
     simulate: (meta, order, opts) => call<SimResult>({ method: 'simulate', meta, order, opts }),
+    backtest: (meta, spec, config) =>
+      call<BacktestOutcome>({ method: 'backtest', meta, spec, config }),
+    setups: (meta, spec) => call<Setup[]>({ method: 'setups', meta, spec }),
     dispose: () => worker.terminate(),
   };
 }

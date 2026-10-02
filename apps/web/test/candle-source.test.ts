@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   computeFeatures,
+  defaultSpec,
+  runBacktest,
   getInstrument,
   previousPeriods,
   replayCandles,
@@ -138,6 +140,47 @@ describe('replay through the candle source', () => {
         }),
       );
     }
+  });
+
+  it('runs a strategy backtest and lists its setups with the shared engine', async () => {
+    const src = await source2();
+    const spec = {
+      ...defaultSpec(),
+      timeframe: '1m' as const,
+      steps: [{ id: 'low', type: 'SWING' as const, kind: 'LOW' as const }],
+      stop: { type: 'FIXED_PIPS' as const, pips: 3 },
+    };
+    const config = {
+      range: { from: many[0]!.t, to: many[many.length - 1]!.t + 60_000 },
+      costs: { spreadPips: 0.2, slippagePips: 0, commissionPerLotPerSide: 3 },
+      ambiguity: 'STOP_FIRST' as const,
+      startEquity: 10_000,
+      lots: { lotStep: 0.01, minLot: 0.01 },
+    };
+    const out = await src.backtest(meta2, spec, config);
+    const inst = getInstrument('EURUSD');
+    const candles = resample(s2, inst, '1m', { asOf: config.range.to });
+    const features = computeFeatures({
+      candles,
+      inst,
+      tf: '1m',
+      periods: previousPeriods(s2, inst, config.range.to),
+      sessions: (await src.load(meta2, '1m')).sessions,
+    });
+    const direct = runBacktest({
+      spec,
+      inst,
+      series: s2,
+      baseMs: 60_000,
+      candles,
+      features,
+      config,
+    });
+    expect(out.result).toEqual(direct);
+    expect(out.result.trades.length).toBeGreaterThan(0);
+    expect(out.stats.summary.trades).toBe(direct.trades.length);
+    expect((await src.setups(meta2, spec)).length).toBe(direct.setupsFound);
+    await expect(src.backtest(meta2, { ...spec, instrument: 'XAUUSD' }, config)).rejects.toThrow();
   });
 
   it('simulates a trade with the series it holds, never past the cursor', async () => {
