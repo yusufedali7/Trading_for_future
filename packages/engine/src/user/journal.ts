@@ -189,6 +189,28 @@ export function tradeStats(results: readonly { r: number; ambiguous?: boolean }[
   };
 }
 
+export interface JournalSummary {
+  entries: number;
+  decisions: Record<Decision, number>;
+  /** Over entries with a result, in decision order (streaks and drawdown depend on order). */
+  stats: TradeStats;
+}
+
+export function summarizeJournal(entries: readonly JournalEntry[]): JournalSummary {
+  const ordered = [...entries].sort(
+    (a, b) => a.decidedAt - b.decidedAt || a.createdAt - b.createdAt || a.id.localeCompare(b.id),
+  );
+  const decisions: Record<Decision, number> = { LONG: 0, SHORT: 0, NO_TRADE: 0 };
+  for (const e of ordered) decisions[e.decision]++;
+  return {
+    entries: ordered.length,
+    decisions,
+    stats: tradeStats(
+      ordered.flatMap((e) => (e.result ? [{ r: e.result.r, ambiguous: e.result.ambiguous }] : [])),
+    ),
+  };
+}
+
 export type Outcome = 'WIN' | 'LOSS' | 'BE' | 'NONE';
 
 export interface JournalFilter {

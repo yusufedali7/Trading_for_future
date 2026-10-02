@@ -88,6 +88,7 @@ export {
   filterJournal,
   journalResultOf,
   outcomeOf,
+  summarizeJournal,
   tradeStats,
 } from './user/journal';
 export type {
@@ -96,6 +97,7 @@ export type {
   JournalEntry,
   JournalFilter,
   JournalResult,
+  JournalSummary,
   Outcome,
   ReplayTrade,
   TradeStats,

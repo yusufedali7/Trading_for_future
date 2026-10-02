@@ -5,6 +5,7 @@ import {
   activeSessions,
   filterJournal,
   journalResultOf,
+  summarizeJournal,
   tradeStats,
   type JournalEntry,
 } from '../src/user/journal';
@@ -158,5 +159,60 @@ describe('journalResultOf', () => {
     };
     expect(journalResultOf(none, MIN)).toBeNull();
     expect(journalResultOf({ ...closed, status: 'OPEN' }, MIN)).toBeNull();
+  });
+});
+
+describe('summarizeJournal', () => {
+  const e = (id: string, decidedAt: string, decision: JournalEntry['decision'], r: number | null) =>
+    ({
+      id,
+      instrument: 'EURUSD',
+      decision,
+      decidedAt: t(decidedAt),
+      timeframe: '15m',
+      sessions: [],
+      tradeId: r === null ? null : `t-${id}`,
+      result:
+        r === null
+          ? null
+          : {
+              r,
+              exitReason: r > 0 ? 'TP' : 'SL',
+              maeR: 0,
+              mfeR: 0,
+              durationMs: 0,
+              ambiguous: id === 'c',
+            },
+      strategy: '',
+      reason: '',
+      emotion: 'CALM',
+      emotionIntensity: 3,
+      lesson: '',
+      tags: [],
+      screenshotIds: [],
+      createdAt: 0,
+      updatedAt: 0,
+    }) satisfies JournalEntry;
+
+  it('counts decisions and measures results in decision order, ignoring "no trade" entries', () => {
+    // Given newest first (as the repo lists them); in time order: +2, −1, −1, (no trade)
+    const s = summarizeJournal([
+      e('d', '2026-01-09T10:00:00Z', 'NO_TRADE', null),
+      e('c', '2026-01-08T10:00:00Z', 'SHORT', -1),
+      e('b', '2026-01-07T10:00:00Z', 'LONG', -1),
+      e('a', '2026-01-06T10:00:00Z', 'LONG', 2),
+    ]);
+    expect(s.entries).toBe(4);
+    expect(s.decisions).toEqual({ LONG: 2, SHORT: 1, NO_TRADE: 1 });
+    expect(s.stats).toMatchObject({
+      trades: 3,
+      wins: 1,
+      losses: 2,
+      totalR: 0,
+      longestLossStreak: 2,
+      maxDrawdownR: 2,
+      ambiguous: 1,
+      lowSample: true,
+    });
   });
 });

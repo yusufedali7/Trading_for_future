@@ -19,6 +19,7 @@ import { LevelsPanel } from './features/drawings/LevelsPanel';
 import { useDrawings } from './features/drawings/use-drawings';
 import { ImportWizard } from './features/import/ImportWizard';
 import { JournalForm } from './features/journal/JournalForm';
+import { JournalPage } from './features/journal/JournalPage';
 import { draftFromTrade, noTradeDraft, useJournalForm } from './features/journal/use-journal-form';
 import { ReplayBar } from './features/replay/ReplayBar';
 import { useReplay } from './features/replay/use-replay';
@@ -68,6 +69,7 @@ export function App({
   const [error, setError] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('SELECT');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [view, setView] = useState<'CHART' | 'JOURNAL'>('CHART');
 
   const refresh = useCallback(async () => {
     const [list, p] = await Promise.all([repo.listDatasets(), prefs.load()]);
@@ -155,7 +157,7 @@ export function App({
   // arrows and space drive the replay.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (isTyping(e.target) || journal.draft) return;
+      if (isTyping(e.target) || journal.draft || view !== 'CHART') return;
       if (inReplay && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
         e.preventDefault();
         // An open trade or pending order may not see the cursor go back (it was decided later).
@@ -173,7 +175,7 @@ export function App({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, store, inReplay, replay, trading.busy, journal.draft]);
+  }, [selectedId, store, inReplay, replay, trading.busy, journal.draft, view]);
 
   const update = (patch: Partial<Prefs>) => {
     setSettings((s) => (s ? { ...s, ...patch } : s));
@@ -216,6 +218,24 @@ export function App({
     <div className="app">
       <header className="app-header">
         <h1>{tr.app.title}</h1>
+        {datasets && datasets.length > 0 && (
+          <div className="segmented" role="group" aria-label={tr.journalPage.navLabel}>
+            {(['CHART', 'JOURNAL'] as const).map((v) => (
+              <button
+                key={v}
+                type="button"
+                className="seg"
+                aria-pressed={view === v}
+                onClick={() => {
+                  replay.pause();
+                  setView(v);
+                }}
+              >
+                {tr.journalPage.nav[v]}
+              </button>
+            ))}
+          </div>
+        )}
         {active && settings && datasets && (
           <Toolbar
             datasets={datasets}
@@ -249,7 +269,10 @@ export function App({
             {tr.app.loadError}: {error}
           </p>
         )}
-        {active && settings && data && instrument && (
+        {view === 'JOURNAL' && settings && (
+          <JournalPage repo={journalRepo} displayTz={settings.displayTz} />
+        )}
+        {view === 'CHART' && active && settings && data && instrument && (
           <>
             <div className="tool-row">
               <DrawingTools tool={tool} onTool={setTool} />
