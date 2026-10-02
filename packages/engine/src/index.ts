@@ -74,3 +74,14 @@ export type {
   TradeOrder,
   TradeStatus,
 } from './execution/trade-sim';
+export { activeSessions, filterJournal, outcomeOf, tradeStats } from './user/journal';
+export type {
+  Decision,
+  Emotion,
+  JournalEntry,
+  JournalFilter,
+  JournalResult,
+  Outcome,
+  ReplayTrade,
+  TradeStats,
+} from './user/journal';
