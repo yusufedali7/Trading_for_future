@@ -1,6 +1,6 @@
 # PLAN — M4: Feature engine v1
 
-> Durum: kullanıcı 2026-10-02'de "devam et" dedi; plan kaydedildi ve uygulamaya geçildi. Kararlar `docs/DECISIONS.md` (D28+).
+> Durum: kullanıcı 2026-10-02'de "devam et" dedi; plan kaydedildi ve uygulandı. **Görev 1–9 tamamlandı (2026-10-02).** Kararlar `docs/DECISIONS.md` D28–D30, tanımlar `docs/definitions/*-v1.md`.
 
 ## Amaç
 Elle gözlemlenen kavramları (swing, FVG, yapı kırılımı, likidite süpürmesi, önceki gün/hafta seviyeleri) **parametreli, versiyonlu ve test edilmiş** tanımlara dökmek ve grafikte **aday** katmanı olarak göstermek. Aynı fonksiyonlar M5'te strateji ve backtest tarafından kullanılacak (tek motor, iki tüketici).

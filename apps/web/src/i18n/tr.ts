@@ -294,7 +294,8 @@ export const tr = {
     l: 'D',
     c: 'K',
     v: 'Hacim',
-    missing: (missing: number, expected: number) => `eksik 1m mum: ${missing}/${expected}`,
+    missing: (missing: number, expected: number, baseTf: string) =>
+      `eksik ${baseTf} mum: ${missing}/${expected}`,
     forming: 'mum henüz kapanmadı',
   },
   months: ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'],

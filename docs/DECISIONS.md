@@ -168,6 +168,24 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kullanıcı alanları:** Strateji (M5'e kadar serbest metin), neden, duygu + şiddet (1–5), ders, etiketler, isteğe bağlı grafik görüntüsü (`takeScreenshot` ile çizimler ve seans kutuları dahil, imleç çizgisi hariç).
 - **Özet:** Filtrelenmiş kayıtlardan yalnızca ölçülen değerler gösterilir; seri ve düşüş hesapları karar sırasına göredir. 30'dan az sonuçlu işlemde uyarı, belirsiz mum sayısı ve "bu bir backtest değildir, olasılık değildir" notu her zaman görünür.
 
+## D28 — Tespit modeli ve feature engine yapısı
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M4)
+- **Karar:** Özellikler grafiğin zaman dilimindeki **kapanmış** mumlar (`Bars`: açılış zamanı, OHLC ve kapanış zamanı `end`) üzerinde çalışır; oluşmakta olan mum hiç kullanılmaz. Her tespit `formedAt/formedIndex` ve `confirmedAt/confirmedIndex` taşır; kimliği deterministiktir (tür, sürüm, parametre/yön, oluşum zamanı). M0 taslağındaki genel `fields` sözlüğü yerine türe özel alanlar kullanılır (`Swing.price`, `Fvg.top/bottom`, …); M5'te strateji referansları (`fvg.top` gibi) bu alanlara eşlenir.
+- **Tek giriş noktası:** `computeFeatures({candles, inst, tf, periods, sessions}, params)`. Grafik, replay ve (M5) backtest aynı fonksiyonu kullanır. Tanım sürümleri `FEATURE_DEFINITIONS` içinde; sonuç kayıtlarına yazılacak.
+- **Replay:** Özellikler tam veriden bir kez hesaplanır, imleçte `featuresAsOf(cursor)` ile süzülür (`confirmedAt ≤ imleç`; FVG dokunma/doldurma zamanları imleçten sonraysa `null`). Bunun kesilmiş veriden hesaplamayla birebir aynı olduğu 5m/15m/1h/4h'de test edildi. Bilinen tek istisna: piyasa kapanmadan önce kesilen ama kalan dakikaları kapalı olan bir mum (ör. hafta sonu ortasındaki imleç); bu durumda o mumdaki tespit bir sonraki açılışta görünür.
+- **Performans (gerçek EURUSD, 736 bin 1m mum, tarayıcı):** 15m tüm özellikler 34 ms, 1m 0,67 sn; önceki gün/hafta seviyeleri veri kümesi başına bir kez ~1,2 sn. FVG doldurma araması segment ağacıyla O(log n).
+- **ENGINE_VERSION:** 0.2.0.
+
+## D29 — Feature tanımları v1 (varsayılanlar)
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M4)
+- Swing: `left = right = 3`, solda kesin büyük / sağda büyük-eşit. FVG: fitil tabanlı, `minSizePips = 1`. Yapı kırılımı: son onaylı swing, `breakBy = CLOSE`, ilk kırılım BOS. Önceki gün/hafta: 17:00 NY işlem günü, bir sonraki açık döneme kadar geçerli. Süpürme: aynı mumda fitille aşma + içeride kapanış, seviye ilk aşılışta tükenir, swing seviyeleri 100 mum geçerli.
+- Ayrıntılar, varsayımlar ve bilinen başarısızlık durumları: `docs/definitions/*-v1.md`. Parametreleri arayüzden değiştirmek sonraki bir adım.
+
+## D30 — Grafikte aday katmanı
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M4)
+- **Karar:** Motor adayları kullanıcı çizimlerinden ayrı bir primitive ile çizilir: ince, kesikli ya da yarı saydam, her zaman metin etiketli ("Aday FVG ↑", "BOS ↓", "Süpürme PDH", "PDH"). Yeşil/kırmızı yalnızca yön için. Katmanlar araç çubuğundan açılıp kapanır ve tercihlerde saklanır (varsayılan: swing, kırılım, önceki gün).
+- **Görüntü kuralları (motor verisini değiştirmez):** Aynı mumdaki süpürmeler tek işarette birleşir; aynı mum ve yöndeki işaretler üst üste istiflenir; mum aralığı 3 pikselden darsa işaretler gizlenir; FVG kutusu en fazla 50 mum uzunluğunda çizilir.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
@@ -178,3 +196,4 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 | S3 | Günlük mum kapanışı: 17:00 New York / 00:00 UTC / broker sunucu saati | **17:00 America/New_York** (kullanıcı, 2026-09-30). Bkz. D11 |
 | S4 | 1m taban veriden kaç yıl yüklenecek | **Son 2 yıl**; cihaz 8 GB RAM. Bkz. D14 |
 | S5 | Yalnızca yerel git mi, yoksa özel bir GitHub reposu da mı | **GitHub:** yusufedali7/Trading_for_future. Görünürlük (public/private) açık. Bkz. D15 |
+

@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   FeatureSet,
   IanaTz,
   Instrument,
@@ -16,6 +16,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   sessions: readonly SessionLevels[];
   instrument: Instrument;
   timeframe: Timeframe;
+  /** Timeframe of the stored data (for the missing-bars note). */
+  baseTimeframe?: Timeframe;
   displayTz: IanaTz;
   /** Replay: keep the newest bar in view as the cursor advances. */
   followLatest?: boolean;

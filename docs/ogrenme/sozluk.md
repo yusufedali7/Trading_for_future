@@ -269,3 +269,46 @@ Art arda gelen kazançlı ya da kayıplı işlem sayısı. En uzun kayıp serisi
 Toplam R'nin bir zirveden sonra en fazla ne kadar gerilediği. Örnek: +3R'ye çıkıp sonra 3 işlem üst üste −1R alırsan düşüş 3R olur.
 
 *Hatırlatma:* Günlük özetindeki sayılar **ölçülen** değerlerdir, gelecekteki bir olasılık değildir. 30'dan az işlemle büyük ölçüde rastlantı olabilir.
+
+---
+
+## M4'te eklenenler: motor adayları (feature engine)
+
+### Aday (candidate)
+Motorun bir tanıma göre otomatik bulduğu yapı. "Aday" denmesinin sebebi: bu kavramların (swing, FVG, süpürme…) tek bir resmi tanımı yok ve bulunan her yapı işe yarar bir sinyal değil. Bir adayın işe yarayıp yaramadığını ancak çok sayıda örnekle backtest ölçer (M5).
+*Uygulamada:* Araç çubuğundaki "Motor adayları" düğmeleriyle katmanları açıp kapatırsın. Tanımlar `docs/definitions/` içinde.
+
+### Onay gecikmesi
+Bir yapının oluştuğu mum ile **anlaşıldığı** mum farklı olabilir. Örneğin bir tepenin tepe olduğu, ancak sağındaki 3 mum daha düşük kapandıktan sonra bilinir. Uygulama her adayı ancak onaylandığı mumun kapanışından sonra gösterir; replay'de de geçmişi "boyamaz".
+
+### Swing tepe / dip
+Solundaki ve sağındaki birkaç mumdan daha yüksek (ya da daha düşük) olan mum. Varsayılan: solda 3, sağda 3 mum.
+*Grafikte:* Tepenin üstünde küçük ▼ ve "T", dibin altında ▲ ve "D".
+
+### FVG (fair value gap, "adil değer boşluğu")
+Üç mumluk bir hareketin ortasında, 1. mumun fitili ile 3. mumun fitili arasında kalan, fiyatın hiç işlem görmediği boşluk. Hızlı ve tek yönlü bir hareketi gösterir. Birçok trader fiyatın bu boşluğa geri dönmesini bekler; bunun gerçekten olup olmadığı ölçülmelidir.
+- **Dokunma:** Fiyat boşluğun kenarına geri geldi.
+- **Doldurulma:** Fiyat boşluğun öbür ucuna kadar geçti.
+
+*Grafikte:* Yükselişte yeşil, düşüşte kırmızı yarı saydam kutu, "Aday FVG ↑/↓" etiketiyle. Kutu doldurulunca biter.
+
+### Yapı kırılımı: BOS ve CHoCH
+- **BOS (break of structure):** Fiyat son onaylı tepenin üstünde (ya da dibin altında) kapanır ve önceki kırılımla aynı yöndedir; yani trend devam ediyor gibi görünür.
+- **CHoCH (change of character):** Kırılım önceki kırılımın tersi yönündedir; yön değişiyor olabilir. Bazı kaynaklar buna MSS (market structure shift) der.
+
+*Grafikte:* Kırılan seviyede, swing'den kırılım mumuna kadar çizgi. BOS kesik, CHoCH düz çizgi; "↑/↓" ile yön.
+
+### Likidite ve likidite süpürmesi (sweep)
+- **Likidite:** Belirgin tepelerin üstünde ve diplerin altında birikmiş olduğu varsayılan stop emirleri.
+- **Süpürme:** Fiyatın bir seviyeyi fitille aşıp **aynı mumda** geri seviyenin içinde kapanması. "Stop'lar alındı, fiyat geri döndü" yorumu yapılır. Kapanış seviyenin ötesindeyse bu süpürme değil kırılımdır.
+
+*Uygulamada:* Önceki gün/hafta en yüksek-en düşükleri, biten seansların en yüksek-en düşükleri ve swing'ler seviye olarak kullanılır. Grafikte sarı ▼/▲ ve "Süpürme PDH" gibi etiket.
+
+### PDH / PDL / PWH / PWL
+- **PDH / PDL:** Önceki işlem gününün (17:00 New York'tan 17:00'ye) en yüksek / en düşük fiyatı.
+- **PWH / PWL:** Önceki haftanın en yüksek / en düşük fiyatı.
+
+*Grafikte:* Bir sonraki gün (hafta) boyunca kesik yatay çizgi.
+
+### Kesme değişmezliği (truncation invariance)
+"İleriye bakma" olmadığını kanıtlayan test. Veri herhangi bir anda kesildiğinde motorun bulduğu adaylar, tam veriden bulunup o ana kadar onaylanmış olanlarla birebir aynı olmalı. Aynı değilse motor, o anda bilinemeyecek bir bilgiyi kullanıyor demektir.

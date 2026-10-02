@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   CandlestickSeries,
   ColorType,
@@ -277,9 +277,14 @@ export function ChartView(props: ChartViewProps) {
                   {tr.legend.v} {shown.v.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
                 </span>
               )}
-              {shown.sourceCount < shown.expectedCount && (
+              {/* A forming bar's later slots are not missing, just not there yet. */}
+              {shown.complete && shown.sourceCount < shown.expectedCount && (
                 <span className="warn">
-                  {tr.legend.missing(shown.expectedCount - shown.sourceCount, shown.expectedCount)}
+                  {tr.legend.missing(
+                    shown.expectedCount - shown.sourceCount,
+                    shown.expectedCount,
+                    props.baseTimeframe ?? '1m',
+                  )}
                 </span>
               )}
               {!shown.complete && <span className="warn">{tr.legend.forming}</span>}

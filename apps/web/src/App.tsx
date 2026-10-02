@@ -307,6 +307,7 @@ export function App({
                   )}
                   instrument={instrument}
                   timeframe={data.tf}
+                  baseTimeframe={active.baseTimeframe}
                   displayTz={settings.displayTz}
                   followLatest={inReplay}
                   features={chartData.features}

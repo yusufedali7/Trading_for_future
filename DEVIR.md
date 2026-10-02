@@ -1,15 +1,44 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-02 (M3 oturumu)_
+_Son güncelleme: 2026-10-02 (M4 oturumu)_
 
 ## Durum özeti
 - **M1 (Veri ve grafik):** tamamlandı, gerçek veriyle kabul yapıldı.
 - **M2 (Session ve manuel analiz):** tamamlandı; plan `docs/PLAN-M2.md`, kararlar D23–D25.
-- **M3 (Replay ve işlem günlüğü):** görev 1–9 tamamlandı; plan `docs/PLAN-M3.md`, kararlar D26–D27. **Kullanıcının kendi denemesi bekleniyor.**
-- **Sıradaki:** M4 (feature engine v1: onaylı swing, önceki gün/hafta high-low, likidite süpürmesi, FVG, yapı kırılımı). Kullanıcı "başla" deyince kısa plan yazılıp uygulamaya geçilir.
-- Testler: **304 test yeşil** (40 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
+- **M3 (Replay ve işlem günlüğü):** tamamlandı; plan `docs/PLAN-M3.md`, kararlar D26–D27.
+- **M4 (Feature engine v1):** görev 1–9 tamamlandı; plan `docs/PLAN-M4.md`, kararlar D28–D30, tanımlar `docs/definitions/*-v1.md`. **Kullanıcının kendi denemesi bekleniyor.**
+- **Sıradaki:** M5 (strateji şeması, kod yazmadan strateji oluşturucu, deterministik backtest, istatistik ekranı, versiyon karşılaştırma). Kullanıcı "devam et" deyince kısa plan yazılıp uygulamaya geçilir.
+- **Gelecek fikir (kullanıcı, 2026-10-02):** Uygulama bitince n8n / Langflow ile bir araştırma botu: YouTube videolarındaki stratejileri okuyup bizim strateji şemasına çevirecek, backtest'e verecek, sonucu yorumlayacak. Kurallar: canlı işlem yok (kural 7), ölçülmemiş olasılık yok (kural 6); YouTube metinlerini almanın kullanım koşulları o aşamada doğrulanacak. M6 "AI araştırma asistanı" ile birleşir.
+- Testler: **340 test yeşil** (48 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M4'te yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Tespit modeli + swing | `features/types.ts`, `features/bars.ts` (kapanmış mumlar + kapanış zamanı, `bucketEnds`), `features/swing.ts` |
+| 2 | FVG | `features/fvg.ts`: yön, minimum boyut, dokunma/doldurma zamanı (`features/first-reach.ts` segment ağacı) |
+| 3 | Yapı kırılımı | `features/structure.ts`: son onaylı swing, kapanış/fitil, BOS/CHoCH |
+| 4 | Önceki gün/hafta | `features/periods.ts`: 17:00 NY günü/haftası, sonraki açık döneme kadar geçerli |
+| 5 | Likidite + süpürme | `features/sweep.ts`: swing, PDH/PDL, PWH/PWL, seans seviyeleri; fitil + içeride kapanış |
+| 6 | Birleştirme | `features/compute.ts`: `computeFeatures`, `featuresAsOf`; uçtan uca kesme değişmezliği (5m/15m/1h/4h) |
+| 7 | Worker | Grafik verisinde `features`; replay `featuresAsOf(imleç)` gösterir (test) |
+| 8 | Grafik | Aday katmanı primitive'i, "Motor adayları" düğmeleri (tercihlerde), işaret birleştirme/istifleme |
+| 9 | Belgeler | 5 tanım belgesi, sözlükte M4 kavramları, D28–D30 |
+
+Tarayıcıda gerçek EURUSD verisiyle doğrulananlar:
+- Hesap süreleri: 15m 34 ms, 1h 12 ms, 1m 0,67 sn (736 bin mum); önceki gün/hafta 1,2 sn (bir kez).
+- 15m'de 10 Mart 2026: PDH/PDL çizgileri, FVG kutuları, BOS/CHoCH, süpürme işaretleri ("Süpürme Asya D" gibi) doğru yerlerde.
+- Replay'de adaylar yalnızca onaylandıkça beliriyor.
+- Gömülü tarayıcıda senin seçimin (1 günlük veri kümesi, 1W) geri yüklendi.
+
+Ek düzeltmeler: bilgi şeridindeki "eksik mum" notu artık taban zaman dilimini yazıyor (1h veri için "eksik 1h mum") ve oluşmakta olan mumda gösterilmiyor (M3 iyileştirme listesi 1. madde kapandı).
+
+## M4 iyileştirme listesi
+1. Parametreleri (swing L/R, FVG min boyut, kırılım CLOSE/WICK, süpürme yaşı) arayüzden değiştirme; değişiklik yeni tanım parametresi olarak kaydedilmeli.
+2. Süpürmede "birkaç mum içinde geri dönüş" (`maxBarsToReclaim`) ve EQH/EQL (eşit tepeler/dipler).
+3. Çoklu zaman dilimi adayları (ör. 15m grafikte 1h swing).
+4. Adayın üstüne gelince tanımı ve onay zamanını gösteren ipucu (tooltip).
+5. 1m görünümünde çok sayıda aday (300 bin+) worker'dan aktarılıyor; görünür aralığa göre aktarım.
 ## M3'te yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -30,12 +59,13 @@ Tarayıcıda gerçek EURUSD verisiyle (2 yıl, 1m) doğrulananlar:
 - Deneme kayıtlarım (2 işlem, 1 günlük kaydı) tarayıcıdan silindi. Gömülü tarayıcıda EURUSD 2 yıllık veri kümesi duruyor; kaynak adı yanlışlıkla "DukascopyDukascopy" yazıldı (yalnızca etiket, veri doğru).
 
 ## M3 iyileştirme listesi
-1. Bilgi şeridinde oluşmakta olan mumun "eksik 1m mum" sayısı, henüz gelmemiş dakikaları da eksik sayıyor; oluşan mumda yalnızca imlece kadarki eksikler sayılmalı.
+1. ~~Bilgi şeridinde oluşan mumun eksik mum sayısı~~ (M4'te düzeltildi).
 2. Replay işlemlerini veri kümesi değişince otomatik kapatmak (şu an işlem son haliyle `trades` içinde kalıyor).
 3. Günlük kaydı silinince bağlı işlemin `journalId` alanını temizlemek.
 4. Birden fazla eş zamanlı işlem, breakeven, kısmi kâr (kapsam dışıydı).
 5. Özetin günlüğe yazılmamış replay işlemlerini de kapsaması seçeneği.
 6. Replay başlangıcında saat seçimi (şu an günün başı, görüntüleme saat diliminde).
+
 ## M2'de yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -151,9 +181,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-1. Kullanıcı M3'ü kendi tarayıcısında dener: replay başlat → işlem aç → günlüğe yaz → Günlük sayfası.
+1. Kullanıcı M4'ü dener: araç çubuğunda "Motor adayları" katmanlarını aç/kapa, replay'de adayların onaylandıkça belirdiğini gör. Tanımlar docs/definitions/.
 2. `git push` (kullanıcı).
-3. M4 planı: onaylı swing, önceki gün/hafta high-low, seans high-low, likidite süpürmesi, FVG, yapı kırılımı; her biri tanım dokümanı + kesme değişmezliği testi; grafikte "aday" katmanı. Replay'de yalnızca imlece kadar onaylanmış adaylar görünür.
+3. M5 planı: strateji şeması (D10'un güncel hali), kod yazmadan strateji oluşturucu, seçilen strateji versiyonunun setup'ları grafikte, deterministik backtest (maliyetler, belirsizlik raporu, in-sample/out-of-sample), istatistik ekranı, versiyon karşılaştırma.
 
 ## Çalıştırma ve test komutları
 ```bash
