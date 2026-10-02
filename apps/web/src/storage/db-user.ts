@@ -1,4 +1,4 @@
-﻿import Dexie, { type Table } from 'dexie';
+import Dexie, { type Table } from 'dexie';
 import type {
   Drawing,
   IanaTz,
@@ -7,6 +7,7 @@ import type {
   SupportResistanceLevel,
   Timeframe,
 } from '@trw/engine';
+import type { FeatureLayer } from '../chart/primitives/feature-layout';
 import { assertValidDrawing, byCreated, type DrawingsRepo } from './drawings-repo';
 import { newestDecisionFirst, type JournalRepo, type Screenshot } from './journal-repo';
 
@@ -16,6 +17,8 @@ export interface Prefs {
   displayTz: IanaTz;
   /** Ids of sessions drawn on the chart. */
   sessions: string[];
+  /** Engine candidate layers drawn on the chart (M4). */
+  features: FeatureLayer[];
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -23,6 +26,7 @@ export const DEFAULT_PREFS: Prefs = {
   timeframe: '15m',
   displayTz: 'Europe/Istanbul',
   sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
+  features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
 };
 
 export interface PrefsRepo {

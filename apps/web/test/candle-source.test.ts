@@ -1,9 +1,12 @@
-﻿import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  computeFeatures,
   getInstrument,
+  previousPeriods,
   replayCandles,
   resample,
   seriesFromRows,
+  seriesUpTo,
   sessionLevels,
   simulateTrade,
   type DataSetMeta,
@@ -110,6 +113,30 @@ describe('replay through the candle source', () => {
         endUtc,
       }));
       expect(view.sessions).toEqual(sessionLevels(s2, instances, cursor));
+    }
+  });
+
+  it('shows only the candidates known at the cursor (same as computing on cut data)', async () => {
+    const src = await source2();
+    const full = await src.load(meta2, '1m');
+    expect(full.features.swings.length).toBeGreaterThan(2);
+    const inst = getInstrument('EURUSD');
+    for (const cursor of [
+      '2026-01-06T13:42:00Z',
+      '2026-01-06T14:10:00Z',
+      '2026-01-06T14:59:00Z',
+    ].map(Date.parse)) {
+      const view = composeReplay(full, await src.replay(meta2, '1m', cursor), cursor);
+      const cut = seriesUpTo(s2, cursor, 60_000);
+      expect(view.features).toEqual(
+        computeFeatures({
+          candles: view.candles,
+          inst,
+          tf: '1m',
+          periods: previousPeriods(cut, inst, cursor),
+          sessions: view.sessions,
+        }),
+      );
     }
   });
 

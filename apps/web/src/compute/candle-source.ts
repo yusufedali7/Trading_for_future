@@ -1,6 +1,9 @@
 import {
   BUILTIN_SESSIONS,
   bucketStart,
+  computeFeatures,
+  featuresAsOf,
+  previousPeriods,
   getInstrument,
   resample,
   seriesUpTo,
@@ -10,6 +13,8 @@ import {
   timeframeMs,
   type CandleSeries,
   type DataSetMeta,
+  type FeatureSet,
+  type PeriodLevel,
   type ResampledCandle,
   type SessionLevels,
   type SimOptions,
@@ -26,6 +31,8 @@ export interface ChartData {
   candles: ResampledCandle[];
   /** Built-in sessions with levels from the base bars, as of the last stored bar's close. */
   sessions: SessionLevels[];
+  /** Engine candidates (M4) on this timeframe, as of the last stored bar. */
+  features: FeatureSet;
 }
 
 /**
@@ -55,7 +62,11 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
   const sessions = [...finished, ...tail.running].sort(
     (a, b) => a.startUtc - b.startUtc || a.sessionId.localeCompare(b.sessionId),
   );
-  return { candles: [...head, ...tail.tail], sessions };
+  return {
+    candles: [...head, ...tail.tail],
+    sessions,
+    features: featuresAsOf(full.features, cursor),
+  };
 }
 
 function computeSessions(meta: DataSetMeta, series: CandleSeries): SessionLevels[] {
@@ -69,21 +80,46 @@ function computeSessions(meta: DataSetMeta, series: CandleSeries): SessionLevels
   return sessionLevels(series, instances, asOf, timeframeMs(meta.baseTimeframe));
 }
 
+function computePeriods(meta: DataSetMeta, series: CandleSeries): PeriodLevel[] {
+  const last = series.t[series.length - 1];
+  if (last === undefined) return [];
+  const asOf = last + timeframeMs(meta.baseTimeframe);
+  return previousPeriods(series, getInstrument(meta.instrument), asOf, meta.baseTimeframe);
+}
+
 /** Keeps the most recently used dataset (and its sessions) in memory between requests. */
 export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
-  let cached: { key: string; series: CandleSeries; sessions: SessionLevels[] } | null = null;
+  let cached: {
+    key: string;
+    series: CandleSeries;
+    sessions: SessionLevels[];
+    periods: PeriodLevel[];
+  } | null = null;
   const get = async (meta: DataSetMeta) => {
     const key = `${meta.id}:${meta.contentHash}`;
     if (cached?.key !== key) {
       const series = await repo.loadSeries(meta.id);
-      cached = { key, series, sessions: computeSessions(meta, series) };
+      cached = {
+        key,
+        series,
+        sessions: computeSessions(meta, series),
+        periods: computePeriods(meta, series),
+      };
     }
     return cached;
   };
   return {
     async load(meta, tf) {
       const c = await get(meta);
-      return { candles: await candlesFor(meta, c.series, tf), sessions: c.sessions };
+      const candles = await candlesFor(meta, c.series, tf);
+      const features = computeFeatures({
+        candles,
+        inst: getInstrument(meta.instrument),
+        tf,
+        periods: c.periods,
+        sessions: c.sessions,
+      });
+      return { candles, sessions: c.sessions, features };
     },
     async replay(meta, tf, cursor) {
       const c = await get(meta);

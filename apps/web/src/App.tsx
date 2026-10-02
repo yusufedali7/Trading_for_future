@@ -256,6 +256,14 @@ export function App({
                   : [...settings.sessions, id],
               })
             }
+            visibleFeatures={settings.features}
+            onToggleFeature={(layer) =>
+              update({
+                features: settings.features.includes(layer)
+                  ? settings.features.filter((l) => l !== layer)
+                  : [...settings.features, layer],
+              })
+            }
             onImport={() => setImporting(true)}
           />
         )}
@@ -301,6 +309,8 @@ export function App({
                   timeframe={data.tf}
                   displayTz={settings.displayTz}
                   followLatest={inReplay}
+                  features={chartData.features}
+                  featureLayers={settings.features}
                   tradeLines={tradeLines}
                   screenshotRef={screenshotRef}
                   drawings={visibleDrawings}

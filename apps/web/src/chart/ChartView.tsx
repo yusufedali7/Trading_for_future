@@ -17,6 +17,8 @@ import { tr } from '../i18n/tr';
 import { positionToTime, timeToPosition } from './coords';
 import { indexAtOrAfter, startOfLocalDay } from './goto';
 import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from './lwc-adapter';
+import { layoutFeatures } from './primitives/feature-layout';
+import { FeaturesPrimitive } from './primitives/features';
 import { SessionBoxesPrimitive } from './primitives/session-boxes';
 import { THEME } from './theme';
 import type { ChartViewProps } from './types';
@@ -34,6 +36,7 @@ export function ChartView(props: ChartViewProps) {
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const sessionBoxesRef = useRef<SessionBoxesPrimitive | null>(null);
+  const featuresRef = useRef<FeaturesPrimitive | null>(null);
   // Previous bar times + timeframe, to keep the same time span visible across timeframe switches.
   const shownRef = useRef<{ times: number[]; tfMs: number } | null>(null);
   const [hovered, setHovered] = useState<ResampledCandle | null>(null);
@@ -71,6 +74,9 @@ export function ChartView(props: ChartViewProps) {
     const boxes = new SessionBoxesPrimitive();
     candleSeriesRef.current.attachPrimitive(boxes);
     sessionBoxesRef.current = boxes;
+    const candidates = new FeaturesPrimitive();
+    candleSeriesRef.current.attachPrimitive(candidates);
+    featuresRef.current = candidates;
     chartRef.current = chart;
     return () => {
       chart.remove();
@@ -78,6 +84,7 @@ export function ChartView(props: ChartViewProps) {
       candleSeriesRef.current = null;
       volumeSeriesRef.current = null;
       sessionBoxesRef.current = null;
+      featuresRef.current = null;
       shownRef.current = null;
     };
   }, []);
@@ -170,6 +177,17 @@ export function ChartView(props: ChartViewProps) {
       tr.sessions.running,
     );
   }, [sessions, times, timeframe]);
+
+  // Engine candidates (M4), laid out once per data / layer change.
+  const { features, featureLayers } = props;
+  useEffect(() => {
+    const layers = new Set(featureLayers ?? []);
+    const items =
+      features && layers.size > 0
+        ? layoutFeatures(features, layers, times, timeframeMs(timeframe), tr.features.labels)
+        : [];
+    featuresRef.current?.setData(items, times.length);
+  }, [features, featureLayers, times, timeframe]);
 
   // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
   const screenshotRef = props.screenshotRef;

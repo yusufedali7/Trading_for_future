@@ -1,5 +1,21 @@
-﻿// All user-facing strings live here (CLAUDE.md: UI text in Turkish, in a single translation file).
+// All user-facing strings live here (CLAUDE.md: UI text in Turkish, in a single translation file).
 import type { Blocker, Fix, PriceType } from '@trw/engine';
+
+/** Short chart labels for liquidity levels. */
+const LEVEL_SHORT: Record<string, string> = {
+  SWING_HIGH: 'tepe',
+  SWING_LOW: 'dip',
+  PDH: 'PDH',
+  PDL: 'PDL',
+  PWH: 'PWH',
+  PWL: 'PWL',
+  ASIA_HIGH: 'Asya Y',
+  ASIA_LOW: 'Asya D',
+  LONDON_HIGH: 'Londra Y',
+  LONDON_LOW: 'Londra D',
+  NEW_YORK_HIGH: 'NY Y',
+  NEW_YORK_LOW: 'NY D',
+};
 
 export const tr = {
   app: {
@@ -26,6 +42,35 @@ export const tr = {
   },
   sessions: {
     running: 'devam ediyor',
+  },
+  features: {
+    toggle: 'Motor adayları',
+    layers: {
+      SWING: 'Swing',
+      FVG: 'FVG',
+      STRUCTURE: 'Kırılım',
+      SWEEP: 'Süpürme',
+      PREV_DAY: 'Önceki gün',
+      PREV_WEEK: 'Önceki hafta',
+    },
+    layerHints: {
+      SWING: 'Aday tepe ve dipler (sağda 3 mum oluşunca onaylanır)',
+      FVG: 'Aday fair value gap (3 mumluk boşluk); doldurulunca kutu biter',
+      STRUCTURE: 'Aday yapı kırılımı: BOS (aynı yön) / CHoCH (yön değişimi)',
+      SWEEP: 'Aday likidite süpürmesi: seviyenin fitille aşılıp içeride kapanması',
+      PREV_DAY: 'Önceki işlem gününün en yüksek / en düşük fiyatı (PDH / PDL)',
+      PREV_WEEK: 'Önceki haftanın en yüksek / en düşük fiyatı (PWH / PWL)',
+    },
+    candidateNote: 'Motor adayları kesin sinyal değildir; tanımlar docs/definitions içinde.',
+    labels: {
+      fvg: (up: boolean) => `Aday FVG ${up ? '↑' : '↓'}`,
+      structure: (kind: 'BOS' | 'CHOCH', up: boolean) =>
+        `${kind === 'BOS' ? 'BOS' : 'CHoCH'} ${up ? '↑' : '↓'}`,
+      swing: (high: boolean) => (high ? 'T' : 'D'),
+      sweep: (levelKinds: readonly string[]) =>
+        `Süpürme ${levelKinds.map((k) => LEVEL_SHORT[k] ?? k).join(', ')}`,
+      period: (kind: 'PDH' | 'PDL' | 'PWH' | 'PWL') => kind,
+    },
   },
   replay: {
     startDate: 'Replay başlangıcı',

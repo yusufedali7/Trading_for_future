@@ -6,6 +6,7 @@ import {
   type IanaTz,
   type Timeframe,
 } from '@trw/engine';
+import { FEATURE_LAYERS, type FeatureLayer } from '../../chart/primitives/feature-layout';
 import { SESSION_COLORS } from '../../chart/theme';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
@@ -20,6 +21,8 @@ export interface ToolbarProps {
   onDisplayTz: (tz: IanaTz) => void;
   visibleSessions: readonly string[];
   onToggleSession: (id: string) => void;
+  visibleFeatures: readonly FeatureLayer[];
+  onToggleFeature: (layer: FeatureLayer) => void;
   onImport: () => void;
 }
 
@@ -79,6 +82,26 @@ export function Toolbar(p: ToolbarProps) {
           >
             <span className="dot" style={{ background: SESSION_COLORS[s.id] }} aria-hidden="true" />
             {s.name}
+          </button>
+        ))}
+      </div>
+
+      <div
+        className="segmented"
+        role="group"
+        aria-label={tr.features.toggle}
+        title={tr.features.candidateNote}
+      >
+        {FEATURE_LAYERS.map((layer) => (
+          <button
+            key={layer}
+            type="button"
+            className="seg"
+            aria-pressed={p.visibleFeatures.includes(layer)}
+            title={tr.features.layerHints[layer]}
+            onClick={() => p.onToggleFeature(layer)}
+          >
+            {tr.features.layers[layer]}
           </button>
         ))}
       </div>
