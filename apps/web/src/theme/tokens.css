@@ -608,3 +608,44 @@ input[type='number'] {
   border-radius: 3px;
   padding: 1px 6px;
 }
+
+/* --- M3: trade panel --- */
+.trade-form .segmented {
+  align-self: flex-start;
+}
+
+.seg-long[aria-pressed='true'] {
+  background: var(--up);
+}
+
+.seg-short[aria-pressed='true'] {
+  background: var(--down);
+}
+
+.trade-kv {
+  gap: 3px 10px;
+  font-size: 12px;
+}
+
+.trade-state {
+  margin: 0;
+  font-weight: 600;
+}
+
+.trade-status .up {
+  color: var(--up);
+}
+
+.trade-status .down {
+  color: var(--down);
+}
+
+.warn-text {
+  color: var(--warn);
+  font-size: 12px;
+  margin: 0;
+}
+
+.warn-text::before {
+  content: '⚠ ';
+}

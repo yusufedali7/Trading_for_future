@@ -4,8 +4,10 @@ import {
   ColorType,
   CrosshairMode,
   HistogramSeries,
+  LineStyle,
   createChart,
   type IChartApi,
+  type IPriceLine,
   type ISeriesApi,
   type MouseEventParams,
   type Time,
@@ -168,6 +170,25 @@ export function ChartView(props: ChartViewProps) {
       tr.sessions.running,
     );
   }, [sessions, times, timeframe]);
+
+  // Replay trade lines; each carries a text title so colour is never the only cue.
+  const tradeLines = props.tradeLines;
+  useEffect(() => {
+    const series = candleSeriesRef.current;
+    if (!series || !tradeLines?.length) return;
+    const color = { ENTRY: THEME.accent, ORDER: THEME.accent, STOP: THEME.down, TARGET: THEME.up };
+    const lines: IPriceLine[] = tradeLines.map((l) =>
+      series.createPriceLine({
+        price: l.price,
+        color: color[l.kind],
+        lineWidth: 1,
+        lineStyle: l.kind === 'ENTRY' ? LineStyle.Solid : LineStyle.Dashed,
+        axisLabelVisible: true,
+        title: tr.trade.lines[l.kind],
+      }),
+    );
+    return () => lines.forEach((l) => series.removePriceLine(l));
+  }, [tradeLines]);
 
   // User drawings (create, select, drag handles).
   useDrawingLayer(chartRef, candleSeriesRef, containerRef, { ...props, times });

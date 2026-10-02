@@ -1,7 +1,8 @@
-﻿import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
 import {
   compareTimeframes,
   getInstrument,
+  timeframeMs,
   type Anchor,
   type DataSetMeta,
   type DrawingKind,
@@ -19,6 +20,9 @@ import { useDrawings } from './features/drawings/use-drawings';
 import { ImportWizard } from './features/import/ImportWizard';
 import { ReplayBar } from './features/replay/ReplayBar';
 import { useReplay } from './features/replay/use-replay';
+import { TradePanel } from './features/trade/TradePanel';
+import { tradeLinesFor } from './features/trade/trade-lines';
+import { useReplayTrade } from './features/trade/use-replay-trade';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
 import type { Importer } from './import/importer';
@@ -47,7 +51,7 @@ export function App({
   repo,
   prefs,
   drawingsRepo,
-  journalRepo: _journalRepo,
+  journalRepo,
   createImporter,
   candleSource,
   ChartComponent = ChartView,
@@ -107,6 +111,20 @@ export function App({
     ? store.drawings.filter((d) => Math.min(...d.anchors.map((a) => a.t)) < replay.cursor!)
     : store.drawings;
 
+  const trading = useReplayTrade({
+    source: candleSource,
+    repo: journalRepo,
+    active,
+    timeframe,
+    cursor: replay.cursor,
+    now,
+    newId,
+  });
+  // Same lines → same array, so the chart does not redraw them on every replay step.
+  const lines = tradeLinesFor(inReplay ? trading.trade : null);
+  const linesKey = JSON.stringify(lines);
+  const tradeLines = useMemo(() => lines, [linesKey]);
+
   // A different dataset ends the replay.
   const activeId = active?.id;
   const exitReplay = replay.exit;
@@ -122,7 +140,8 @@ export function App({
       if (isTyping(e.target)) return;
       if (inReplay && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
         e.preventDefault();
-        replay.step(e.key === 'ArrowRight' ? 1 : -1);
+        // An open trade or pending order may not see the cursor go back (it was decided later).
+        if (e.key === 'ArrowRight' || !trading.busy) replay.step(e.key === 'ArrowRight' ? 1 : -1);
       } else if (inReplay && e.key === ' ') {
         e.preventDefault();
         replay.togglePlay();
@@ -136,7 +155,7 @@ export function App({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, store, inReplay, replay]);
+  }, [selectedId, store, inReplay, replay, trading.busy]);
 
   const update = (patch: Partial<Prefs>) => {
     setSettings((s) => (s ? { ...s, ...patch } : s));
@@ -222,6 +241,7 @@ export function App({
                 playing={replay.playing}
                 speedMs={replay.speedMs}
                 atEnd={replay.atEnd}
+                busy={trading.busy}
                 onStart={replay.start}
                 onStep={replay.step}
                 onTogglePlay={replay.togglePlay}
@@ -240,6 +260,7 @@ export function App({
                   timeframe={data.tf}
                   displayTz={settings.displayTz}
                   followLatest={inReplay}
+                  tradeLines={tradeLines}
                   drawings={visibleDrawings}
                   levels={store.levels}
                   selectedId={selectedId}
@@ -252,6 +273,17 @@ export function App({
                 <p className="muted chart-wrap">{tr.app.loading}</p>
               )}
               <aside className="side">
+                <TradePanel
+                  instrument={instrument}
+                  displayTz={settings.displayTz}
+                  cursor={replay.cursor}
+                  lastClose={inReplay ? lastClose : null}
+                  baseMs={timeframeMs(active.baseTimeframe)}
+                  trade={trading.trade}
+                  onPlace={trading.place}
+                  onClose={trading.close}
+                  onDismiss={trading.dismiss}
+                />
                 {selected ? (
                   <DrawingPanel
                     drawing={selected}

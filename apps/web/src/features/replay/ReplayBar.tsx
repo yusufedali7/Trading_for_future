@@ -11,6 +11,8 @@ export interface ReplayBarProps {
   playing: boolean;
   speedMs: number;
   atEnd: boolean;
+  /** A trade is pending or open: no stepping back, no exit. */
+  busy: boolean;
   onStart: (date: string) => void;
   onStep: (dir: 1 | -1) => void;
   onTogglePlay: () => void;
@@ -47,7 +49,7 @@ export function ReplayBar(p: ReplayBarProps) {
     <div className="replay-bar active" role="group" aria-label={tr.replay.badge}>
       <span className="badge">{tr.replay.badge}</span>
       <span className="mono">{tr.replay.cursor(formatTime(p.cursor, p.displayTz))}</span>
-      <button type="button" className="btn" onClick={() => p.onStep(-1)}>
+      <button type="button" className="btn" onClick={() => p.onStep(-1)} disabled={p.busy}>
         {tr.replay.back}
       </button>
       <button type="button" className="btn" onClick={() => p.onStep(1)} disabled={p.atEnd}>
@@ -66,10 +68,12 @@ export function ReplayBar(p: ReplayBarProps) {
           ))}
         </select>
       </label>
-      <button type="button" className="btn" onClick={p.onExit}>
+      <button type="button" className="btn" onClick={p.onExit} disabled={p.busy}>
         {tr.replay.exit}
       </button>
-      <span className="hint">{p.atEnd ? tr.replay.end : tr.replay.hint}</span>
+      <span className="hint">
+        {p.busy ? tr.replay.busy : p.atEnd ? tr.replay.end : tr.replay.hint}
+      </span>
     </div>
   );
 }

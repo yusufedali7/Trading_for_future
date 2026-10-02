@@ -10,4 +10,11 @@ export interface ChartViewProps extends DrawingLayerProps {
   displayTz: IanaTz;
   /** Replay: keep the newest bar in view as the cursor advances. */
   followLatest?: boolean;
+  /** Replay trade: entry (or pending order), stop and target as horizontal price lines. */
+  tradeLines?: readonly TradeLine[];
+}
+
+export interface TradeLine {
+  kind: 'ENTRY' | 'ORDER' | 'STOP' | 'TARGET';
+  price: number;
 }
