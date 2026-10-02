@@ -61,3 +61,4 @@ export type {
   LevelStatus,
   SupportResistanceLevel,
 } from './user/drawings';
+export { replayCandles, seriesUpTo } from './replay/view';
