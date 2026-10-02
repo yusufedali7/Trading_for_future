@@ -62,18 +62,27 @@ export type {
   SupportResistanceLevel,
 } from './user/drawings';
 export { replayCandles, seriesUpTo } from './replay/view';
-export { simulateTrade } from './execution/trade-sim';
+export { orderProblem, simulateTrade } from './execution/trade-sim';
 export type {
   AmbiguityRule,
   CostModel,
   Direction,
   ExitReason,
+  OrderProblem,
   OrderType,
   SimOptions,
   SimResult,
   TradeOrder,
   TradeStatus,
 } from './execution/trade-sim';
+export {
+  buildOrder,
+  DEFAULT_EXPIRE_BARS,
+  DEFAULT_STOP_PIPS,
+  DEFAULT_TARGET_PIPS,
+  defaultDraft,
+} from './execution/order-builder';
+export type { DraftProblem, OrderContext, OrderDraft, PriceUnit } from './execution/order-builder';
 export { activeSessions, filterJournal, outcomeOf, tradeStats } from './user/journal';
 export type {
   Decision,

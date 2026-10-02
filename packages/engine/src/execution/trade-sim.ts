@@ -75,10 +75,17 @@ function lowerBound(xs: Float64Array, target: number): number {
   return lo;
 }
 
-function isValid(o: TradeOrder): boolean {
+export type OrderProblem = 'NO_PRICE' | 'STOP_SIDE' | 'TARGET_SIDE';
+
+/** Why an order cannot be simulated: missing trigger, or stop/target on the wrong side of entry. */
+export function orderProblem(o: TradeOrder): OrderProblem | null {
   const ref = o.type === 'MARKET' ? o.referencePrice : (o.price ?? NaN);
-  if (!Number.isFinite(ref)) return false;
-  return o.direction === 'LONG' ? o.stop < ref && o.target > ref : o.stop > ref && o.target < ref;
+  if (!Number.isFinite(ref)) return 'NO_PRICE';
+  const long = o.direction === 'LONG';
+  if (!Number.isFinite(o.stop) || (long ? o.stop >= ref : o.stop <= ref)) return 'STOP_SIDE';
+  if (!Number.isFinite(o.target) || (long ? o.target <= ref : o.target >= ref))
+    return 'TARGET_SIDE';
+  return null;
 }
 
 /**
@@ -99,7 +106,7 @@ export function simulateTrade(order: TradeOrder, series: CandleSeries, opt: SimO
     barsHeld: 0,
     ambiguous: false,
   };
-  if (!isValid(order)) return { ...base, status: 'INVALID' };
+  if (orderProblem(order) !== null) return { ...base, status: 'INVALID' };
 
   const long = order.direction === 'LONG';
   const { spread, slippage } = opt.costs;
