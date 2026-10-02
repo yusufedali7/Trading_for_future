@@ -25,6 +25,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   tradeLines?: readonly TradeLine[];
   /** Engine candidates on this timeframe (already cut at the cursor in replay). */
   features?: FeatureSet;
+  /** Setups of the strategy version shown on the chart (M5). */
+  setups?: { signalBarsAt: readonly number[]; long: boolean; label: string } | null;
   /** Which candidate layers to draw. */
   featureLayers?: readonly FeatureLayer[];
   /** Filled by the chart with a function that captures it as an image (for the journal). */

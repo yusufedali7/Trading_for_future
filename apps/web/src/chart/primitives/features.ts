@@ -22,6 +22,7 @@ export const TONE_COLORS: Record<Tone, string> = {
   SWEEP: '#d4a72c',
   DAY: '#7fa7d9',
   WEEK: '#b48ed1',
+  SETUP: '#e8e8e8',
 };
 
 /**

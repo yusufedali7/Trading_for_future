@@ -6,6 +6,9 @@ import {
   type Anchor,
   type DataSetMeta,
   type DrawingKind,
+  type Setup,
+  type Strategy,
+  type StrategyVersion,
   type Timeframe,
 } from '@trw/engine';
 import { ChartView } from './chart/ChartView';
@@ -33,6 +36,13 @@ import type { Prefs, PrefsRepo } from './storage/db-user';
 import type { DrawingsRepo } from './storage/drawings-repo';
 import type { JournalRepo } from './storage/journal-repo';
 import type { MarketRepo } from './storage/market-repo';
+import {
+  createMemoryResearchRepo,
+  createMemoryStrategyRepo,
+  type ResearchRepo,
+  type StrategyRepo,
+} from './storage/strategy-repo';
+import { StrategyPage } from './features/strategy/StrategyPage';
 
 export interface AppProps {
   repo: MarketRepo;
@@ -41,11 +51,17 @@ export interface AppProps {
   journalRepo: JournalRepo;
   createImporter: () => Importer;
   candleSource: CandleSource;
+  /** Strategy and research stores (M5); in-memory when not given (tests). */
+  strategyRepo?: StrategyRepo;
+  researchRepo?: ResearchRepo;
   ChartComponent?: ComponentType<ChartViewProps>;
   /** App clock and id source; injectable for tests (the engine itself never reads the clock). */
   now?: () => number;
   newId?: () => string;
 }
+
+type View = 'CHART' | 'JOURNAL' | 'STRATEGY';
+const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY'];
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
@@ -57,6 +73,8 @@ export function App({
   journalRepo,
   createImporter,
   candleSource,
+  strategyRepo: givenStrategies,
+  researchRepo: givenResearch,
   ChartComponent = ChartView,
   now = Date.now,
   newId = () => crypto.randomUUID(),
@@ -69,7 +87,17 @@ export function App({
   const [error, setError] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('SELECT');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [view, setView] = useState<'CHART' | 'JOURNAL'>('CHART');
+  const [view, setView] = useState<View>('CHART');
+  const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
+  const [researchRepo] = useState(() => givenResearch ?? createMemoryResearchRepo());
+  // Setups of a strategy version shown on the chart (M5).
+  const [chartStrategy, setChartStrategy] = useState<{
+    name: string;
+    version: number;
+    instrument: string;
+    long: boolean;
+    setups: Setup[];
+  } | null>(null);
 
   const refresh = useCallback(async () => {
     const [list, p] = await Promise.all([repo.listDatasets(), prefs.load()]);
@@ -128,6 +156,20 @@ export function App({
   const lines = tradeLinesFor(inReplay ? trading.trade : null);
   const linesKey = JSON.stringify(lines);
   const tradeLines = useMemo(() => lines, [linesKey]);
+
+  // Strategy setups on the chart; in replay only those known at the cursor.
+  const cursor = replay.cursor;
+  const shownStrategy =
+    chartStrategy && chartStrategy.instrument === active?.instrument ? chartStrategy : null;
+  const setupMarks = useMemo(() => {
+    if (!shownStrategy) return null;
+    const known = shownStrategy.setups.filter((s) => cursor === null || s.signalAt <= cursor);
+    return {
+      signalBarsAt: known.map((s) => s.signalBarAt),
+      long: shownStrategy.long,
+      label: tr.strategyChart.mark,
+    };
+  }, [shownStrategy, cursor]);
 
   // Journal: the form opens (and autoplay pauses) once when a trade settles.
   const screenshotRef = useRef<ChartScreenshot | null>(null);
@@ -188,6 +230,28 @@ export function App({
     await refresh();
   };
 
+  const showOnChart = async (s: Strategy, v: StrategyVersion) => {
+    const meta =
+      active?.instrument === v.spec.instrument
+        ? active
+        : datasets?.find((d) => d.instrument === v.spec.instrument);
+    if (!meta) {
+      setError(tr.strategyChart.noData);
+      return;
+    }
+    if (meta.id !== active?.id) update({ datasetId: meta.id, timeframe: v.spec.timeframe });
+    else update({ timeframe: v.spec.timeframe });
+    const setups = await candleSource.setups(meta, v.spec);
+    setChartStrategy({
+      name: s.name,
+      version: v.version,
+      instrument: v.spec.instrument,
+      long: v.spec.direction === 'LONG',
+      setups,
+    });
+    setView('CHART');
+  };
+
   const onDrawn = (kind: DrawingKind, anchors: Anchor[]) => {
     if (!active) return;
     const at = now();
@@ -220,7 +284,7 @@ export function App({
         <h1>{tr.app.title}</h1>
         {datasets && datasets.length > 0 && (
           <div className="segmented" role="group" aria-label={tr.journalPage.navLabel}>
-            {(['CHART', 'JOURNAL'] as const).map((v) => (
+            {VIEWS.map((v) => (
               <button
                 key={v}
                 type="button"
@@ -280,10 +344,37 @@ export function App({
         {view === 'JOURNAL' && settings && (
           <JournalPage repo={journalRepo} displayTz={settings.displayTz} />
         )}
+        {view === 'STRATEGY' && settings && datasets && (
+          <StrategyPage
+            strategies={strategyRepo}
+            research={researchRepo}
+            source={candleSource}
+            datasets={datasets}
+            defaultInstrument={active?.instrument ?? 'EURUSD'}
+            displayTz={settings.displayTz}
+            now={now}
+            newId={newId}
+            onShowOnChart={(s, v) => void showOnChart(s, v)}
+          />
+        )}
         {view === 'CHART' && active && settings && data && instrument && (
           <>
             <div className="tool-row">
               <DrawingTools tool={tool} onTool={setTool} />
+              {shownStrategy && (
+                <div className="strategy-badge" role="status">
+                  <span>
+                    {tr.strategyChart.badge(
+                      shownStrategy.name,
+                      shownStrategy.version,
+                      setupMarks?.signalBarsAt.length ?? 0,
+                    )}
+                  </span>
+                  <button type="button" className="btn" onClick={() => setChartStrategy(null)}>
+                    {tr.strategyChart.hide}
+                  </button>
+                </div>
+              )}
               <ReplayBar
                 cursor={replay.cursor}
                 displayTz={settings.displayTz}
@@ -312,6 +403,7 @@ export function App({
                   followLatest={inReplay}
                   features={chartData.features}
                   featureLayers={settings.features}
+                  setups={setupMarks}
                   tradeLines={tradeLines}
                   screenshotRef={screenshotRef}
                   drawings={visibleDrawings}

@@ -188,4 +188,3 @@ export function createMemoryResearchRepo(): ResearchRepo {
       ).length,
   };
 }
-

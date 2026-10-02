@@ -1,10 +1,11 @@
-﻿import { StrictMode } from 'react';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { createWorkerCandleSource } from './compute/candle-source';
 import { createWorkerImporter } from './import/importer';
 import { createDexieMarketRepo } from './storage/db-market';
 import { createDexieUserRepos } from './storage/db-user';
+import { createDexieResearchRepo, createDexieStrategyRepo } from './storage/strategy-repo';
 import './theme/tokens.css';
 
 const user = createDexieUserRepos();
@@ -21,6 +22,8 @@ createRoot(root).render(
       journalRepo={user.journal}
       createImporter={createWorkerImporter}
       candleSource={createWorkerCandleSource()}
+      strategyRepo={createDexieStrategyRepo()}
+      researchRepo={createDexieResearchRepo()}
     />
   </StrictMode>,
 );

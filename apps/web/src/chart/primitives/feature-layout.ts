@@ -15,13 +15,21 @@ export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 /** Display only: a gap box is drawn for at most this many bars (the engine keeps its state). */
 export const FVG_BOX_MAX_BARS = 50;
 
-export type Tone = 'NEUTRAL' | 'UP' | 'DOWN' | 'SWEEP' | 'DAY' | 'WEEK';
+export type Tone = 'NEUTRAL' | 'UP' | 'DOWN' | 'SWEEP' | 'DAY' | 'WEEK' | 'SETUP';
+
+/** Strategy setups shown on the chart (M5): always drawn when given, not a toggle layer. */
+export interface ChartSetups {
+  /** Signal bar open time and the price beside which the mark sits (bar low for longs, high for shorts). */
+  marks: readonly { t: number; price: number }[];
+  long: boolean;
+  label: string;
+}
 
 /** A candidate placed on the logical (bar position) axis; prices stay prices. */
 export type FeatureItem =
   | {
       shape: 'MARK';
-      layer: FeatureLayer;
+      layer: FeatureLayer | 'SETUP';
       p: number;
       price: number;
       above: boolean;
@@ -32,7 +40,7 @@ export type FeatureItem =
     }
   | {
       shape: 'BOX';
-      layer: FeatureLayer;
+      layer: FeatureLayer | 'SETUP';
       p1: number;
       /** null: still open, extends to the newest bar. */
       p2: number | null;
@@ -43,7 +51,7 @@ export type FeatureItem =
     }
   | {
       shape: 'LINE';
-      layer: FeatureLayer;
+      layer: FeatureLayer | 'SETUP';
       p1: number;
       p2: number | null;
       price: number;
@@ -71,6 +79,7 @@ export function layoutFeatures(
   times: ArrayLike<number>,
   tfMs: number,
   labels: FeatureLabels,
+  setups: ChartSetups | null = null,
 ): FeatureItem[] {
   const pos = (t: number) => timeToPosition(times, tfMs, t);
   /** Position of the bar that opened at t (its centre); detections refer to bar open times. */
@@ -181,6 +190,19 @@ export function layoutFeatures(
         label: labels.sweep(kinds),
       });
     }
+
+  if (setups)
+    for (const m of setups.marks)
+      out.push({
+        shape: 'MARK',
+        layer: 'SETUP',
+        p: bar(m.t),
+        price: m.price,
+        above: !setups.long,
+        stack: 0,
+        tone: 'SETUP',
+        label: setups.label,
+      });
 
   // Stack marks that share a bar and side (a swing high that was also a sweep, say).
   const seen = new Map<string, number>();

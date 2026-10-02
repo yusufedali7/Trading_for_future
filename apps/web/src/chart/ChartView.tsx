@@ -178,16 +178,41 @@ export function ChartView(props: ChartViewProps) {
     );
   }, [sessions, times, timeframe]);
 
-  // Engine candidates (M4), laid out once per data / layer change.
-  const { features, featureLayers } = props;
+  // Engine candidates (M4) and strategy setups (M5), laid out once per data / layer change.
+  const { features, featureLayers, setups } = props;
   useEffect(() => {
     const layers = new Set(featureLayers ?? []);
+    const empty = { swings: [], fvgs: [], breaks: [], sweeps: [], periods: [] };
+    // A setup mark sits beside the chart bar that contains the signal bar.
+    const barAt = (t: number) => {
+      let lo = 0;
+      let hi = times.length - 1;
+      if (hi < 0 || times[0]! > t) return -1;
+      while (lo < hi) {
+        const mid = (lo + hi + 1) >> 1;
+        if (times[mid]! <= t) lo = mid;
+        else hi = mid - 1;
+      }
+      return lo;
+    };
+    const marks =
+      setups?.signalBarsAt.flatMap((t) => {
+        const c = candles[barAt(t)];
+        return c ? [{ t, price: setups.long ? c.l : c.h }] : [];
+      }) ?? [];
     const items =
-      features && layers.size > 0
-        ? layoutFeatures(features, layers, times, timeframeMs(timeframe), tr.features.labels)
+      (features && layers.size > 0) || marks.length > 0
+        ? layoutFeatures(
+            features && layers.size > 0 ? features : empty,
+            layers,
+            times,
+            timeframeMs(timeframe),
+            tr.features.labels,
+            setups ? { marks, long: setups.long, label: setups.label } : null,
+          )
         : [];
     featuresRef.current?.setData(items, times.length);
-  }, [features, featureLayers, times, timeframe]);
+  }, [features, featureLayers, setups, times, timeframe]);
 
   // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
   const screenshotRef = props.screenshotRef;
