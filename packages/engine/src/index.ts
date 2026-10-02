@@ -62,3 +62,15 @@ export type {
   SupportResistanceLevel,
 } from './user/drawings';
 export { replayCandles, seriesUpTo } from './replay/view';
+export { simulateTrade } from './execution/trade-sim';
+export type {
+  AmbiguityRule,
+  CostModel,
+  Direction,
+  ExitReason,
+  OrderType,
+  SimOptions,
+  SimResult,
+  TradeOrder,
+  TradeStatus,
+} from './execution/trade-sim';
