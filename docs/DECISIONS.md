@@ -148,6 +148,26 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
   - Çizim bitince araç otomatik olarak "Seç"e döner. Delete seçili çizimi siler, Esc aracı ve seçimi iptal eder.
 - **Görünüm:** Kullanıcı çizimleri düz çizgilidir. Motor katmanı kesik çizgili ve etiketlidir. Yeşil ve kırmızı yalnızca fiyat aralığının yönünde ve pozisyonun kâr/zarar bölgelerinde kullanılır; her ikisi de işaretli metinle desteklenir.
 
+## D26 — Replay ve işlem simülatörü kuralları
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M3)
+- **Replay görünümü:** İmleç (`cursor`) her zaman grafiğin zaman dilimindeki bir mum sınırındadır. Grafik yalnızca `t + 1m ≤ cursor` olan 1m mumlardan üretilir; son mum oluşmakta olabilir ve "henüz kapanmadı" olarak işaretlenir. Bitmiş seanslar tam, devam eden seanslar imlece kadarki high/low ile gösterilir. Worker her adımda yalnızca son mumu ve devam eden seansları yeniden hesaplar; sonuç, kesilmiş veriden baştan hesaplamayla birebir aynıdır (test). İmleçten sonra başlayan kullanıcı çizimleri replay sırasında gizlenir.
+- **Simülatör (`execution/trade-sim.ts`), M5 backtest ile ortak:** Hesap her zaman 1m taban veriyle ve yalnızca imlece kadar kapanmış mumlarla yapılır.
+  - Piyasa emri, karar anından sonraki ilk 1m mumun açılışında dolar. Limit ve stop emirleri fiyata değince dolar; açılış emri aşmışsa (gap) açılıştan dolar.
+  - Fiyatlar BID'dir. Long, ASK'tan (BID + spread) alır ve BID'den satar; short, BID'den satar ve ASK'tan geri alır. Kayma piyasa ve stop dolumlarına eklenir, limit dolumlarına eklenmez.
+  - Aynı 1m mumda stop ve hedef → D8 (varsayılan önce stop) ve `ambiguous` işareti. Limit/stop emrin dolduğu mumda yalnızca stop sayılır (kötümser) ve bu da `ambiguous` sayılır.
+  - Emir süresi grafikteki mum sayısıyla verilir; dolmadan süresi biten emir `EXPIRED` olur. Elle kapatma imlecin son kapanmış 1m mumunun kapanışından yapılır; dolmamış emir elle kapatılınca `CANCELLED` olur.
+  - R = (çıkış − giriş) / |giriş − stop| (short için ters). MAE/MFE giriş mumundan itibaren mum uçlarıyla, çıkış mumunda yalnızca çıkış fiyatıyla hesaplanır.
+  - Fiyatlar 1e-8, R değerleri 1e-9 hassasiyetle yuvarlanır (determinizm).
+- **Pip girişi (`execution/order-builder.ts`):** Pip mesafesi piyasa emrinde son kapanıştan, limit/stop emrinde emir fiyatından ölçülür. Varsayılan: piyasa emri, 20 pip stop, 40 pip hedef (2R), 20 mum emir süresi. Spread ve kayma varsayılanı 0'dır; 0 iken "maliyetsiz" uyarısı gösterilir.
+- **Arayüz kuralları:** Aynı anda tek replay işlemi vardır. İşlem bekliyor ya da açıkken imleç geri gidemez ve replay bitirilemez (karar anından öncesini görmek geçmişi değiştirmez ama işlemi anlamsız kılar). İşlem sonuçlanınca otomatik oynatma durur ve günlük formu bir kez açılır.
+
+## D27 — İşlem günlüğü
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M3)
+- **Model:** `trw-user` v3: `trades` (replay işlemleri: emir, maliyet, belirsizlik kuralı ve son simülasyon sonucu; sonuç yeniden hesaplanabilir), `journal` (karar kayıtları), `screenshots` (PNG baytları). "İşlem yok" kararları da kayıttır.
+- **Otomatik alanlar:** Karar anı, zaman dilimi, karar anında açık olan seanslar, ölçülen sonuç (R, çıkış nedeni, MAE/MFE, süre, belirsizlik). Süre, giriş mumunun açılışından çıkış mumunun kapanışına kadardır. Dolmayan emirlerin sonucu yoktur.
+- **Kullanıcı alanları:** Strateji (M5'e kadar serbest metin), neden, duygu + şiddet (1–5), ders, etiketler, isteğe bağlı grafik görüntüsü (`takeScreenshot` ile çizimler ve seans kutuları dahil, imleç çizgisi hariç).
+- **Özet:** Filtrelenmiş kayıtlardan yalnızca ölçülen değerler gösterilir; seri ve düşüş hesapları karar sırasına göredir. 30'dan az sonuçlu işlemde uyarı, belirsiz mum sayısı ve "bu bir backtest değildir, olasılık değildir" notu her zaman görünür.
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

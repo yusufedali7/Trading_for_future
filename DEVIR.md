@@ -1,12 +1,41 @@
-﻿# DEVIR — Oturum Devir Notu
+# DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-01 (M2 oturumu)_
+_Son güncelleme: 2026-10-02 (M3 oturumu)_
 
 ## Durum özeti
-- **M1 (Veri ve grafik):** tamamlandı. Gerçek veriyle kabul yapıldı (aşağıda). Kullanıcı kendi tarayıcısında içe aktarmayı sonraya bıraktı.
-- **M2 (Session ve manuel analiz):** görev 1–9 tamamlandı; plan `docs/PLAN-M2.md`, kararlar D23–D25. **Kullanıcının kendi tarayıcısında denemesi bekleniyor.**
-- **Sıradaki:** M3 (replay ve işlem günlüğü) planı. Kullanıcı "başla" deyince kısa plan yazılıp hemen uygulamaya geçilir.
+- **M1 (Veri ve grafik):** tamamlandı, gerçek veriyle kabul yapıldı.
+- **M2 (Session ve manuel analiz):** tamamlandı; plan `docs/PLAN-M2.md`, kararlar D23–D25.
+- **M3 (Replay ve işlem günlüğü):** görev 1–9 tamamlandı; plan `docs/PLAN-M3.md`, kararlar D26–D27. **Kullanıcının kendi denemesi bekleniyor.**
+- **Sıradaki:** M4 (feature engine v1: onaylı swing, önceki gün/hafta high-low, likidite süpürmesi, FVG, yapı kırılımı). Kullanıcı "başla" deyince kısa plan yazılıp uygulamaya geçilir.
+- Testler: **304 test yeşil** (40 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
+- Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M3'te yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Replay görünümü | `replay/view.ts`: imlece kadar kapanmış 1m mumlardan grafik; kesilmiş veriyle birebir aynı (test) |
+| 2 | İşlem simülatörü | `execution/trade-sim.ts`: piyasa/limit/stop, gap, spread, kayma, aynı mumda SL+TP (önce stop), emir süresi, elle kapatma, R, MAE/MFE; M5 backtest ile ortak |
+| 3 | Günlük modeli ve istatistik | `user/journal.ts`: `JournalEntry`, `ReplayTrade`, karar anındaki seanslar, `tradeStats`, `filterJournal`, `summarizeJournal`, `journalResultOf` |
+| 4 | Depolama | `trw-user` v3: `trades`, `journal`, `screenshots` |
+| 5 | Replay modu | Başlangıç tarihi, ileri/geri, oynat/duraklat, hız (1/2/5 mum/sn), klavye (→ ← boşluk); worker yalnızca son mumu ve devam eden seansları hesaplar |
+| 6 | İşlem paneli | Long/short, emir tipi, stop/hedef pip ya da fiyat (`execution/order-builder.ts`), emir süresi, spread/kayma (0 iken uyarı), anlık R, elle kapatma/iptal; grafikte Giriş/Emir/SL/TP çizgileri |
+| 7 | Günlük formu | İşlem sonuçlanınca açılır, oynatma durur; seans, R, süre, MAE/MFE dolu; neden, duygu + şiddet, ders, etiketler, grafik ekran görüntüsü; "işlem yok" kararı |
+| 8 | Günlük sayfası | Üst menü "Grafik / Günlük"; filtreler (enstrüman, karar, seans, sonuç, duygu, tarih); özet istatistik, 30 altı uyarısı, belirsiz mum notu; ayrıntı + ekran görüntüsü; onaylı silme |
+| 9 | Belgeler | Sözlükte M3 kavramları, D26–D27, PLAN-M3 durumu |
+
+Tarayıcıda gerçek EURUSD verisiyle (2 yıl, 1m) doğrulananlar:
+- 10 Mart 2026'dan replay: adım, oynatma, 15m ↔ 4H geçişi; oluşan 4H mumu "henüz kapanmadı" olarak işaretli; bitmiş/devam eden seans kutuları doğru.
+- Long piyasa emri 0,2 pip spread ile doldu, stop'ta −1,00R kapandı; çizgiler etiketli.
+- Short emri sonuçlanınca oynatma durdu, form açıldı ("seans dışı" doğru: 21:00–00:00 UTC arası seans yok), kayıt ve 46 KB PNG ekran görüntüsü kaydedildi; günlük sayfasında görüntü yüklendi; silme çalıştı.
+- Deneme kayıtlarım (2 işlem, 1 günlük kaydı) tarayıcıdan silindi. Gömülü tarayıcıda EURUSD 2 yıllık veri kümesi duruyor; kaynak adı yanlışlıkla "DukascopyDukascopy" yazıldı (yalnızca etiket, veri doğru).
+
+## M3 iyileştirme listesi
+1. Bilgi şeridinde oluşmakta olan mumun "eksik 1m mum" sayısı, henüz gelmemiş dakikaları da eksik sayıyor; oluşan mumda yalnızca imlece kadarki eksikler sayılmalı.
+2. Replay işlemlerini veri kümesi değişince otomatik kapatmak (şu an işlem son haliyle `trades` içinde kalıyor).
+3. Günlük kaydı silinince bağlı işlemin `journalId` alanını temizlemek.
+4. Birden fazla eş zamanlı işlem, breakeven, kısmi kâr (kapsam dışıydı).
+5. Özetin günlüğe yazılmamış replay işlemlerini de kapsaması seçeneği.
+6. Replay başlangıcında saat seçimi (şu an günün başı, görüntüleme saat diliminde).
 ## M2'de yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -40,10 +69,10 @@ Bulunan ve düzeltilen hatalar:
 3. Özel seans tanımları (ör. ICT Asya aralığı 20:00–00:00 NY) için arayüz.
 4. Seviye durumunu fiyata göre otomatik önermek ("kırılmış olabilir"). M4'ün aday mantığıyla birlikte, öneri olarak; kesin karar değil.
 5. 1m görünümünde görünür aralığa göre veri vermek (M1 listesinden).
+
+## Veri ve ortam notları
 - **Veri (git dışı, `data/`):** `eurusd_m1_bid_2024-10-01_2026-09-30.csv` (38,7 MB, 736.706 mum), `xauusd_m1_bid_2024-10-01_2026-09-30.csv` (38,1 MB, 708.763 mum), karşılaştırma için `*_h1_*` dosyaları. Gün önbelleği: `data/.dukascopy-cache/` (730/730 gün, iki enstrüman).
 - **Ağ notu:** Bazı ağlarda (ör. 2026-10-01 kafe Wi-Fi) Dukascopy alan adları idari tedbirle erişime kapalı ("erişime engellenmiş" sayfası). Kalan indirme, kullanıcının kendi bağladığı VPN üzerinden tamamlandı.
-- Testler: **237 test yeşil** (motor 145+, web 90+). Lint ve tip kontrolü temiz.
-- Git: tüm işler yerel `main` dalında commit edildi. **Push'u kullanıcı kendisi yapıyor** (`git push`). İçlerinde daha önce `.gitignore` yüzünden GitHub'a gitmemiş motor `data/` modülleri de var.
 
 ## Görev 13: gerçek veriyle kabul (2026-10-01)
 **Uygulamada (gömülü tarayıcı, EURUSD 2 yıl, 1m):** okuma 1,0 sn; analiz 1,8 sn; kayıt 1,3 sn; ilk grafik 1,1 sn. Zaman dilimi geçişleri: 4H ≈ 0,6 sn, 1D ≈ 0,6 sn, 1h ≈ 1,9 sn, **1m ≈ 7,6 sn** (736 bin mum tek seferde; iyileştirme listesinde).
@@ -95,7 +124,7 @@ Tarayıcıda doğrulananlar (sentetik test verisiyle, sonra silindi):
 - tercihlerin sayfa yenilemede korunması;
 - 375 px telefon genişliğinde yatay kaydırma olmaması.
 
-## Kullanıcıdan beklenen: Görev 13, gerçek veriyle kabul
+## Arşiv (M1): Dukascopy web aracı notları
 Dukascopy web aracı 2026-09-30'da incelendi (https://widgets.dukascopy.com/en/historical-data-export).
 **Kısıt (2026-10-01'de doğrulandı):** Period "Minute" iken yalnızca **tek gün** seçilebiliyor. Period "Hour" iken tarih aralığı açılıyor ama **en fazla tam 1 ay** seçtiriyor (takvimde başlangıçtan 1 ay sonrası dışındaki her gün devre dışı/gri). Yani 2 yıllık saatlik veri için ~24 aylık dosya, 2 yıllık 1 dakikalık veri için ~520 günlük dosya gerekiyor.
 Alanlar: enstrüman listesi → Export → Period (sayı + Tick/Second/Minute/Hour), Date, Timezone (UTC, Local time, şehirler), Offer side (Bid/Ask) → Download.
@@ -112,7 +141,7 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - (b) Birden çok günlük dosyayı tek veri kümesinde birleştirme özelliği.
 - (c) Otomatik veri adaptörü: CLAUDE.md gereği ayrı faz; önce kullanım koşulları kontrol edilir.
 
-## Açık konular / doğrulanmamışlar
+## Açık konular / doğrulanmamışlar (M1'den; CSV biçimi D22 ile kesinleşti)
 - **Dukascopy CSV biçimi** (kolonlar, tarih biçimi, hafta sonu düz mumları): ilk gerçek dosyayla netleşecek. Biçim tanınmazsa sihirbazdaki kolon eşlemesi elle ayarlanabilir.
 - **Birden çok dosyayı birleştirme** yok. Dukascopy web aracı 1m veriyi günlük veriyor (yukarıya bak).
 - **Grafik tick yerleşimi:** Lightweight Charts ana tick'leri UTC gün sınırlarına göre seçiyor. Etiketler seçilen saat diliminde doğru, ama "gün" tick'i yerel gece yarısına denk gelmeyebilir. Özel yatay ölçek alternatifi doğrulanmadı.
@@ -122,7 +151,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-Görev 13 kabulü tamamlanınca: M1 kapanışı (DEVIR güncellemesi) → **M2 planı** (session engine, çizim araçları, destek/direnç seviyeleri). Plan önce kullanıcıya sunulur, onay alınmadan başlanmaz.
+1. Kullanıcı M3'ü kendi tarayıcısında dener: replay başlat → işlem aç → günlüğe yaz → Günlük sayfası.
+2. `git push` (kullanıcı).
+3. M4 planı: onaylı swing, önceki gün/hafta high-low, seans high-low, likidite süpürmesi, FVG, yapı kırılımı; her biri tanım dokümanı + kesme değişmezliği testi; grafikte "aday" katmanı. Replay'de yalnızca imlece kadar onaylanmış adaylar görünür.
 
 ## Çalıştırma ve test komutları
 ```bash

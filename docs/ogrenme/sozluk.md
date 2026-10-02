@@ -99,6 +99,7 @@ Bir stratejinin kurallarını geçmiş veriye uygulayıp "o dönemde bu kurallar
 
 ### Replay
 Geçmiş veriyi mum mum oynatıp, gelecek mumları görmeden elle işlem kararı alarak pratik yapmak (M3).
+*Uygulamada:* Replay başlangıç tarihini seç → "Replay başlat". → / ← bir mum ilerler/geri gider, boşluk tuşu oynatır. Grafikte yalnızca imlece kadar kapanmış mumlar görünür.
 
 ### Lookahead (ileriye bakma) hatası
 Test sırasında o anda bilinemeyecek bir bilgiyi kullanmak. Örneğin bir tepe noktasının "tepe" olduğu, ancak sonraki birkaç mum düştüğünde anlaşılır. O mumlar oluşmadan tepeyi biliyormuş gibi davranmak sonuçları sahte biçimde iyi gösterir.
@@ -220,3 +221,51 @@ Tek bir fiyat yerine bir fiyat aralığı. Fiyat genelde tam bir çizgiye değil
 
 Yüksek R:R tek başına iyi bir işlem demek değildir; hedefe ulaşma olasılığı da önemlidir. Bu olasılık ancak backtest ile ölçülür (M5).
 *Uygulamada:* Araç 20 pip stop ve 2R hedefle başlar; fiyatları panelden değiştirebilirsin. Stop girişin yanlış tarafındaysa araç "Geçersiz" der.
+
+---
+
+## M3'te eklenenler: replay ve işlem günlüğü
+
+### Emir tipleri: piyasa, limit, stop
+- **Piyasa emri:** "Şimdi gir." O anki fiyattan dolar. Replay'de karar anından sonraki ilk 1 dakikalık mumun açılışından dolar.
+- **Limit emri:** "Daha iyi bir fiyattan gir." Long için şimdiki fiyatın altına, short için üstüne konur. Fiyat oraya gelirse dolar.
+- **Stop emri:** "Fiyat bu seviyeyi geçerse gir." Long için şimdiki fiyatın üstüne, short için altına konur (kırılım girişi).
+- **Emir süresi:** Limit ve stop emri bu kadar mum içinde dolmazsa iptal olur ("süresi doldu").
+
+*Uygulamada:* Sağ paneldeki "İşlem" bölümü yalnızca replay sırasında açılır.
+
+### Spread ve kayma (slippage)
+- **Spread:** Alış (ASK) ile satış (BID) fiyatı arasındaki fark. Grafik BID fiyatını gösterir. Long açarken ASK'tan alırsın, yani girişin grafikteki fiyattan spread kadar kötüdür.
+- **Kayma:** Emrin istediğin fiyattan biraz daha kötü dolması. Hızlı piyasada ve stop emirlerinde olur.
+
+*Uygulamada:* İkisi de pip olarak girilir, varsayılan 0'dır. 0 iken "maliyetsiz" uyarısı görünür, çünkü maliyetsiz sonuçlar gerçekte olacağından iyi görünür. EURUSD için tipik spread bir broker'dan diğerine değişir; kendi kaynağına bak.
+
+### Açık pozisyon, anlık R
+Dolmuş ama henüz stop'a ya da hedefe değmemiş işlem. **Anlık R**, işlem şu an kapatılsa kaç R olacağını gösterir. İmleç ilerledikçe güncellenir.
+
+### MAE ve MFE
+- **MAE (maximum adverse excursion):** İşlem açıkken fiyatın senin aleyhine en fazla ne kadar gittiği.
+- **MFE (maximum favorable excursion):** Lehine en fazla ne kadar gittiği.
+
+İkisi de R cinsindendir. Örnek: MAE −0,8R, MFE +1,5R ve sonuç −1R ise fiyat bir ara +1,5R'ye kadar gitmiş, sonra stop olmuşsun. Bu, hedefin uzak ya da çıkışın geç olabileceğine dair bir ipucudur (tek örnekle değil, çok sayıda kayıtla bakılır).
+
+### Belirsiz mum
+Aynı 1 dakikalık mumda hem stop hem hedef fiyatı varsa hangisinin önce geldiği o mumdan bilinemez. Uygulama kötümser davranır: önce stop (karar D8). Böyle işlemler işaretlenir ve özetlerde sayıları gösterilir.
+
+### İşlem günlüğü (journal)
+Her kararın kaydı: ne zaman, hangi seansta, neden, nasıl hissederek karar verdin ve sonuç ne oldu. Amaç, zamanla kendi alışkanlıklarını görmek. Örneğin "FOMO ile açtığım işlemler" ya da "Asya seansındaki kararlarım".
+- **İşlem yok kararı** da kayda değer. Doğru yerde işlem açmamak da bir beceridir.
+- **Duygu ve şiddet:** Sakin, kendinden emin, FOMO (kaçırma korkusu), korku, intikam (önceki kaybı telafi etme isteği), sıkılmış; 1 (hafif) – 5 (çok güçlü).
+
+*Uygulamada:* İşlem kapanınca form kendiliğinden açılır. Seans, R, süre, MAE/MFE önceden doludur. Grafiğin ekran görüntüsü de kaydedilebilir. Üst menüdeki "Günlük" sayfasında kayıtları filtreleyip özetini görebilirsin.
+
+### Profit factor
+Toplam kazanılan R'nin toplam kaybedilen R'ye oranı. 1'in üstü, ölçülen dönemde kazancın kayıptan fazla olduğu anlamına gelir. Kayıp yoksa hesaplanamaz ("—").
+
+### Kazanç / kayıp serisi
+Art arda gelen kazançlı ya da kayıplı işlem sayısı. En uzun kayıp serisi, psikolojik olarak neye hazırlıklı olman gerektiğini gösterir.
+
+### Maksimum düşüş (R cinsinden)
+Toplam R'nin bir zirveden sonra en fazla ne kadar gerilediği. Örnek: +3R'ye çıkıp sonra 3 işlem üst üste −1R alırsan düşüş 3R olur.
+
+*Hatırlatma:* Günlük özetindeki sayılar **ölçülen** değerlerdir, gelecekteki bir olasılık değildir. 30'dan az işlemle büyük ölçüde rastlantı olabilir.

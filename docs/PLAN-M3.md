@@ -1,6 +1,6 @@
 # PLAN — M3: Replay ve işlem günlüğü
 
-> Durum: kullanıcı 2026-10-02'de "devam edelim, izin veriyorum" dedi; plan bu belgeyle kaydedildi ve uygulamaya geçildi. Kararlar `docs/DECISIONS.md` (D26+).
+> Durum: kullanıcı 2026-10-02'de "devam edelim, izin veriyorum" dedi; plan bu belgeyle kaydedildi ve uygulandı. **Görev 1–9 tamamlandı (2026-10-02).** Kararlar `docs/DECISIONS.md` D26–D27. Kullanıcının kendi denemesi bekleniyor.
 
 ## Amaç
 Geçmiş veriyi mum mum oynatarak, geleceği görmeden "burada ne yapardım?" pratiği yapmak:
@@ -35,3 +35,9 @@ Geçmiş veriyi mum mum oynatarak, geleceği görmeden "burada ne yapardım?" pr
 
 ## Kapsam dışı
 Otomatik strateji (M5), lot hesabı (M5), kısmi kâr alma, breakeven ve trailing stop. Bunlar M3 sonrası iyileştirme listesine.
+
+## Uygulamada netleşenler
+- Görev 6'ya `execution/order-builder.ts` eklendi: pip ya da fiyat girişini emre çevirir ve sorunu adıyla söyler (stop yanlış tarafta vb.).
+- Aynı anda tek replay işlemi. İşlem bekliyor ya da açıkken geri adım ve replay'i bitirme kapalı.
+- İşlem sonuçlanınca otomatik oynatma durur ve günlük formu bir kez açılır; atlanırsa panelden yeniden açılabilir.
+- Günlük sayfası üst menüdeki "Grafik / Günlük" geçişiyle açılır. Özet yalnızca günlüğe yazılmış işlemleri kapsar.
