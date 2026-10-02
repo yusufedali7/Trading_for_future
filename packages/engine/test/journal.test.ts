@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { getInstrument } from '../src/instruments/registry';
 import { BUILTIN_SESSIONS } from '../src/session/sessions';
-import { activeSessions, filterJournal, tradeStats, type JournalEntry } from '../src/user/journal';
+import {
+  activeSessions,
+  filterJournal,
+  journalResultOf,
+  tradeStats,
+  type JournalEntry,
+} from '../src/user/journal';
 
 const t = (iso: string) => Date.parse(iso);
 const eurusd = getInstrument('EURUSD');
@@ -111,5 +117,46 @@ describe('filterJournal', () => {
 
   it('combines filters', () => {
     expect(ids({ instrument: 'EURUSD', outcome: 'WIN' })).toEqual(['a']);
+  });
+});
+
+describe('journalResultOf', () => {
+  const MIN = 60_000;
+  const closed = {
+    status: 'CLOSED' as const,
+    entryAt: t('2026-01-06T10:00:00Z'),
+    entryPrice: 1.1,
+    exitAt: t('2026-01-06T10:44:00Z'),
+    exitPrice: 1.102,
+    exitReason: 'TP' as const,
+    r: 2,
+    maeR: 0.4,
+    mfeR: 2,
+    barsHeld: 45,
+    ambiguous: false,
+  };
+
+  it('copies the measured result; duration runs to the close of the exit bar', () => {
+    expect(journalResultOf(closed, MIN)).toEqual({
+      r: 2,
+      exitReason: 'TP',
+      maeR: 0.4,
+      mfeR: 2,
+      durationMs: 45 * MIN,
+      ambiguous: false,
+    });
+  });
+
+  it('has no result for trades that never closed with a fill', () => {
+    const none = {
+      status: 'EXPIRED' as const,
+      r: null,
+      maeR: 0,
+      mfeR: 0,
+      barsHeld: 0,
+      ambiguous: false,
+    };
+    expect(journalResultOf(none, MIN)).toBeNull();
+    expect(journalResultOf({ ...closed, status: 'OPEN' }, MIN)).toBeNull();
   });
 });

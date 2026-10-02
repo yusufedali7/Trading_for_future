@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import {
   compareTimeframes,
   getInstrument,
@@ -9,7 +9,7 @@ import {
   type Timeframe,
 } from '@trw/engine';
 import { ChartView } from './chart/ChartView';
-import type { ChartViewProps } from './chart/types';
+import type { ChartScreenshot, ChartViewProps } from './chart/types';
 import type { Tool } from './chart/use-drawing-layer';
 import { EmptyState } from './components/EmptyState';
 import type { CandleSource, ChartData } from './compute/candle-source';
@@ -18,11 +18,13 @@ import { DrawingTools } from './features/drawings/DrawingTools';
 import { LevelsPanel } from './features/drawings/LevelsPanel';
 import { useDrawings } from './features/drawings/use-drawings';
 import { ImportWizard } from './features/import/ImportWizard';
+import { JournalForm } from './features/journal/JournalForm';
+import { draftFromTrade, noTradeDraft, useJournalForm } from './features/journal/use-journal-form';
 import { ReplayBar } from './features/replay/ReplayBar';
 import { useReplay } from './features/replay/use-replay';
 import { TradePanel } from './features/trade/TradePanel';
 import { tradeLinesFor } from './features/trade/trade-lines';
-import { useReplayTrade } from './features/trade/use-replay-trade';
+import { isFinal, useReplayTrade } from './features/trade/use-replay-trade';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
 import type { Importer } from './import/importer';
@@ -125,6 +127,22 @@ export function App({
   const linesKey = JSON.stringify(lines);
   const tradeLines = useMemo(() => lines, [linesKey]);
 
+  // Journal: the form opens (and autoplay pauses) once when a trade settles.
+  const screenshotRef = useRef<ChartScreenshot | null>(null);
+  const journal = useJournalForm(journalRepo, screenshotRef, now, newId);
+  const baseMs = active ? timeframeMs(active.baseTimeframe) : 0;
+  const promptedRef = useRef(new Set<string>());
+  const settled = trading.trade && isFinal(trading.trade.result.status) ? trading.trade : null;
+  const pauseReplay = replay.pause;
+  const openJournal = journal.open;
+  useEffect(() => {
+    if (!settled || !instrument || settled.journalId || promptedRef.current.has(settled.id)) return;
+    promptedRef.current.add(settled.id);
+    pauseReplay();
+    openJournal(draftFromTrade(settled, instrument, baseMs));
+    // Runs once per settled trade.
+  }, [settled?.id]);
+
   // A different dataset ends the replay.
   const activeId = active?.id;
   const exitReplay = replay.exit;
@@ -137,7 +155,7 @@ export function App({
   // arrows and space drive the replay.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (isTyping(e.target)) return;
+      if (isTyping(e.target) || journal.draft) return;
       if (inReplay && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
         e.preventDefault();
         // An open trade or pending order may not see the cursor go back (it was decided later).
@@ -155,7 +173,7 @@ export function App({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, store, inReplay, replay, trading.busy]);
+  }, [selectedId, store, inReplay, replay, trading.busy, journal.draft]);
 
   const update = (patch: Partial<Prefs>) => {
     setSettings((s) => (s ? { ...s, ...patch } : s));
@@ -261,6 +279,7 @@ export function App({
                   displayTz={settings.displayTz}
                   followLatest={inReplay}
                   tradeLines={tradeLines}
+                  screenshotRef={screenshotRef}
                   drawings={visibleDrawings}
                   levels={store.levels}
                   selectedId={selectedId}
@@ -283,6 +302,14 @@ export function App({
                   onPlace={trading.place}
                   onClose={trading.close}
                   onDismiss={trading.dismiss}
+                  onNoTrade={() => {
+                    if (replay.cursor === null) return;
+                    replay.pause();
+                    journal.open(noTradeDraft(instrument, replay.cursor, timeframe));
+                  }}
+                  onWriteJournal={() =>
+                    settled && journal.open(draftFromTrade(settled, instrument, baseMs))
+                  }
                 />
                 {selected ? (
                   <DrawingPanel
@@ -317,6 +344,22 @@ export function App({
           </>
         )}
       </main>
+
+      {journal.draft && settings && (
+        <div className="overlay">
+          <JournalForm
+            key={`${journal.draft.tradeId ?? 'none'}-${journal.draft.decidedAt}`}
+            draft={journal.draft}
+            displayTz={settings.displayTz}
+            onSave={async (fields) => {
+              const d = journal.draft!;
+              const id = await journal.save(d, fields);
+              if (d.tradeId && d.tradeId === trading.trade?.id) await trading.attachJournal(id);
+            }}
+            onSkip={journal.close}
+          />
+        </div>
+      )}
 
       {importing && (
         <div className="overlay">

@@ -44,6 +44,10 @@ export interface TradePanelProps {
   onPlace: (draft: OrderDraft, costs: CostModel, lastClose: number) => Promise<DraftProblem | null>;
   onClose: () => void;
   onDismiss: () => void;
+  /** Journal a "no trade" decision at the cursor. */
+  onNoTrade: () => void;
+  /** Re-open the journal form for the settled trade. */
+  onWriteJournal: () => void;
 }
 
 export function TradePanel(p: TradePanelProps) {
@@ -227,6 +231,9 @@ function OrderForm(p: TradePanelProps & { lastClose: number }) {
       <button type="submit" className="btn btn-primary" disabled={problem !== null || !costsValid}>
         {tr.trade.submit(tr.trade.directions[f.direction])}
       </button>
+      <button type="button" className="btn" onClick={p.onNoTrade}>
+        {tr.trade.noTrade}
+      </button>
     </form>
   );
 }
@@ -319,6 +326,14 @@ function TradeStatusView(p: TradePanelProps & { trade: ReplayTrade; cursor: UtcM
           {r.status === 'OPEN' ? tr.trade.close : tr.trade.cancel}
         </button>
       )}
+      {final &&
+        (t.journalId ? (
+          <p className="hint">{tr.trade.journaled}</p>
+        ) : (
+          <button type="button" className="btn" onClick={p.onWriteJournal}>
+            {tr.trade.writeJournal}
+          </button>
+        ))}
       {final && (
         <button type="button" className="btn" onClick={p.onDismiss}>
           {tr.trade.newTrade}

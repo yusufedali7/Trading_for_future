@@ -67,6 +67,29 @@ export interface ReplayTrade {
   updatedAt: UtcMs;
 }
 
+/**
+ * Journal snapshot of a closed trade; null when it never filled (expired, cancelled) or is still
+ * running. Duration runs from the entry bar's open to the exit bar's close.
+ */
+export function journalResultOf(r: SimResult, baseMs: number): JournalResult | null {
+  if (
+    r.status !== 'CLOSED' ||
+    r.r === null ||
+    r.exitReason === undefined ||
+    r.entryAt === undefined ||
+    r.exitAt === undefined
+  )
+    return null;
+  return {
+    r: r.r,
+    exitReason: r.exitReason,
+    maeR: r.maeR,
+    mfeR: r.mfeR,
+    durationMs: r.exitAt + baseMs - r.entryAt,
+    ambiguous: r.ambiguous,
+  };
+}
+
 const DAY_MS = 86_400_000;
 
 /** Ids of the sessions (in definition order) whose occurrence contains instant t. */

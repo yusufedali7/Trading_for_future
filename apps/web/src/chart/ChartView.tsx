@@ -171,6 +171,22 @@ export function ChartView(props: ChartViewProps) {
     );
   }, [sessions, times, timeframe]);
 
+  // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
+  const screenshotRef = props.screenshotRef;
+  useEffect(() => {
+    if (!screenshotRef) return;
+    screenshotRef.current = async () => {
+      const chart = chartRef.current;
+      if (!chart) return null;
+      const canvas = chart.takeScreenshot(true, false);
+      const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, 'image/png'));
+      return blob ? { mime: 'image/png', data: await blob.arrayBuffer() } : null;
+    };
+    return () => {
+      screenshotRef.current = null;
+    };
+  }, [screenshotRef]);
+
   // Replay trade lines; each carries a text title so colour is never the only cue.
   const tradeLines = props.tradeLines;
   useEffect(() => {

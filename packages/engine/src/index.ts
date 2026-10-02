@@ -83,7 +83,13 @@ export {
   defaultDraft,
 } from './execution/order-builder';
 export type { DraftProblem, OrderContext, OrderDraft, PriceUnit } from './execution/order-builder';
-export { activeSessions, filterJournal, outcomeOf, tradeStats } from './user/journal';
+export {
+  activeSessions,
+  filterJournal,
+  journalResultOf,
+  outcomeOf,
+  tradeStats,
+} from './user/journal';
 export type {
   Decision,
   Emotion,

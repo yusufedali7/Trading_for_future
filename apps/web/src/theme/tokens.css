@@ -649,3 +649,8 @@ input[type='number'] {
 .warn-text::before {
   content: '⚠ ';
 }
+
+/* --- M3: journal --- */
+.journal-form {
+  width: min(560px, 100%);
+}

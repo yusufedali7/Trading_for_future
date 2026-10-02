@@ -93,6 +93,7 @@ export function useReplay(
       setCursor((c) => (c === null ? c : dir === 1 ? next(c) : prev(c)));
     },
     togglePlay: () => setPlaying((p) => !p),
+    pause: () => setPlaying(false),
     setSpeed: setSpeedMs,
     exit: () => {
       setPlaying(false);
