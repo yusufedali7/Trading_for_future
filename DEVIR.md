@@ -1,17 +1,45 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-02 (M4 oturumu)_
+_Son güncelleme: 2026-10-02 (M5 oturumu)_
 
 ## Durum özeti
-- **M1 (Veri ve grafik):** tamamlandı, gerçek veriyle kabul yapıldı.
-- **M2 (Session ve manuel analiz):** tamamlandı; plan `docs/PLAN-M2.md`, kararlar D23–D25.
-- **M3 (Replay ve işlem günlüğü):** tamamlandı; plan `docs/PLAN-M3.md`, kararlar D26–D27.
-- **M4 (Feature engine v1):** görev 1–9 tamamlandı; plan `docs/PLAN-M4.md`, kararlar D28–D30, tanımlar `docs/definitions/*-v1.md`. **Kullanıcının kendi denemesi bekleniyor.**
-- **Sıradaki:** M5 (strateji şeması, kod yazmadan strateji oluşturucu, deterministik backtest, istatistik ekranı, versiyon karşılaştırma). Kullanıcı "devam et" deyince kısa plan yazılıp uygulamaya geçilir.
-- **Gelecek fikir (kullanıcı, 2026-10-02):** Uygulama bitince n8n / Langflow ile bir araştırma botu: YouTube videolarındaki stratejileri okuyup bizim strateji şemasına çevirecek, backtest'e verecek, sonucu yorumlayacak. Kurallar: canlı işlem yok (kural 7), ölçülmemiş olasılık yok (kural 6); YouTube metinlerini almanın kullanım koşulları o aşamada doğrulanacak. M6 "AI araştırma asistanı" ile birleşir.
-- Testler: **340 test yeşil** (48 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
+- **M1 (Veri ve grafik), M2 (Session ve manuel analiz), M3 (Replay ve günlük), M4 (Feature engine v1):** tamamlandı. Planlar `docs/PLAN-M2..M4.md`, kararlar D23–D30.
+- **M5 (Strateji ve backtest):** görev 1–11 tamamlandı; plan `docs/PLAN-M5.md`, kararlar D31–D34, şema `docs/schema/strategy-v1.md`. **Kullanıcının kendi denemesi bekleniyor.**
+- **Sıradaki (M6 ve sonrası, her biri ayrı planlanır):** özel seans tanımları (ICT Asya aralığı gibi; D34 yüzünden öncelikli), araştırma laboratuvarı (hipotez kayıtları, deney geçmişi), kavram kütüphanesi, AI araştırma asistanı (kullanıcının n8n / Langflow + YouTube fikri buraya bağlanır), paper trading.
+- **Gelecek fikir (kullanıcı, 2026-10-02):** n8n / Langflow ile YouTube'daki stratejileri okuyup bu şemaya çeviren, backtest'e veren, sonucu yorumlayan bir araştırma botu. Kurallar: canlı işlem yok (kural 7), ölçülmemiş olasılık yok (kural 6); YouTube metinlerinin kullanım koşulları o aşamada doğrulanacak.
+- Testler: **377 test yeşil** (55 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M5'te yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Şema | `strategy/schema.ts`: tipli adımlar, giriş/stop/hedef, pencere, risk, günlük sınır, tanım parametreleri; doğrulama + uyarı; `specHash`; değişmez versiyon + durum geçmişi |
+| 2 | Kurulum bulucu | `strategy/matcher.ts`: en erken aday zinciri, `maxBars`, pencere; kesme değişmezliği testi |
+| 3 | Lot | `risk/sizing.ts`: USD pip değeri, aşağı yuvarlama, en küçük lot, çapraz atlanır |
+| 4 | Backtest | `backtest/run.ts`: tek pozisyon, atlama nedenleri, süre dolması, aralık sonu, spread/kayma/komisyon, net R; determinizm testi |
+| 5 | İstatistik | `backtest/stats.ts` + `backtest/record.ts` (kayıt, in/out-of-sample) |
+| 6 | Depolama | `trw-strategy` (versiyonlar yalnızca eklenir), `trw-research` (çalışmalar) |
+| 7 | Worker | `backtest()`, `setups()` worker'da, stratejinin kendi parametreleriyle |
+| 8 | Strateji sayfası | Liste, oluşturucu (kod yok), versiyonlar, kural özeti, durum + not + geçmiş |
+| 9 | Backtest ekranı | Form, dürüstlük kutusu, istatistik, bakiye eğrisi, R dağılımı, kırılımlar, işlem tablosu, kayıtlı çalışmalar, iki çalışma karşılaştırma |
+| 10 | Grafik | "Kurulumları grafikte göster": rozet + işaretler; replay'de imlece kadar |
+| 11 | Belgeler | Şema belgesi, D31–D34, sözlükte M5 |
+
+Ek düzeltme: simülatör artık kaymayı stop-loss ve elle/aralık sonu çıkışlarına da uyguluyor (D8 ile uyum; `ENGINE_VERSION` 0.3.0).
+
+Tarayıcıda gerçek EURUSD verisiyle (2 yıl) doğrulananlar:
+- "Londra Asya-dip süpürme + MSS (TEST)" stratejisi (15m, Londra 08–11, piyasa girişi, stop süpürme ucu + 1 pip, 2R, %0,5) kuruldu; versiyon özeti ve içerik özeti doğru.
+- In-sample (2024-10-01 → 2025-12-31, spread 0,2 / kayma 0,1 / komisyon 3,5) backtest **0,6 sn**; 3 işlem; dürüstlük kutusu "30'dan az" ve "1. in-sample deneme" uyarılarını gösterdi; 3. işlem aralık sonunda kapandı (+0,59R).
+- Az işlemin sebebi motor değil tanım: yerleşik Asya seansı 09:00 UTC'de bitiyor (D34). Pencere olmadan aynı kurallar 40 kurulum veriyor.
+- Gömülü tarayıcıda veri yeniden içe aktarıldı (kaynak adı doğru: "Dukascopy"). Deneme stratejisi "(TEST)" adıyla duruyor; strateji silme özelliği henüz yok.
+
+## M5 iyileştirme listesi
+1. **Özel seans tanımları** (ICT Asya aralığı 20:00–00:00 NY, Londra kill zone vb.) ve bunların süpürme seviyesi olarak kullanılması.
+2. Strateji silme / arşivleme (versiyonlar ve çalışmalar kayıt olarak kalmalı; yalnızca listeden gizleme önerilir).
+3. Backtest işlemlerini grafikte giriş/SL/TP çizgileriyle gösterme; işleme tıklayınca grafikte o ana gitme.
+4. Seçilen backtest çalışmasından "replay'de bu kurulumdan başla".
+5. Parametre taraması (yalnızca in-sample, deneme sayısı otomatik artar) ve sonuç ısı haritası.
+6. Komisyonun para birimi seçimi, çapraz paritelerde ikinci veri kümesiyle lot hesabı.
 ## M4'te yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -181,9 +209,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-1. Kullanıcı M4'ü dener: araç çubuğunda "Motor adayları" katmanlarını aç/kapa, replay'de adayların onaylandıkça belirdiğini gör. Tanımlar docs/definitions/.
+1. Kullanıcı M5'i dener: Strateji → Yeni strateji → kuralları gir → kaydet → backtest (önce in-sample) → sonuçları ve dürüstlük kutusunu oku → `Kurulumları grafikte göster`.
 2. `git push` (kullanıcı).
-3. M5 planı: strateji şeması (D10'un güncel hali), kod yazmadan strateji oluşturucu, seçilen strateji versiyonunun setup'ları grafikte, deterministik backtest (maliyetler, belirsizlik raporu, in-sample/out-of-sample), istatistik ekranı, versiyon karşılaştırma.
+3. M6 için kullanıcıyla öncelik seçimi: özel seanslar (D34), araştırma laboratuvarı, AI araştırma asistanı (n8n / Langflow fikri), paper trading.
 
 ## Çalıştırma ve test komutları
 ```bash

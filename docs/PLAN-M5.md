@@ -1,6 +1,6 @@
 # PLAN — M5: Strateji ve backtest
 
-> Durum: kullanıcı 2026-10-02'de "devam et" dedi; plan kaydedildi ve uygulamaya geçildi. Kararlar `docs/DECISIONS.md` (D31+).
+> Durum: kullanıcı 2026-10-02'de "devam et" dedi; plan kaydedildi ve uygulandı. **Görev 1–11 tamamlandı (2026-10-02).** Kararlar `docs/DECISIONS.md` D31–D34, şema `docs/schema/strategy-v1.md`.
 
 ## Amaç
 Elle gözlenen bir fikri **kod yazmadan** tipli kurallara dökmek (strateji), kuralları M4 adaylarıyla geçmiş veride **deterministik** olarak test etmek ve sonucu dürüstlük göstergeleriyle ölçmek.

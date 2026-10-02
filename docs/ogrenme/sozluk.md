@@ -312,3 +312,42 @@ Solundaki ve sağındaki birkaç mumdan daha yüksek (ya da daha düşük) olan 
 
 ### Kesme değişmezliği (truncation invariance)
 "İleriye bakma" olmadığını kanıtlayan test. Veri herhangi bir anda kesildiğinde motorun bulduğu adaylar, tam veriden bulunup o ana kadar onaylanmış olanlarla birebir aynı olmalı. Aynı değilse motor, o anda bilinemeyecek bir bilgiyi kullanıyor demektir.
+
+---
+
+## M5'te eklenenler: strateji ve backtest
+
+### Strateji, versiyon, kurulum (setup)
+- **Strateji:** Bir fikrin adı ve açıklaması (hipotez).
+- **Versiyon:** O fikrin kesin kuralları. Kaydedilen versiyon değiştirilmez; kuralı değiştirmek yeni versiyon demektir. Böylece her backtest sonucu hangi kurallarla elde edildiğini bilir.
+- **Kurulum:** Kuralların tüm adımlarının sırayla gerçekleştiği an. Kurulum ancak son adımın mumu kapanınca bilinir.
+
+*Uygulamada:* Üst menüde "Strateji". Kurallar formla girilir; serbest metin koşul yoktur.
+
+### İçerik özeti (specHash)
+Kuralların parmak izi. Aynı kurallar her zaman aynı özeti verir; tek bir sayı değişse özet değişir.
+
+### Lot ve risk yüzdesi
+İşlem başı risk yüzdesi, stop olursan bakiyenin en fazla yüzde kaçını kaybedeceğindir. Lot buna göre hesaplanır: risk tutarı / (stop mesafesi × pip değeri). Lot, risk aşılmasın diye aşağı yuvarlanır.
+*Örnek:* 10.000 USD, %0,5 risk = 50 USD. 20 pip stop, EURUSD'de 1 lot için pip başına 10 USD → 50 / 200 = 0,25 lot.
+
+### Komisyon
+Broker'ın işlem başına aldığı ücret. Genelde "lot başına, giriş ve çıkış için ayrı" verilir (ör. 3,5 USD / lot / taraf → 1 lotluk gidiş-dönüş 7 USD).
+
+### Profit factor ve beklenen değer
+- **Beklenen değer (ortalama R):** İşlem başına ortalama sonuç. Pozitifse ölçülen dönemde kazandırmış.
+- **Profit factor:** Kazanılan toplam / kaybedilen toplam. 1'in üstü kazanç.
+
+İkisi de **geçmişte ölçülen** değerlerdir; gelecekte aynı çıkacağı garanti değildir.
+
+### In-sample / out-of-sample
+- **In-sample:** Kuralları ve parametreleri denediğin veri bölümü.
+- **Out-of-sample:** Hiç dokunmadığın, en sona sakladığın bölüm. Kurallar burada da benzer sonuç veriyorsa fikir biraz daha güvenilir olur.
+
+Aynı veride çok fazla parametre denersen bir noktada "şans eseri" iyi görünen ayarı bulursun (aşırı optimizasyon). Uygulama bu yüzden in-sample deneme sayısını sayar ve gösterir.
+
+### Atlanan kurulum
+Kurallar gerçekleştiği halde işleme dönüşmeyen kurulum: o sırada açık işlem vardı, veri eksikti, stop yanlış taraftaydı, lot çok küçüktü ya da günlük sınır dolmuştu. Hepsi sayılır, çünkü sessizce atlanırlarsa sonuç olduğundan iyi görünebilir.
+
+### "Örneklemde doğrulandı"
+Stratejinin durumu. Yalnızca "belirli veri ve koşullarda şu sonuç gözlendi" demektir; gelecekte işe yarayacağının kanıtı değildir.

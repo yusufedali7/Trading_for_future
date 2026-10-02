@@ -186,6 +186,32 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Karar:** Motor adayları kullanıcı çizimlerinden ayrı bir primitive ile çizilir: ince, kesikli ya da yarı saydam, her zaman metin etiketli ("Aday FVG ↑", "BOS ↓", "Süpürme PDH", "PDH"). Yeşil/kırmızı yalnızca yön için. Katmanlar araç çubuğundan açılıp kapanır ve tercihlerde saklanır (varsayılan: swing, kırılım, önceki gün).
 - **Görüntü kuralları (motor verisini değiştirmez):** Aynı mumdaki süpürmeler tek işarette birleşir; aynı mum ve yöndeki işaretler üst üste istiflenir; mum aralığı 3 pikselden darsa işaretler gizlenir; FVG kutusu en fazla 50 mum uzunluğunda çizilir.
 
+## D31 — Strateji şeması v1 ve kurulum bulucu
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M5; D10 taslağının yerini alır)
+- **Karar:** Ayrıntı `docs/schema/strategy-v1.md`. D10'dan farklar: adım türleri M4 tespitleriyle sınırlı (`LIQUIDITY_SWEEP`, `STRUCTURE_BREAK`, `FVG`, `SWING`); `within.after` yerine her adım bir öncekine bağlı (`maxBars`); `level.*` referansları yok (seviyeler süpürme filtresiyle kullanılır); tanım parametreleri spec'in içinde (sonuç her zaman tekrar üretilebilir). Kurulum bulucu en erken adayı seçer, kesme değişmezdir (test).
+- **Sürüm:** `specHash` sıralı anahtarlı JSON üzerinden SHA-256. Versiyon kaydı yalnızca eklenir (aynı numara tekrar yazılamaz); durum değişikliği geçmişe eklenir.
+
+## D32 — Backtest kuralları
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M5)
+- **Akış:** `computeFeatures(spec.features)` → `findSetups` → `orderFor` → `positionSize` → `simulateTrade` (1m, replay ile aynı). Aynı girdi → birebir aynı sonuç (test).
+- **Tek pozisyon:** Açık işlem ya da bekleyen emir varken gelen kurulum atlanır (`POSITION_OPEN`). Emir süresi dolarsa sayılır (`expiredOrders`).
+- **Atlama nedenleri (hepsi raporlanır):** `DATA_GAP` (ilk adımdan 2 mum önce ile sinyal arasında, piyasa açıkken eksik veri ya da yarıdan azı dolu mum), `INVALID_ORDER`, `SIZE_TOO_SMALL`, `CROSS_PAIR`, `DAILY_LIMIT` (17:00 NY işlem günü).
+- **Lot:** Hesap para birimi USD. Risk tutarı = güncel bakiye × risk %; lot = risk / (planlanan stop mesafesi × kontrat × kur), lot adımına **aşağı** yuvarlanır. USD kote ve USD baz desteklenir; çapraz pariteler v1'de atlanır.
+- **Maliyetler:** Spread (alış/satış, D26), kayma (piyasa ve stop dolumları; **stop-loss ve elle/aralık sonu çıkışları dahil**), komisyon (lot × taraf × 2). İstatistikler maliyet sonrası net R (`pnl / riskAmount`) üzerindendir; fiyat R'si ayrıca saklanır.
+- **Aralık:** Sinyali `[from, to)` içinde olan kurulumlar işlenir; aralık sonunda açık işlem `to` anında kapatılır (`END_OF_RANGE`), dolmamış emir sayılır.
+- **Simülatör düzeltmesi:** D8 kaymanın stop dolumlarına da uygulanacağını söylüyordu; M3 simülatörü yalnızca girişte uyguluyordu. Stop-loss ve elle kapatma çıkışlarına da uygulanır. `ENGINE_VERSION` 0.3.0.
+
+## D33 — İstatistikler, dürüstlük ve veri bölme
+- **Tarih:** 2026-10-02 · **Durum:** Kabul edildi (M5)
+- **İstatistik:** `tradeStats` (net R, işlem sırasına göre seriler ve R cinsinden düşüş), bakiye eğrisi, USD ve % düşüş, 0,5R'lik dağılım, aylık (girişin UTC ayı), seansa göre (sinyal anında açık seanslar; çakışmada iki seansa birden sayılır; seans dışı `NONE`), haftanın gününe göre (New York saati).
+- **Dürüstlük göstergeleri sonuçlardan önce gösterilir:** 30'dan az işlem uyarısı, in-sample deneme numarası, atlanan kurulumlar nedenleriyle, belirsiz mum, süresi dolan / dolmamış emirler, toplam maliyet; maliyetler 0 iken "maliyetsiz" uyarısı; "ölçülen değerdir, olasılık değildir" notu.
+- **Veri bölme:** In-sample = sınırdan önce, out-of-sample = sınırdan itibaren. Her in-sample çalışması sayılır ve kayda yazılır (`inSampleTrial`). Araç optimizasyon yapmaz; deneme sayısını görünür kılar.
+- **Kayıt:** `BacktestRun` = strateji id/ad/versiyon/specHash, tanım sürümleri, veri kümesi + içerik özeti + kaynak + test edilen aralık, bölme, maliyetler, belirsizlik kuralı, başlangıç bakiyesi, lot kuralları, motor sürümü, çalışma zamanı. `trw-strategy` ve `trw-research` veritabanları açıldı (D21 ertelemesi kapandı).
+
+## D34 — İlk gerçek veri gözlemi: yerleşik Asya seansı ve Londra penceresi
+- **Tarih:** 2026-10-02 · **Durum:** Bilgi (karar değil)
+- "Asya dibi süpürmesi + yükseliş MSS, Londra 08:00–11:00" stratejisi EURUSD 2024-10 → 2025-12 in-sample'da yalnızca 3 işlem üretti. Sebep tanımsal: yerleşik Asya seansı (09:00–18:00 Tokyo) 09:00 UTC'de biter, seviye ancak o zaman bilinir; Londra penceresinde süpürme + MSS için kışın 2, yazın 1 saat kalır. Süpürmelerin çoğu 09–12 UTC arasında. ICT tarzı "Asya aralığı" (20:00–00:00 New York) için özel seans tanımı gerekir (M2 iyileştirme listesi 3. madde; öncelik yükseldi).
+
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
