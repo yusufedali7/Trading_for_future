@@ -7,6 +7,7 @@ import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
 import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
+import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 
 // SYNTHETIC: three 1m bars so the app has a dataset to show.
@@ -50,6 +51,7 @@ async function setup() {
     repo,
     prefs: createMemoryPrefsRepo(),
     drawingsRepo,
+    journalRepo: createMemoryJournalRepo(),
     createImporter: createInProcessImporter,
     candleSource: createInProcessCandleSource(repo),
     ChartComponent: FakeChart,

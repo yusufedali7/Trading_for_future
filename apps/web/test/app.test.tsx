@@ -5,6 +5,7 @@ import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
 import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
+import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 
 function renderApp(overrides: Partial<AppProps> = {}) {
@@ -14,6 +15,7 @@ function renderApp(overrides: Partial<AppProps> = {}) {
     candleSource: createInProcessCandleSource(repo),
     prefs: createMemoryPrefsRepo(),
     drawingsRepo: createMemoryDrawingsRepo(),
+    journalRepo: createMemoryJournalRepo(),
     createImporter: createInProcessImporter,
     ChartComponent: () => <div data-testid="chart" />,
     ...overrides,

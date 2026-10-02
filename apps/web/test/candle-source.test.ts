@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from 'vitest';
-import { getInstrument, resample, seriesFromRows, type DataSetMeta } from '@trw/engine';
-import { createInProcessCandleSource } from '../src/compute/candle-source';
+﻿import { describe, expect, it, vi } from 'vitest';
+import {
+  getInstrument,
+  replayCandles,
+  resample,
+  seriesFromRows,
+  sessionLevels,
+  simulateTrade,
+  type DataSetMeta,
+} from '@trw/engine';
+import { composeReplay, createInProcessCandleSource } from '../src/compute/candle-source';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 
 // SYNTHETIC: 30 hand-generated 1m bars, 15:00-15:29 UTC on a Tuesday (inside London and NY).
@@ -52,5 +60,77 @@ describe('in-process candle source', () => {
     await s.load(meta, '15m');
     await s.load(meta, '1h');
     expect(spy).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('replay through the candle source', () => {
+  // SYNTHETIC: two hours of 1m bars inside London + New York.
+  const many = Array.from({ length: 120 }, (_, i) => {
+    const mid = 1.1 + ((i * 7) % 11) / 10_000;
+    return {
+      t: Date.parse('2026-01-06T13:00:00Z') + i * 60_000,
+      o: mid,
+      h: mid + 0.0002,
+      l: mid - 0.0003,
+      c: mid + 0.0001,
+      v: 1,
+    };
+  });
+  const s2 = seriesFromRows(many, true);
+  const meta2 = {
+    id: 'd2',
+    instrument: 'EURUSD',
+    baseTimeframe: '1m',
+    contentHash: s2.contentHash,
+  } as DataSetMeta;
+
+  async function source2() {
+    const repo = createMemoryRepo();
+    await repo.saveDataset(meta2, s2);
+    return createInProcessCandleSource(repo);
+  }
+
+  it('composes exactly what the engine computes on data truncated at the cursor', async () => {
+    const src = await source2();
+    const full = await src.load(meta2, '15m');
+    for (const cursor of [
+      '2026-01-06T13:15:00Z',
+      '2026-01-06T13:37:00Z',
+      '2026-01-06T14:30:00Z',
+    ].map(Date.parse)) {
+      const view = composeReplay(full, await src.replay(meta2, '15m', cursor), cursor);
+      expect(view.candles).toEqual(
+        replayCandles(full.candles, s2, getInstrument('EURUSD'), '15m', cursor),
+      );
+      const instances = full.sessions.map(({ sessionId, version, date, startUtc, endUtc }) => ({
+        sessionId,
+        version,
+        date,
+        startUtc,
+        endUtc,
+      }));
+      expect(view.sessions).toEqual(sessionLevels(s2, instances, cursor));
+    }
+  });
+
+  it('simulates a trade with the series it holds, never past the cursor', async () => {
+    const src = await source2();
+    const order = {
+      direction: 'LONG' as const,
+      type: 'MARKET' as const,
+      placedAt: Date.parse('2026-01-06T13:10:00Z'),
+      referencePrice: 1.1,
+      stop: 1.099,
+      target: 1.102,
+      expiresAt: null,
+    };
+    const opts = {
+      cutoff: Date.parse('2026-01-06T13:30:00Z'),
+      costs: { spread: 0, slippage: 0 },
+      ambiguity: 'STOP_FIRST' as const,
+    };
+    expect(await src.simulate(meta2, order, opts)).toEqual(
+      simulateTrade(order, s2, { ...opts, baseMs: 60_000 }),
+    );
   });
 });

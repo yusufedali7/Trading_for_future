@@ -1,14 +1,22 @@
 import {
   BUILTIN_SESSIONS,
+  bucketStart,
   getInstrument,
+  resample,
+  seriesUpTo,
   sessionInstances,
   sessionLevels,
+  simulateTrade,
   timeframeMs,
   type CandleSeries,
   type DataSetMeta,
   type ResampledCandle,
   type SessionLevels,
+  type SimOptions,
+  type SimResult,
   type Timeframe,
+  type TradeOrder,
+  type UtcMs,
 } from '@trw/engine';
 import type { MarketRepo } from '../storage/market-repo';
 import { candlesFor } from './resample-for-display';
@@ -20,10 +28,34 @@ export interface ChartData {
   sessions: SessionLevels[];
 }
 
-/** Supplies chart data for a dataset and timeframe; heavy work may run in a worker. */
+/**
+ * What changes when the replay cursor moves: the last (possibly still forming) bucket and the
+ * sessions running at the cursor. Closed buckets and finished sessions are reused from ChartData.
+ */
+export interface ReplayTail {
+  tailStart: UtcMs | null;
+  tail: ResampledCandle[];
+  running: SessionLevels[];
+}
+
+export type SimulateOptions = Omit<SimOptions, 'baseMs'>;
+
+/** Supplies chart data for a dataset; heavy work may run in a worker. */
 export interface CandleSource {
   load(meta: DataSetMeta, tf: Timeframe): Promise<ChartData>;
+  replay(meta: DataSetMeta, tf: Timeframe, cursor: UtcMs): Promise<ReplayTail>;
+  simulate(meta: DataSetMeta, order: TradeOrder, opts: SimulateOptions): Promise<SimResult>;
   dispose(): void;
+}
+
+/** Chart data as known at the replay cursor (no bar or session level from after it). */
+export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs): ChartData {
+  const head = tail.tailStart === null ? [] : full.candles.filter((c) => c.t < tail.tailStart!);
+  const finished = full.sessions.filter((s) => s.endUtc <= cursor);
+  const sessions = [...finished, ...tail.running].sort(
+    (a, b) => a.startUtc - b.startUtc || a.sessionId.localeCompare(b.sessionId),
+  );
+  return { candles: [...head, ...tail.tail], sessions };
 }
 
 function computeSessions(meta: DataSetMeta, series: CandleSeries): SessionLevels[] {
@@ -37,17 +69,49 @@ function computeSessions(meta: DataSetMeta, series: CandleSeries): SessionLevels
   return sessionLevels(series, instances, asOf, timeframeMs(meta.baseTimeframe));
 }
 
-/** Keeps the most recently used dataset (and its sessions) in memory between timeframe switches. */
+/** Keeps the most recently used dataset (and its sessions) in memory between requests. */
 export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
   let cached: { key: string; series: CandleSeries; sessions: SessionLevels[] } | null = null;
+  const get = async (meta: DataSetMeta) => {
+    const key = `${meta.id}:${meta.contentHash}`;
+    if (cached?.key !== key) {
+      const series = await repo.loadSeries(meta.id);
+      cached = { key, series, sessions: computeSessions(meta, series) };
+    }
+    return cached;
+  };
   return {
     async load(meta, tf) {
-      const key = `${meta.id}:${meta.contentHash}`;
-      if (cached?.key !== key) {
-        const series = await repo.loadSeries(meta.id);
-        cached = { key, series, sessions: computeSessions(meta, series) };
-      }
-      return { candles: await candlesFor(meta, cached.series, tf), sessions: cached.sessions };
+      const c = await get(meta);
+      return { candles: await candlesFor(meta, c.series, tf), sessions: c.sessions };
+    },
+    async replay(meta, tf, cursor) {
+      const c = await get(meta);
+      const baseMs = timeframeMs(meta.baseTimeframe);
+      const inst = getInstrument(meta.instrument);
+      const visible = seriesUpTo(c.series, cursor, baseMs);
+      const runningInstances = c.sessions.filter((s) => s.startUtc < cursor && cursor < s.endUtc);
+      const running = sessionLevels(c.series, runningInstances, cursor, baseMs);
+      if (visible.length === 0) return { tailStart: null, tail: [], running };
+      const tailStart = bucketStart(inst, tf, visible.t[visible.length - 1]!);
+      let from = visible.length - 1;
+      while (from > 0 && visible.t[from - 1]! >= tailStart) from--;
+      const sub: CandleSeries = {
+        length: visible.length - from,
+        t: visible.t.subarray(from),
+        o: visible.o.subarray(from),
+        h: visible.h.subarray(from),
+        l: visible.l.subarray(from),
+        c: visible.c.subarray(from),
+        v: visible.v ? visible.v.subarray(from) : null,
+        contentHash: visible.contentHash,
+      };
+      const tail = resample(sub, inst, tf, { asOf: cursor, baseTimeframe: meta.baseTimeframe });
+      return { tailStart, tail, running };
+    },
+    async simulate(meta, order, opts) {
+      const c = await get(meta);
+      return simulateTrade(order, c.series, { ...opts, baseMs: timeframeMs(meta.baseTimeframe) });
     },
     dispose() {
       cached = null;
@@ -55,19 +119,34 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
   };
 }
 
-type Request = { id: number; meta: DataSetMeta; tf: Timeframe };
-type Response =
-  { id: number; ok: true; result: ChartData } | { id: number; ok: false; error: string };
+export type CandleRequest =
+  | { id: number; method: 'load'; meta: DataSetMeta; tf: Timeframe }
+  | { id: number; method: 'replay'; meta: DataSetMeta; tf: Timeframe; cursor: UtcMs }
+  | { id: number; method: 'simulate'; meta: DataSetMeta; order: TradeOrder; opts: SimulateOptions };
 
-export async function handleCandleRequest(source: CandleSource, req: Request): Promise<Response> {
+type Response =
+  { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };
+
+export async function handleCandleRequest(
+  source: CandleSource,
+  req: CandleRequest,
+): Promise<Response> {
   try {
-    return { id: req.id, ok: true, result: await source.load(req.meta, req.tf) };
+    const result =
+      req.method === 'load'
+        ? await source.load(req.meta, req.tf)
+        : req.method === 'replay'
+          ? await source.replay(req.meta, req.tf, req.cursor)
+          : await source.simulate(req.meta, req.order, req.opts);
+    return { id: req.id, ok: true, result };
   } catch (err) {
     return { id: req.id, ok: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
-/** Runs loading + resampling in a Web Worker that reads IndexedDB itself (no big copies). */
+type WithoutId<T> = T extends unknown ? Omit<T, 'id'> : never;
+
+/** Runs loading, replay and simulation in a Web Worker that reads IndexedDB itself. */
 export function createWorkerCandleSource(): CandleSource {
   const worker = new Worker(new URL('../workers/compute.worker.ts', import.meta.url), {
     type: 'module',
@@ -78,15 +157,16 @@ export function createWorkerCandleSource(): CandleSource {
     pending.get(e.data.id)?.(e.data);
     pending.delete(e.data.id);
   };
+  const call = <T>(req: WithoutId<CandleRequest>) =>
+    new Promise<T>((resolve, reject) => {
+      const id = nextId++;
+      pending.set(id, (r) => (r.ok ? resolve(r.result as T) : reject(new Error(r.error))));
+      worker.postMessage({ ...req, id } as CandleRequest);
+    });
   return {
-    load: (meta, tf) =>
-      new Promise((resolve, reject) => {
-        const id = nextId++;
-        pending.set(id, (r) => (r.ok ? resolve(r.result) : reject(new Error(r.error))));
-        worker.postMessage({ id, meta, tf } satisfies Request);
-      }),
+    load: (meta, tf) => call<ChartData>({ method: 'load', meta, tf }),
+    replay: (meta, tf, cursor) => call<ReplayTail>({ method: 'replay', meta, tf, cursor }),
+    simulate: (meta, order, opts) => call<SimResult>({ method: 'simulate', meta, order, opts }),
     dispose: () => worker.terminate(),
   };
 }
-
-export type { Request as CandleRequest };

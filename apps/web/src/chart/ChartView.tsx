@@ -141,10 +141,15 @@ export function ChartView(props: ChartViewProps) {
     const tfMs = timeframeMs(timeframe);
     const n = times.length;
     if (keep) {
-      chart.timeScale().setVisibleLogicalRange({
-        from: timeToPosition(times, tfMs, keep.from),
-        to: timeToPosition(times, tfMs, keep.to),
-      });
+      let from = timeToPosition(times, tfMs, keep.from);
+      let to = timeToPosition(times, tfMs, keep.to);
+      // Replay: when the newest bar reaches the right edge, slide the window with it.
+      if (props.followLatest && n > 0 && n - 1 > to - 2) {
+        const width = to - from;
+        to = n + 2;
+        from = to - width;
+      }
+      chart.timeScale().setVisibleLogicalRange({ from, to });
     } else if (n > 0) {
       chart.timeScale().setVisibleLogicalRange({ from: n - INITIAL_BARS, to: n + 5 });
     }

@@ -18,6 +18,7 @@ createRoot(root).render(
       repo={createDexieMarketRepo()}
       prefs={user.prefs}
       drawingsRepo={user.drawings}
+      journalRepo={user.journal}
       createImporter={createWorkerImporter}
       candleSource={createWorkerCandleSource()}
     />

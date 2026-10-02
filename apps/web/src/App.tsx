@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
+﻿import { useCallback, useEffect, useMemo, useState, type ComponentType } from 'react';
 import {
   compareTimeframes,
   getInstrument,
@@ -17,17 +17,21 @@ import { DrawingTools } from './features/drawings/DrawingTools';
 import { LevelsPanel } from './features/drawings/LevelsPanel';
 import { useDrawings } from './features/drawings/use-drawings';
 import { ImportWizard } from './features/import/ImportWizard';
+import { ReplayBar } from './features/replay/ReplayBar';
+import { useReplay } from './features/replay/use-replay';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
 import type { Importer } from './import/importer';
 import type { Prefs, PrefsRepo } from './storage/db-user';
 import type { DrawingsRepo } from './storage/drawings-repo';
+import type { JournalRepo } from './storage/journal-repo';
 import type { MarketRepo } from './storage/market-repo';
 
 export interface AppProps {
   repo: MarketRepo;
   prefs: PrefsRepo;
   drawingsRepo: DrawingsRepo;
+  journalRepo: JournalRepo;
   createImporter: () => Importer;
   candleSource: CandleSource;
   ChartComponent?: ComponentType<ChartViewProps>;
@@ -43,6 +47,7 @@ export function App({
   repo,
   prefs,
   drawingsRepo,
+  journalRepo: _journalRepo,
   createImporter,
   candleSource,
   ChartComponent = ChartView,
@@ -93,11 +98,35 @@ export function App({
     // The dataset is identified by id + content hash; the object itself is re-created on refresh.
   }, [candleSource, active?.id, active?.contentHash, timeframe]);
 
-  // Keyboard: Delete removes the selected drawing, Escape cancels the tool / selection.
+  const replay = useReplay(candleSource, active, data, settings?.displayTz ?? 'Europe/Istanbul');
+  const inReplay = replay.cursor !== null;
+  // In replay the chart only gets data as known at the cursor (rule 3).
+  const chartData = inReplay ? replay.view : data;
+  // Drawings placed after the cursor would leak hindsight into the replay: hide them.
+  const visibleDrawings = inReplay
+    ? store.drawings.filter((d) => Math.min(...d.anchors.map((a) => a.t)) < replay.cursor!)
+    : store.drawings;
+
+  // A different dataset ends the replay.
+  const activeId = active?.id;
+  const exitReplay = replay.exit;
+  useEffect(() => {
+    exitReplay();
+    // exitReplay only resets state; run when the dataset changes.
+  }, [activeId]);
+
+  // Keyboard: Delete removes the selected drawing, Escape cancels the tool / selection,
+  // arrows and space drive the replay.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return;
-      if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
+      if (inReplay && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+        e.preventDefault();
+        replay.step(e.key === 'ArrowRight' ? 1 : -1);
+      } else if (inReplay && e.key === ' ') {
+        e.preventDefault();
+        replay.togglePlay();
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         void store.deleteDrawing(selectedId);
         setSelectedId(null);
       } else if (e.key === 'Escape') {
@@ -107,7 +136,7 @@ export function App({
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [selectedId, store]);
+  }, [selectedId, store, inReplay, replay]);
 
   const update = (patch: Partial<Prefs>) => {
     setSettings((s) => (s ? { ...s, ...patch } : s));
@@ -144,7 +173,7 @@ export function App({
     setTool('SELECT');
   };
 
-  const lastClose = data?.candles[data.candles.length - 1]?.c ?? null;
+  const lastClose = chartData?.candles[chartData.candles.length - 1]?.c ?? null;
 
   return (
     <div className="app">
@@ -185,22 +214,43 @@ export function App({
         )}
         {active && settings && data && instrument && (
           <>
-            <DrawingTools tool={tool} onTool={setTool} />
-            <div className="workspace">
-              <ChartComponent
-                candles={data.candles}
-                sessions={data.sessions.filter((s) => settings.sessions.includes(s.sessionId))}
-                instrument={instrument}
-                timeframe={data.tf}
+            <div className="tool-row">
+              <DrawingTools tool={tool} onTool={setTool} />
+              <ReplayBar
+                cursor={replay.cursor}
                 displayTz={settings.displayTz}
-                drawings={store.drawings}
-                levels={store.levels}
-                selectedId={selectedId}
-                tool={tool}
-                onDrawn={onDrawn}
-                onSelect={setSelectedId}
-                onChange={(d) => void store.saveDrawing(d)}
+                playing={replay.playing}
+                speedMs={replay.speedMs}
+                atEnd={replay.atEnd}
+                onStart={replay.start}
+                onStep={replay.step}
+                onTogglePlay={replay.togglePlay}
+                onSpeed={replay.setSpeed}
+                onExit={replay.exit}
               />
+            </div>
+            <div className="workspace">
+              {chartData ? (
+                <ChartComponent
+                  candles={chartData.candles}
+                  sessions={chartData.sessions.filter((s) =>
+                    settings.sessions.includes(s.sessionId),
+                  )}
+                  instrument={instrument}
+                  timeframe={data.tf}
+                  displayTz={settings.displayTz}
+                  followLatest={inReplay}
+                  drawings={visibleDrawings}
+                  levels={store.levels}
+                  selectedId={selectedId}
+                  tool={tool}
+                  onDrawn={onDrawn}
+                  onSelect={setSelectedId}
+                  onChange={(d) => void store.saveDrawing(d)}
+                />
+              ) : (
+                <p className="muted chart-wrap">{tr.app.loading}</p>
+              )}
               <aside className="side">
                 {selected ? (
                   <DrawingPanel

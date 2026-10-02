@@ -8,4 +8,6 @@ export interface ChartViewProps extends DrawingLayerProps {
   instrument: Instrument;
   timeframe: Timeframe;
   displayTz: IanaTz;
+  /** Replay: keep the newest bar in view as the cursor advances. */
+  followLatest?: boolean;
 }

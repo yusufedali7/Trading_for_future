@@ -27,6 +27,21 @@ export const tr = {
   sessions: {
     running: 'devam ediyor',
   },
+  replay: {
+    startDate: 'Replay başlangıcı',
+    start: 'Replay başlat',
+    badge: 'REPLAY',
+    back: 'Geri',
+    forward: 'İleri',
+    play: 'Oynat',
+    pause: 'Duraklat',
+    speed: 'Hız',
+    speeds: { 1000: '1 bar/sn', 500: '2 bar/sn', 200: '5 bar/sn' } as Record<number, string>,
+    exit: "Replay'i bitir",
+    cursor: (time: string) => `İmleç: ${time}`,
+    hint: 'Gelecek mumlar gizli. Klavye: → ileri, ← geri, boşluk oynat/duraklat.',
+    end: 'Verinin sonuna gelindi.',
+  },
   drawings: {
     tools: 'Çizim araçları',
     kinds: {
