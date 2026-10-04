@@ -195,6 +195,7 @@ export type {
   BacktestInput,
   BacktestResult,
   BacktestTrade,
+  OpenPosition,
   SkipReason,
 } from './backtest/run';
 export { backtestStats } from './backtest/stats';

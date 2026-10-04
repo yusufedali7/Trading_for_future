@@ -31,6 +31,11 @@ export interface BacktestConfig {
   ambiguity: AmbiguityRule;
   startEquity: number;
   lots: LotRules;
+  /**
+   * Paper trading (M6.3): a trade or order still running at `to` is left open and reported in
+   * `open` instead of being closed there; later setups count as POSITION_OPEN.
+   */
+  keepOpenAtEnd?: boolean;
 }
 
 export interface BacktestInput {
@@ -85,8 +90,21 @@ export interface BacktestTrade {
   equityAfter: number;
 }
 
+/** A paper position still running at the end of the data (`keepOpenAtEnd`). */
+export interface OpenPosition {
+  setupId: string;
+  signalAt: UtcMs;
+  order: TradeOrder;
+  lots: number;
+  riskAmount: number;
+  /** PENDING: order waiting; OPEN: filled, marked to the last closed bar. */
+  sim: SimResult;
+}
+
 export interface BacktestResult {
   setupsFound: number;
+  /** Positions still running at the end (paper trading only). */
+  open?: OpenPosition[];
   trades: BacktestTrade[];
   skipped: Record<SkipReason, number>;
   /** Limit/stop orders that were not filled before they expired. */
@@ -179,6 +197,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
   let busyUntil = -Infinity;
   let expiredOrders = 0;
   let unfilledAtEnd = 0;
+  const open: OpenPosition[] = [];
 
   for (const s of setups) {
     if (s.signalAt < busyUntil) {
@@ -218,8 +237,20 @@ export function runBacktest(input: BacktestInput): BacktestResult {
       cutoff: to,
       costs: { spread, slippage },
       ambiguity: config.ambiguity,
-      closeAt: to,
+      ...(config.keepOpenAtEnd ? {} : { closeAt: to }),
     });
+    if (config.keepOpenAtEnd && (sim.status === 'OPEN' || sim.status === 'PENDING')) {
+      open.push({
+        setupId: s.id,
+        signalAt: s.signalAt,
+        order,
+        lots: size.lots,
+        riskAmount: size.riskAmount,
+        sim,
+      });
+      busyUntil = Infinity;
+      continue;
+    }
     if (sim.status === 'EXPIRED') {
       expiredOrders++;
       busyUntil = order.expiresAt ?? busyUntil;
@@ -275,6 +306,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
   costs.total = r2(costs.spread + costs.slippage + costs.commission);
   return {
     setupsFound: setups.length,
+    ...(config.keepOpenAtEnd ? { open } : {}),
     trades,
     skipped,
     expiredOrders,

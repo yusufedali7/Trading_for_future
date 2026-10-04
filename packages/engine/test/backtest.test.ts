@@ -152,6 +152,17 @@ describe('runBacktest', () => {
     expect(open.trades[0]).toMatchObject({ exit: 'END_OF_RANGE', exitAt: at(12) });
   });
 
+  it('paper mode keeps a running trade open instead of closing it at the end', () => {
+    const path: Bar[] = [...flat(3), ...flat(10, 3)];
+    const res = runBacktest(input(path, [1, 5], {}, { keepOpenAtEnd: true }));
+    expect(res.trades).toEqual([]);
+    expect(res.open).toHaveLength(1);
+    expect(res.open![0]!.sim).toMatchObject({ status: 'OPEN', entryAt: at(3) });
+    expect(res.skipped.POSITION_OPEN).toBe(1); // the second swing low waits for the open trade
+    // Without paper mode the same trade is closed at the end of the range.
+    expect(runBacktest(input(path, [1])).open).toBeUndefined();
+  });
+
   it('flags same-bar stop and target and applies the pessimistic rule', () => {
     // Market fill at the bar 3 open; bar 4 reaches both the stop (−10) and the target (+20).
     const later: Bar[] = [...flat(4), [0, 25, -15, 0], ...flat(2)];
