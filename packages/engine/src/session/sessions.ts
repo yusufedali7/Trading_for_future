@@ -61,6 +61,45 @@ export const BUILTIN_SESSIONS: readonly SessionDefinition[] = [
   },
 ];
 
+/** Built-in sessions followed by the user's own (D35). */
+export function allSessionDefs(user: readonly SessionDefinition[]): SessionDefinition[] {
+  return [...BUILTIN_SESSIONS, ...user];
+}
+
+export type SessionProblem =
+  | 'BAD_ID'
+  | 'RESERVED_ID'
+  | 'DUPLICATE_ID'
+  | 'NO_NAME'
+  | 'BAD_TZ'
+  | 'BAD_TIME'
+  | 'SAME_TIME'
+  | 'NO_DAYS';
+
+/** Upper-case id; liquidity levels are named `<ID>_HIGH` / `<ID>_LOW`. */
+export const SESSION_ID_RE = /^[A-Z][A-Z0-9_]{1,15}$/;
+const RESERVED_IDS = new Set([...BUILTIN_SESSIONS.map((s) => s.id), 'SWING', 'NONE']);
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Problems with a user session definition; `otherIds` are the ids already taken by other user sessions. */
+export function validateSessionDefinition(
+  def: SessionDefinition,
+  otherIds: readonly string[],
+  isValidTz: (tz: string) => boolean,
+): SessionProblem[] {
+  const out: SessionProblem[] = [];
+  if (!SESSION_ID_RE.test(def.id)) out.push('BAD_ID');
+  else if (RESERVED_IDS.has(def.id)) out.push('RESERVED_ID');
+  else if (otherIds.includes(def.id)) out.push('DUPLICATE_ID');
+  if (def.name.trim() === '') out.push('NO_NAME');
+  if (!isValidTz(def.tz)) out.push('BAD_TZ');
+  if (!TIME_RE.test(def.start) || !TIME_RE.test(def.end)) out.push('BAD_TIME');
+  else if (def.start === def.end) out.push('SAME_TIME');
+  if (def.days.length === 0 || def.days.some((d) => !Number.isInteger(d) || d < 1 || d > 7))
+    out.push('NO_DAYS');
+  return out;
+}
+
 export function getBuiltinSession(id: string): SessionDefinition {
   const s = BUILTIN_SESSIONS.find((d) => d.id === id);
   if (!s) throw new Error(`Unknown session: ${id}`);

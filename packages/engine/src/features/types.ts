@@ -81,19 +81,9 @@ export interface PeriodLevel {
   validUntil: UtcMs;
 }
 
+/** Fixed kinds plus one HIGH/LOW pair per session id (built-in or user, e.g. `ICT_ASIA_LOW`). */
 export type LiquidityKind =
-  | 'SWING_HIGH'
-  | 'SWING_LOW'
-  | 'PDH'
-  | 'PDL'
-  | 'PWH'
-  | 'PWL'
-  | 'ASIA_HIGH'
-  | 'ASIA_LOW'
-  | 'LONDON_HIGH'
-  | 'LONDON_LOW'
-  | 'NEW_YORK_HIGH'
-  | 'NEW_YORK_LOW';
+  'SWING_HIGH' | 'SWING_LOW' | 'PDH' | 'PDL' | 'PWH' | 'PWL' | `${string}_HIGH` | `${string}_LOW`;
 
 /** A price where resting orders are assumed to sit (above highs, below lows). */
 export interface LiquidityLevel {

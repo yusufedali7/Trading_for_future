@@ -1,7 +1,7 @@
 import { utcToLocal } from '../core/tz';
 import type { UtcMs } from '../core/types';
 import type { Instrument } from '../instruments/registry';
-import { BUILTIN_SESSIONS } from '../session/sessions';
+import { BUILTIN_SESSIONS, type SessionDefinition } from '../session/sessions';
 import { activeSessions, tradeStats, type TradeStats } from '../user/journal';
 import type { BacktestResult, BacktestTrade } from './run';
 
@@ -64,6 +64,8 @@ export function backtestStats(
   res: BacktestResult,
   inst: Instrument,
   rangeFrom: UtcMs,
+  /** Sessions for the by-session breakdown (built-in + the strategy's user sessions). */
+  sessionDefs: readonly SessionDefinition[] = BUILTIN_SESSIONS,
 ): BacktestStats {
   const trades = res.trades;
   const summary = tradeStats(trades.map((t) => ({ r: t.r, ambiguous: t.ambiguous })));
@@ -101,7 +103,7 @@ export function backtestStats(
     ),
     bySession: rows(
       group(trades, (t) => {
-        const s = activeSessions(BUILTIN_SESSIONS, inst, t.signalAt);
+        const s = activeSessions(sessionDefs, inst, t.signalAt);
         return s.length ? s : ['NONE'];
       }),
     ),

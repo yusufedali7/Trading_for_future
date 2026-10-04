@@ -4,6 +4,7 @@ import type { CandleSeries } from '../data/columnar';
 import type { ResampledCandle } from '../data/resample';
 import type { Instrument } from '../instruments/registry';
 import type { SessionLevels } from '../session/levels';
+import type { SessionDefinition } from '../session/sessions';
 import { toBars } from './bars';
 import { FVG_DEFAULTS, detectFvgs } from './fvg';
 import { periodLevels } from './periods';
@@ -74,6 +75,8 @@ export interface FeatureInput {
   tf: Timeframe;
   periods: readonly PeriodLevel[];
   sessions: readonly SessionLevels[];
+  /** Definitions of `sessions` (built-in when omitted; user sessions, D35). */
+  sessionDefs?: readonly SessionDefinition[];
 }
 
 /**
@@ -92,6 +95,7 @@ export function computeFeatures(
       swings,
       periods: input.periods,
       sessions: input.sessions,
+      ...(input.sessionDefs ? { sessionDefs: input.sessionDefs } : {}),
       barMs: timeframeMs(input.tf),
     },
     p.sweep,

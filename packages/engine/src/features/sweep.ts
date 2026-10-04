@@ -1,6 +1,6 @@
 import type { Instrument } from '../instruments/registry';
 import type { SessionLevels } from '../session/levels';
-import { getBuiltinSession, sessionInstances } from '../session/sessions';
+import { BUILTIN_SESSIONS, sessionInstances, type SessionDefinition } from '../session/sessions';
 import type { Bars } from './bars';
 import type {
   LiquidityKind,
@@ -15,9 +15,13 @@ export const SWEEP_DEFAULTS: SweepParams = { swingMaxAgeBars: 100 };
 
 const DAY_MS = 86_400_000;
 
-/** Start of the next occurrence of a built-in session after `after` (calendar only). */
-function nextSessionStart(inst: Instrument, sessionId: string, after: number): number {
-  const def = getBuiltinSession(sessionId);
+/** Start of the next occurrence of a session after `after` (calendar only). */
+function nextSessionStart(
+  inst: Instrument,
+  def: SessionDefinition | undefined,
+  after: number,
+): number {
+  if (!def) return after + DAY_MS;
   const next = sessionInstances(def, inst, after, after + 5 * DAY_MS).find(
     (s) => s.startUtc >= after,
   );
@@ -28,8 +32,10 @@ export interface LiquiditySources {
   swings: readonly Swing[];
   /** Previous day and week levels (periodLevels). */
   periods: readonly PeriodLevel[];
-  /** Built-in sessions; only finished ones become levels. */
+  /** Sessions with their levels; only finished ones become levels. */
   sessions: readonly SessionLevels[];
+  /** Definitions of those sessions (built-in by default), for how long a level stays valid. */
+  sessionDefs?: readonly SessionDefinition[];
   /** Chart timeframe length, for the swing level age limit. */
   barMs: number;
 }
@@ -46,6 +52,7 @@ export function liquidityLevels(
   p: SweepParams = SWEEP_DEFAULTS,
 ): LiquidityLevel[] {
   const out: LiquidityLevel[] = [];
+  const defs = new Map((src.sessionDefs ?? BUILTIN_SESSIONS).map((d) => [d.id, d]));
   for (const s of src.swings) {
     out.push({
       id: s.id,
@@ -67,7 +74,7 @@ export function liquidityLevels(
     if (!s.complete || s.high === null || s.low === null) continue;
     const common = {
       knownAt: s.endUtc,
-      validUntil: nextSessionStart(inst, s.sessionId, s.endUtc),
+      validUntil: nextSessionStart(inst, defs.get(s.sessionId), s.endUtc),
     };
     const id = `SESSION:${s.sessionId}:${s.startUtc}`;
     const kind = (side: 'HIGH' | 'LOW') => `${s.sessionId}_${side}` as LiquidityKind;

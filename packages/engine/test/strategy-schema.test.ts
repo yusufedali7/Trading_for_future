@@ -4,6 +4,7 @@ import {
   canonicalJson,
   defaultSpec,
   newVersion,
+  referencedSessionIds,
   setVersionStatus,
   specHash,
   specWarnings,
@@ -105,5 +106,48 @@ describe('strategy schema v1', () => {
     ]);
     expect(t.spec).toBe(v.spec);
     expect(() => newVersion(strategy, { ...LONDON_SWEEP, steps: [] }, '', 1)).toThrow(/NO_STEPS/);
+  });
+});
+
+describe('user sessions in a strategy (D35)', () => {
+  const ict = {
+    id: 'ICT_ASIA',
+    name: 'ICT Asya aralığı',
+    tz: 'America/New_York',
+    start: '20:00' as const,
+    end: '00:00' as const,
+    days: [7, 1, 2, 3, 4],
+    version: 1,
+  };
+  const withIct: StrategySpec = {
+    ...LONDON_SWEEP,
+    steps: [
+      {
+        id: 'sweep',
+        type: 'LIQUIDITY_SWEEP',
+        direction: 'BULLISH',
+        levels: ['ICT_ASIA_LOW', 'PDL'],
+      },
+      ...LONDON_SWEEP.steps.slice(1),
+    ],
+  };
+
+  it('requires a copy of every user session a sweep level refers to', () => {
+    expect(referencedSessionIds(withIct.steps)).toEqual(['ICT_ASIA']);
+    expect(referencedSessionIds(LONDON_SWEEP.steps)).toEqual([]);
+    expect(validateSpec(withIct).map((p) => `${p.code}@${p.path}`)).toEqual([
+      'UNKNOWN_LEVEL@steps.0.levels',
+    ]);
+    expect(validateSpec({ ...withIct, sessions: [ict] })).toEqual([]);
+    expect(
+      validateSpec({ ...withIct, sessions: [{ ...ict, id: 'ASIA' }] }).map((p) => p.code),
+    ).toEqual(['BAD_SESSION', 'UNKNOWN_LEVEL']);
+  });
+
+  it('keeps the hash of specs saved before sessions existed', () => {
+    expect(specHash({ ...LONDON_SWEEP, sessions: undefined })).toBe(specHash(LONDON_SWEEP));
+    expect(specHash({ ...withIct, sessions: [ict] })).not.toBe(
+      specHash({ ...withIct, sessions: [{ ...ict, start: '19:00' }] }),
+    );
   });
 });

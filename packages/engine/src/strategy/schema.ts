@@ -6,6 +6,12 @@ import type { Direction } from '../execution/trade-sim';
 import { FEATURE_DEFAULTS, type FeatureParams } from '../features/compute';
 import type { FeatureDirection, LiquidityKind } from '../features/types';
 import { listInstruments } from '../instruments/registry';
+import {
+  BUILTIN_SESSIONS,
+  allSessionDefs,
+  validateSessionDefinition,
+  type SessionDefinition,
+} from '../session/sessions';
 
 /** Strategy schema v1 (D31): typed, ordered event steps; no free-text conditions. */
 export type StepType = 'LIQUIDITY_SWEEP' | 'STRUCTURE_BREAK' | 'FVG' | 'SWING';
@@ -72,6 +78,11 @@ export interface StrategySpec {
   maxTradesPerDay: number | null;
   /** Detector parameters are part of the strategy, so a version always reproduces. */
   features: FeatureParams;
+  /**
+   * Copies of the user sessions this version refers to (D35): editing or deleting a session later
+   * never changes the results of a saved version. Built-in sessions are not copied.
+   */
+  sessions?: SessionDefinition[];
 }
 
 export type StrategyStatus =
@@ -150,7 +161,9 @@ export type SpecProblemCode =
   | 'RISK_RANGE'
   | 'BAD_WINDOW'
   | 'MAX_PER_DAY'
-  | 'FEATURE_PARAMS';
+  | 'FEATURE_PARAMS'
+  | 'BAD_SESSION'
+  | 'UNKNOWN_LEVEL';
 
 export interface SpecProblem {
   code: SpecProblemCode;
@@ -165,6 +178,20 @@ export interface SpecWarning {
 }
 
 const ID_RE = /^[a-z][a-z0-9_]{0,23}$/;
+const FIXED_LEVELS = ['SWING_HIGH', 'SWING_LOW', 'PDH', 'PDL', 'PWH', 'PWL'];
+
+/** Ids of the user sessions a spec's sweep steps refer to (to copy into `spec.sessions`). */
+export function referencedSessionIds(steps: readonly EventStep[]): string[] {
+  const builtin = new Set(BUILTIN_SESSIONS.map((d) => d.id));
+  const ids = steps.flatMap((st) =>
+    st.type === 'LIQUIDITY_SWEEP'
+      ? (st.levels ?? [])
+          .filter((l) => !FIXED_LEVELS.includes(l))
+          .map((l) => l.replace(/_(HIGH|LOW)$/, ''))
+      : [],
+  );
+  return [...new Set(ids)].filter((id) => !builtin.has(id));
+}
 const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 const posInt = (x: unknown) => Number.isInteger(x) && (x as number) >= 1;
 const nonNeg = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0;
@@ -226,6 +253,20 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
     (f.structure.breakBy !== 'CLOSE' && f.structure.breakBy !== 'WICK')
   )
     bad('FEATURE_PARAMS', 'features');
+  const sessions = s.sessions ?? [];
+  sessions.forEach((d, i) => {
+    const others = sessions.filter((_, k) => k !== i).map((x) => x.id);
+    if (validateSessionDefinition(d, others, isValidTimeZone).length > 0)
+      bad('BAD_SESSION', `sessions.${i}`);
+  });
+  const known = new Set([
+    ...FIXED_LEVELS,
+    ...allSessionDefs(sessions).flatMap((d) => [`${d.id}_HIGH`, `${d.id}_LOW`]),
+  ]);
+  s.steps.forEach((st, i) => {
+    if (st.type === 'LIQUIDITY_SWEEP' && st.levels?.some((l) => !known.has(l)))
+      bad('UNKNOWN_LEVEL', `steps.${i}.levels`);
+  });
   return out;
 }
 
