@@ -5,12 +5,15 @@ import {
   specWarnings,
   validateSpec,
   type EventStep,
+  referencedSessionIds,
   type LiquidityKind,
+  type SessionDefinition,
   type StepType,
   type StrategySpec,
   type Timeframe,
 } from '@trw/engine';
 import { tr } from '../../i18n/tr';
+import { toDefinition, type UserSession } from '../../storage/sessions-repo';
 
 const b = tr.strategy.builder;
 const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '30m', '1h', '4h'];
@@ -21,7 +24,7 @@ const STEP_BASE: Record<StepType, string> = {
   FVG: 'fvg',
   SWING: 'swing',
 };
-const LEVELS: LiquidityKind[] = [
+const FIXED_LEVELS: LiquidityKind[] = [
   'SWING_HIGH',
   'SWING_LOW',
   'PDH',
@@ -58,11 +61,42 @@ export interface StrategyBuilderProps {
   /** Asked only when creating a strategy. */
   askName: boolean;
   onSave: (spec: StrategySpec, meta: { name: string; description: string; note: string }) => void;
+  /** The user's sessions: their highs/lows can be swept levels (D35). */
+  userSessions?: readonly UserSession[];
   onCancel: () => void;
 }
 
-export function StrategyBuilder({ initial, askName, onSave, onCancel }: StrategyBuilderProps) {
-  const [spec, setSpec] = useState<StrategySpec>(initial);
+export function StrategyBuilder({
+  initial,
+  askName,
+  onSave,
+  onCancel,
+  userSessions = [],
+}: StrategyBuilderProps) {
+  const [draft, setSpec] = useState<StrategySpec>(initial);
+  // Session definitions a level may refer to: the user's current ones, then copies in the version.
+  const pool = new Map<string, SessionDefinition>();
+  for (const d of initial.sessions ?? []) pool.set(d.id, d);
+  for (const u of userSessions) pool.set(u.id, toDefinition(u));
+  const copies = referencedSessionIds(draft.steps).flatMap((id) =>
+    pool.has(id) ? [pool.get(id)!] : [],
+  );
+  // What gets validated and saved: the draft plus copies of the user sessions it uses.
+  const { sessions: _old, ...rest } = draft;
+  const spec: StrategySpec = copies.length > 0 ? { ...rest, sessions: copies } : rest;
+  const LEVELS: LiquidityKind[] = [
+    ...FIXED_LEVELS,
+    ...[...pool.values()].flatMap((d) => [
+      `${d.id}_HIGH` as LiquidityKind,
+      `${d.id}_LOW` as LiquidityKind,
+    ]),
+  ];
+  const levelName = (l: string) => {
+    const fixed = tr.strategy.levelNames[l];
+    if (fixed) return fixed;
+    const id = l.replace(/_(HIGH|LOW)$/, '');
+    return `${pool.get(id)?.name ?? id} ${l.endsWith('_HIGH') ? 'Y' : 'D'}`;
+  };
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [note, setNote] = useState('');
@@ -338,7 +372,7 @@ export function StrategyBuilder({ initial, askName, onSave, onCancel }: Strategy
                           setStep(i, { ...st, levels });
                         }}
                       />
-                      <span>{tr.strategy.levelNames[l]}</span>
+                      <span>{levelName(l)}</span>
                     </label>
                   ))}
                 </div>

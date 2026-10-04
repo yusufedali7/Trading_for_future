@@ -12,6 +12,8 @@ import type { DrawingLayerProps } from './use-drawing-layer';
 
 export interface ChartViewProps extends DrawingLayerProps {
   candles: readonly ResampledCandle[];
+  /** Names and colours of user sessions (built-in ones are known to the chart). */
+  sessionStyles?: Record<string, { name: string; color: string }>;
   /** Visible sessions with their levels (engine layer). */
   sessions: readonly SessionLevels[];
   instrument: Instrument;

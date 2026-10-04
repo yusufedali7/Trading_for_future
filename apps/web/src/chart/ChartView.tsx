@@ -167,16 +167,19 @@ export function ChartView(props: ChartViewProps) {
   }, [candles]);
 
   // Session boxes (engine layer). Hidden on daily/weekly charts where a session is narrower than a bar.
+  const sessionStyles = props.sessionStyles;
   useEffect(() => {
     const daily = timeframe === '1D' || timeframe === '1W';
+    const styles = Object.entries(sessionStyles ?? {});
     sessionBoxesRef.current?.setData(
       daily ? [] : sessions,
       times,
       timeframeMs(timeframe),
-      SESSION_LABELS,
+      { ...SESSION_LABELS, ...Object.fromEntries(styles.map(([id, s]) => [id, s.name])) },
       tr.sessions.running,
+      Object.fromEntries(styles.map(([id, s]) => [id, s.color])),
     );
-  }, [sessions, times, timeframe]);
+  }, [sessions, times, timeframe, sessionStyles]);
 
   // Engine candidates (M4) and strategy setups (M5), laid out once per data / layer change.
   const { features, featureLayers, setups } = props;

@@ -1049,3 +1049,20 @@ input[type='number'] {
   font-size: 12px;
   border-left: 3px solid #e8e8e8;
 }
+
+/* --- M6.1: user sessions --- */
+.session-manager {
+  width: min(680px, 100%);
+}
+
+.session-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.field-row.wrap {
+  flex-wrap: wrap;
+  align-items: center;
+}

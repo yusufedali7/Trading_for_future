@@ -6,6 +6,7 @@ import {
   type Instrument,
   type JournalEntry,
   type ReplayTrade,
+  type SessionDefinition,
   type Timeframe,
   type UtcMs,
 } from '@trw/engine';
@@ -13,26 +14,36 @@ import type { ChartScreenshot } from '../../chart/types';
 import type { JournalRepo } from '../../storage/journal-repo';
 import type { JournalDraft, JournalFields } from './JournalForm';
 
-export function draftFromTrade(t: ReplayTrade, inst: Instrument, baseMs: number): JournalDraft {
+export function draftFromTrade(
+  t: ReplayTrade,
+  inst: Instrument,
+  baseMs: number,
+  defs: readonly SessionDefinition[] = BUILTIN_SESSIONS,
+): JournalDraft {
   return {
     instrument: t.instrument,
     decision: t.order.direction,
     decidedAt: t.order.placedAt,
     timeframe: t.timeframe,
-    sessions: activeSessions(BUILTIN_SESSIONS, inst, t.order.placedAt),
+    sessions: activeSessions(defs, inst, t.order.placedAt),
     tradeId: t.id,
     status: t.result.status,
     result: journalResultOf(t.result, baseMs),
   };
 }
 
-export function noTradeDraft(inst: Instrument, at: UtcMs, timeframe: Timeframe): JournalDraft {
+export function noTradeDraft(
+  inst: Instrument,
+  at: UtcMs,
+  timeframe: Timeframe,
+  defs: readonly SessionDefinition[] = BUILTIN_SESSIONS,
+): JournalDraft {
   return {
     instrument: inst.symbol,
     decision: 'NO_TRADE',
     decidedAt: at,
     timeframe,
-    sessions: activeSessions(BUILTIN_SESSIONS, inst, at),
+    sessions: activeSessions(defs, inst, at),
     tradeId: null,
     status: null,
     result: null,

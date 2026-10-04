@@ -13,6 +13,7 @@ import {
 import type { CandleSource } from '../../compute/candle-source';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
+import type { UserSession } from '../../storage/sessions-repo';
 import type { ResearchRepo, StrategyRepo } from '../../storage/strategy-repo';
 import { BacktestPanel } from '../backtest/BacktestPanel';
 import { StrategyBuilder } from './StrategyBuilder';
@@ -30,6 +31,8 @@ export interface StrategyPageProps {
   displayTz: IanaTz;
   now: () => number;
   newId: () => string;
+  /** The user's sessions, offered as sweep levels in the builder. */
+  userSessions: readonly UserSession[];
   /** Show the setups of this version on the chart. */
   onShowOnChart: (strategy: Strategy, version: StrategyVersion) => void;
 }
@@ -149,6 +152,7 @@ export function StrategyPage(p: StrategyPageProps) {
           <StrategyBuilder
             initial={defaultSpec(p.defaultInstrument)}
             askName
+            userSessions={p.userSessions}
             onSave={(spec, meta) => void saveNew(spec, meta)}
             onCancel={() => setMode({ kind: 'VIEW' })}
           />
@@ -180,6 +184,7 @@ export function StrategyPage(p: StrategyPageProps) {
                 key={`v-${versionNo}`}
                 initial={mode.from}
                 askName={false}
+                userSessions={p.userSessions}
                 onSave={(spec, meta) => void saveVersion(spec, meta)}
                 onCancel={() => setMode({ kind: 'VIEW' })}
               />

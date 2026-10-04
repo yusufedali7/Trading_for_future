@@ -10,6 +10,7 @@ import { FEATURE_LAYERS, type FeatureLayer } from '../../chart/primitives/featur
 import { SESSION_COLORS } from '../../chart/theme';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
+import type { UserSession } from '../../storage/sessions-repo';
 
 export interface ToolbarProps {
   datasets: readonly DataSetMeta[];
@@ -19,6 +20,8 @@ export interface ToolbarProps {
   onDataset: (id: string) => void;
   onTimeframe: (tf: Timeframe) => void;
   onDisplayTz: (tz: IanaTz) => void;
+  userSessions: readonly UserSession[];
+  onManageSessions: () => void;
   visibleSessions: readonly string[];
   onToggleSession: (id: string) => void;
   visibleFeatures: readonly FeatureLayer[];
@@ -27,6 +30,10 @@ export interface ToolbarProps {
 }
 
 export function Toolbar(p: ToolbarProps) {
+  const colors: Record<string, string | undefined> = {
+    ...SESSION_COLORS,
+    ...Object.fromEntries(p.userSessions.map((s) => [s.id, s.color])),
+  };
   const available = TIMEFRAMES.filter((tf) => compareTimeframes(tf, p.active.baseTimeframe) >= 0);
   return (
     <div className="toolbar" role="toolbar" aria-label="Grafik araçları">
@@ -72,7 +79,7 @@ export function Toolbar(p: ToolbarProps) {
       </label>
 
       <div className="segmented" role="group" aria-label={tr.toolbar.sessions}>
-        {BUILTIN_SESSIONS.map((s) => (
+        {[...BUILTIN_SESSIONS, ...p.userSessions].map((s) => (
           <button
             key={s.id}
             type="button"
@@ -80,11 +87,14 @@ export function Toolbar(p: ToolbarProps) {
             aria-pressed={p.visibleSessions.includes(s.id)}
             onClick={() => p.onToggleSession(s.id)}
           >
-            <span className="dot" style={{ background: SESSION_COLORS[s.id] }} aria-hidden="true" />
+            <span className="dot" style={{ background: colors[s.id] }} aria-hidden="true" />
             {s.name}
           </button>
         ))}
       </div>
+      <button type="button" className="btn" onClick={p.onManageSessions}>
+        {tr.sessions.manage}
+      </button>
 
       <div
         className="segmented"

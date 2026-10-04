@@ -24,6 +24,7 @@ createRoot(root).render(
       candleSource={createWorkerCandleSource()}
       strategyRepo={createDexieStrategyRepo()}
       researchRepo={createDexieResearchRepo()}
+      sessionsRepo={user.sessions}
     />
   </StrictMode>,
 );

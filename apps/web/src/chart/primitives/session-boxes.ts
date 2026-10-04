@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   IChartApiBase,
   IPrimitivePaneRenderer,
   IPrimitivePaneView,
@@ -29,6 +29,7 @@ export class SessionBoxesPrimitive implements ISeriesPrimitive<Time> {
   private tfMs = 60_000;
   private labels: Record<string, string> = {};
   private runningLabel = '';
+  private colors: Record<string, string> = {};
 
   private readonly view: IPrimitivePaneView = {
     zOrder: () => 'bottom',
@@ -41,7 +42,9 @@ export class SessionBoxesPrimitive implements ISeriesPrimitive<Time> {
     tfMs: number,
     labels: Record<string, string>,
     runningLabel: string,
+    colors: Record<string, string> = {},
   ): void {
+    this.colors = colors;
     this.sessions = sessions;
     this.times = times;
     this.tfMs = tfMs;
@@ -86,7 +89,7 @@ export class SessionBoxesPrimitive implements ISeriesPrimitive<Time> {
       ctx.font = '10px system-ui, sans-serif';
       ctx.textBaseline = 'bottom';
       for (const b of boxes) {
-        const color = SESSION_COLORS[b.sessionId] ?? '#8a94a3';
+        const color = this.colors[b.sessionId] ?? SESSION_COLORS[b.sessionId] ?? '#8a94a3';
         const w = b.x2 - b.x1;
         const h = b.yBottom - b.yTop;
         ctx.fillStyle = withAlpha(color, b.complete ? 0.08 : 0.04);

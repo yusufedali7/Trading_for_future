@@ -46,11 +46,14 @@ export interface JournalFields {
 export interface JournalFormProps {
   draft: JournalDraft;
   displayTz: IanaTz;
+  /** Names of user sessions (built-in names are known here). */
+  sessionNames?: Record<string, string>;
   onSave: (fields: JournalFields) => Promise<void>;
   onSkip: () => void;
 }
 
-export function JournalForm({ draft, displayTz, onSave, onSkip }: JournalFormProps) {
+export function JournalForm({ draft, displayTz, sessionNames, onSave, onSkip }: JournalFormProps) {
+  const names: Record<string, string> = { ...SESSION_NAMES, ...sessionNames };
   const [strategy, setStrategy] = useState('');
   const [reason, setReason] = useState('');
   const [emotion, setEmotion] = useState<Emotion>('CALM');
@@ -110,7 +113,7 @@ export function JournalForm({ draft, displayTz, onSave, onSkip }: JournalFormPro
             <dt>{tr.journal.sessions}</dt>
             <dd>
               {draft.sessions.length
-                ? draft.sessions.map((s) => SESSION_NAMES[s] ?? s).join(', ')
+                ? draft.sessions.map((s) => names[s] ?? s).join(', ')
                 : tr.journal.noSession}
             </dd>
           </div>

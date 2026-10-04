@@ -1,13 +1,16 @@
-﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   timeframeMs,
   type DataSetMeta,
   type IanaTz,
+  type SessionDefinition,
   type Timeframe,
   type UtcMs,
 } from '@trw/engine';
 import { startOfLocalDay } from '../../chart/goto';
 import { composeReplay, type CandleSource, type ChartData } from '../../compute/candle-source';
+
+const NO_SESSIONS: SessionDefinition[] = [];
 
 /**
  * Replay state: a cursor on bar boundaries of the current timeframe. The chart only ever receives
@@ -18,6 +21,8 @@ export function useReplay(
   active: DataSetMeta | null,
   data: (ChartData & { tf: Timeframe }) | null,
   displayTz: IanaTz,
+  /** User session definitions, so running user sessions are cut at the cursor too. */
+  userSessions: SessionDefinition[] = NO_SESSIONS,
 ) {
   const [cursor, setCursor] = useState<UtcMs | null>(null);
   const [view, setView] = useState<{ cursor: UtcMs; data: ChartData } | null>(null);
@@ -56,11 +61,11 @@ export function useReplay(
   useEffect(() => {
     if (cursor === null || !active || !data) return;
     const request = ++requestRef.current;
-    void source.replay(active, data.tf, cursor).then((tail) => {
+    void source.replay(active, data.tf, cursor, userSessions).then((tail) => {
       if (request === requestRef.current)
         setView({ cursor, data: composeReplay(data, tail, cursor) });
     });
-  }, [source, active, data, cursor]);
+  }, [source, active, data, cursor, userSessions]);
 
   // Autoplay.
   useEffect(() => {

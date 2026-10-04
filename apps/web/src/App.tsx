@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
 import {
+  allSessionDefs,
   compareTimeframes,
   getInstrument,
   timeframeMs,
@@ -43,6 +44,13 @@ import {
   type StrategyRepo,
 } from './storage/strategy-repo';
 import { StrategyPage } from './features/strategy/StrategyPage';
+import { SessionManager } from './features/sessions/SessionManager';
+import {
+  createMemorySessionsRepo,
+  toDefinition,
+  type SessionsRepo,
+  type UserSession,
+} from './storage/sessions-repo';
 
 export interface AppProps {
   repo: MarketRepo;
@@ -54,6 +62,8 @@ export interface AppProps {
   /** Strategy and research stores (M5); in-memory when not given (tests). */
   strategyRepo?: StrategyRepo;
   researchRepo?: ResearchRepo;
+  /** The user's own sessions (M6.1); in-memory when not given (tests). */
+  sessionsRepo?: SessionsRepo;
   ChartComponent?: ComponentType<ChartViewProps>;
   /** App clock and id source; injectable for tests (the engine itself never reads the clock). */
   now?: () => number;
@@ -75,6 +85,7 @@ export function App({
   candleSource,
   strategyRepo: givenStrategies,
   researchRepo: givenResearch,
+  sessionsRepo: givenSessions,
   ChartComponent = ChartView,
   now = Date.now,
   newId = () => crypto.randomUUID(),
@@ -90,6 +101,24 @@ export function App({
   const [view, setView] = useState<View>('CHART');
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
   const [researchRepo] = useState(() => givenResearch ?? createMemoryResearchRepo());
+  const [sessionsRepo] = useState(() => givenSessions ?? createMemorySessionsRepo());
+  const [userSessions, setUserSessions] = useState<UserSession[]>([]);
+  const [managingSessions, setManagingSessions] = useState(false);
+  useEffect(() => {
+    void sessionsRepo.list().then(setUserSessions);
+  }, [sessionsRepo]);
+  // Definitions only, stable while the sessions do not change (they key worker caches).
+  const sessionDefsKey = JSON.stringify(userSessions.map(toDefinition));
+  const sessionDefs = useMemo(() => userSessions.map(toDefinition), [sessionDefsKey]);
+  const allDefs = useMemo(() => allSessionDefs(sessionDefs), [sessionDefs]);
+  const sessionNames = useMemo(
+    () => Object.fromEntries(userSessions.map((s) => [s.id, s.name])),
+    [userSessions],
+  );
+  const sessionStyles = useMemo(
+    () => Object.fromEntries(userSessions.map((s) => [s.id, { name: s.name, color: s.color }])),
+    [userSessions],
+  );
   // Setups of a strategy version shown on the chart (M5).
   const [chartStrategy, setChartStrategy] = useState<{
     name: string;
@@ -125,16 +154,22 @@ export function App({
     let cancelled = false;
     setError(null);
     candleSource
-      .load(active, timeframe)
+      .load(active, timeframe, sessionDefs)
       .then((d) => !cancelled && setData({ ...d, tf: timeframe }))
       .catch((e: unknown) => !cancelled && setError(String(e)));
     return () => {
       cancelled = true;
     };
     // The dataset is identified by id + content hash; the object itself is re-created on refresh.
-  }, [candleSource, active?.id, active?.contentHash, timeframe]);
+  }, [candleSource, active?.id, active?.contentHash, timeframe, sessionDefs]);
 
-  const replay = useReplay(candleSource, active, data, settings?.displayTz ?? 'Europe/Istanbul');
+  const replay = useReplay(
+    candleSource,
+    active,
+    data,
+    settings?.displayTz ?? 'Europe/Istanbul',
+    sessionDefs,
+  );
   const inReplay = replay.cursor !== null;
   // In replay the chart only gets data as known at the cursor (rule 3).
   const chartData = inReplay ? replay.view : data;
@@ -183,7 +218,7 @@ export function App({
     if (!settled || !instrument || settled.journalId || promptedRef.current.has(settled.id)) return;
     promptedRef.current.add(settled.id);
     pauseReplay();
-    openJournal(draftFromTrade(settled, instrument, baseMs));
+    openJournal(draftFromTrade(settled, instrument, baseMs, allDefs));
     // Runs once per settled trade.
   }, [settled?.id]);
 
@@ -312,6 +347,8 @@ export function App({
             }}
             onTimeframe={(tf) => update({ timeframe: tf })}
             onDisplayTz={(tz) => update({ displayTz: tz })}
+            userSessions={userSessions}
+            onManageSessions={() => setManagingSessions(true)}
             visibleSessions={settings.sessions}
             onToggleSession={(id) =>
               update({
@@ -342,7 +379,11 @@ export function App({
           </p>
         )}
         {view === 'JOURNAL' && settings && (
-          <JournalPage repo={journalRepo} displayTz={settings.displayTz} />
+          <JournalPage
+            repo={journalRepo}
+            displayTz={settings.displayTz}
+            sessionNames={sessionNames}
+          />
         )}
         {view === 'STRATEGY' && settings && datasets && (
           <StrategyPage
@@ -355,6 +396,7 @@ export function App({
             now={now}
             newId={newId}
             onShowOnChart={(s, v) => void showOnChart(s, v)}
+            userSessions={userSessions}
           />
         )}
         {view === 'CHART' && active && settings && data && instrument && (
@@ -392,6 +434,7 @@ export function App({
             <div className="workspace">
               {chartData ? (
                 <ChartComponent
+                  sessionStyles={sessionStyles}
                   candles={chartData.candles}
                   sessions={chartData.sessions.filter((s) =>
                     settings.sessions.includes(s.sessionId),
@@ -431,10 +474,10 @@ export function App({
                   onNoTrade={() => {
                     if (replay.cursor === null) return;
                     replay.pause();
-                    journal.open(noTradeDraft(instrument, replay.cursor, timeframe));
+                    journal.open(noTradeDraft(instrument, replay.cursor, timeframe, allDefs));
                   }}
                   onWriteJournal={() =>
-                    settled && journal.open(draftFromTrade(settled, instrument, baseMs))
+                    settled && journal.open(draftFromTrade(settled, instrument, baseMs, allDefs))
                   }
                 />
                 {selected ? (
@@ -477,12 +520,36 @@ export function App({
             key={`${journal.draft.tradeId ?? 'none'}-${journal.draft.decidedAt}`}
             draft={journal.draft}
             displayTz={settings.displayTz}
+            sessionNames={sessionNames}
             onSave={async (fields) => {
               const d = journal.draft!;
               const id = await journal.save(d, fields);
               if (d.tradeId && d.tradeId === trading.trade?.id) await trading.attachJournal(id);
             }}
             onSkip={journal.close}
+          />
+        </div>
+      )}
+
+      {managingSessions && (
+        <div className="overlay">
+          <SessionManager
+            sessions={userSessions}
+            now={now}
+            onSave={(s, isNew) =>
+              void sessionsRepo.save(s).then(async () => {
+                setUserSessions(await sessionsRepo.list());
+                if (isNew && settings && !settings.sessions.includes(s.id))
+                  update({ sessions: [...settings.sessions, s.id] });
+              })
+            }
+            onDelete={(id) =>
+              void sessionsRepo.delete(id).then(async () => {
+                setUserSessions(await sessionsRepo.list());
+                if (settings) update({ sessions: settings.sessions.filter((x) => x !== id) });
+              })
+            }
+            onClose={() => setManagingSessions(false)}
           />
         </div>
       )}

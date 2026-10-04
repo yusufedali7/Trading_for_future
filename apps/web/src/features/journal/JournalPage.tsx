@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BUILTIN_SESSIONS,
   filterJournal,
   outcomeOf,
   summarizeJournal,
@@ -71,9 +70,12 @@ const dec = (x: number) => x.toLocaleString('tr-TR', { maximumFractionDigits: 2 
 export interface JournalPageProps {
   repo: JournalRepo;
   displayTz: IanaTz;
+  /** Names of user sessions. */
+  sessionNames?: Record<string, string>;
 }
 
-export function JournalPage({ repo, displayTz }: JournalPageProps) {
+export function JournalPage({ repo, displayTz, sessionNames }: JournalPageProps) {
+  const names: Record<string, string> = { ...SESSION_NAMES, ...sessionNames };
   const [entries, setEntries] = useState<JournalEntry[] | null>(null);
   const [form, setForm] = useState<FilterForm>(NO_FILTER);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -130,11 +132,7 @@ export function JournalPage({ repo, displayTz }: JournalPageProps) {
               'decision',
               DECISIONS.map((d) => [d, tr.journal.decisions[d]]),
             )}
-            {select(
-              t.session,
-              'session',
-              BUILTIN_SESSIONS.map((s) => [s.id, s.name]),
-            )}
+            {select(t.session, 'session', Object.entries(names))}
             {select(
               t.outcome,
               'outcome',
@@ -195,7 +193,7 @@ export function JournalPage({ repo, displayTz }: JournalPageProps) {
                       </td>
                       <td>{e.instrument}</td>
                       <td>{tr.journal.decisions[e.decision]}</td>
-                      <td>{e.sessions.map((s) => SESSION_NAMES[s] ?? s).join(', ') || '—'}</td>
+                      <td>{e.sessions.map((s) => names[s] ?? s).join(', ') || '—'}</td>
                       <td className={outcomeClass(e)}>
                         {e.result ? formatR(e.result.r) : t.outcomes[outcomeOf(e)]}
                       </td>
@@ -210,6 +208,7 @@ export function JournalPage({ repo, displayTz }: JournalPageProps) {
             </div>
             {selected && (
               <EntryDetail
+                names={names}
                 key={selected.id}
                 entry={selected}
                 repo={repo}
@@ -281,12 +280,14 @@ function Summary({ summary }: { summary: ReturnType<typeof summarizeJournal> }) 
 }
 
 function EntryDetail({
+  names,
   entry: e,
   repo,
   displayTz,
   onClose,
   onDeleted,
 }: {
+  names: Record<string, string>;
   entry: JournalEntry;
   repo: JournalRepo;
   displayTz: IanaTz;
@@ -332,7 +333,7 @@ function EntryDetail({
         {row(tr.journal.decidedAt, formatTime(e.decidedAt, displayTz))}
         {row(
           tr.journal.sessions,
-          e.sessions.map((s) => SESSION_NAMES[s] ?? s).join(', ') || tr.journal.noSession,
+          e.sessions.map((s) => names[s] ?? s).join(', ') || tr.journal.noSession,
         )}
         {r && row(tr.journal.result, `${formatR(r.r)} · ${tr.trade.exitReasons[r.exitReason]}`)}
         {r && row(tr.journal.duration, formatDuration(r.durationMs))}
