@@ -473,7 +473,7 @@ function HypothesisDetail(
           day(h.setup.from),
           day(h.setup.boundary),
           day(h.setup.to - 1),
-          `${c.spreadPips} / ${c.slippagePips} pip · ${c.commissionPerLotPerSide} USD`,
+          `${c.spreadPips.toLocaleString('tr-TR')} / ${c.slippagePips.toLocaleString('tr-TR')} pip · ${c.commissionPerLotPerSide.toLocaleString('tr-TR')} USD`,
         )}
       </p>
       <p className="warn-text" role="note">
@@ -748,14 +748,14 @@ function SweepGrid({
               {grid.axes[1] ? ` \\ ${paramLabel(grid.axes[1], spec)}` : ''}
             </th>
             {grid.cols.map((c) => (
-              <th key={c}>{Number.isNaN(c) ? '' : c}</th>
+              <th key={c}>{Number.isNaN(c) ? '' : c.toLocaleString('tr-TR')}</th>
             ))}
           </tr>
         </thead>
         <tbody>
           {grid.rows.map((r) => (
             <tr key={r}>
-              <th scope="row">{r}</th>
+              <th scope="row">{r.toLocaleString('tr-TR')}</th>
               {grid.cols.map((c) => {
                 const b = grid.cells.get(key(r, c));
                 if (!b) return <td key={c}>—</td>;

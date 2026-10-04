@@ -368,3 +368,29 @@ ICT terimi: fiyatın en hareketli olduğu varsayılan kısa zaman aralıkları. 
 
 ### Seans kopyası (stratejide)
 Bir stratejide özel seans kullandığında, seansın o anki tanımı strateji versiyonunun içine kopyalanır. Seansı sonra değiştirsen ya da silsen bile o versiyonun backtest sonuçları aynı kalır.
+
+---
+
+## M6.2'de eklenenler: araştırma laboratuvarı
+
+### Hipotez
+Testten **önce** yazılan, doğru ya da yanlış çıkabilecek bir cümle. Örnek: "ICT Asya dibi süpürüldükten sonra Londra'daki yükseliş MSS girişleri maliyet sonrası pozitif ortalama R verir." Önce yazmak önemlidir: sonuca bakıp cümleyi sonuca uydurmak kolaydır.
+
+### Test düzeni (deney)
+Hipotezin bütün çalışmalarında aynı kalan ayarlar: veri, tarih aralığı, in-sample / out-of-sample sınırı, maliyetler. Böylece sonuçlar elma ile elma karşılaştırılır.
+
+### Parametre taraması
+Bir ya da iki ayarın (ör. hedef R ve "MSS en fazla kaç mum sonra") farklı değerlerini sırayla denemek. Sonuç bir tabloda görünür.
+*Dikkat:* Tablodaki en iyi hücreyi seçmek kolay ama yanıltıcıdır. Komşu hücreler de benzerse fikir daha sağlamdır; tek bir hücre parlıyorsa muhtemelen şanstır.
+
+### Deneme sayısı
+Her in-sample çalışma bir denemedir. 9 ayar denersen, 9 rastgele sonuçtan en iyisini seçme ihtimalin vardır. Uygulama bu sayıyı her zaman gösterir.
+
+### Out-of-sample kapısı
+Out-of-sample verisine yalnızca **bir kez**, ayarı kesinleştirdikten sonra bakılır. Sonuca bakıp ayarı değiştirir ve tekrar bakarsan o veri artık "görülmemiş" değildir. Uygulama ikinci bakışı kalıcı uyarıyla işaretler.
+
+### Hipotez sonucu
+- **Desteklendi / desteklenmedi:** En az bir çalışma kanıt olarak seçilir (genelde out-of-sample çalışması).
+- **Yetersiz veri:** İşlem sayısı ya da veri karar vermeye yetmiyorsa.
+
+"Desteklendi" bile gelecekte işe yarayacağının garantisi değildir; yalnızca "bu veride ve bu koşullarda böyle gözlendi" demektir.

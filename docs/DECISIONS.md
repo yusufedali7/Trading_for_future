@@ -223,6 +223,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Tarih:** 2026-10-04 · **Durum:** Bilgi (karar değil)
 - Aynı kurallar (15m, Londra 08–11, süpürme → 12 mum içinde yükseliş MSS, piyasa girişi, stop süpürme ucu + 1 pip, 2R, %0,5; spread 0,2 / kayma 0,1 / komisyon 3,5) yalnızca seviye "ICT Asya aralığı dibi" yapılarak in-sample (2024-10-01 → 2025-12-31) çalıştırıldı: 26 kurulum, 24 işlem (2'si açık pozisyon nedeniyle atlandı), kazanma oranı %45,8, ortalama +0,31R, profit factor 1,52, maksimum düşüş −6,37R / %3,08, toplam maliyet 80,59 USD; hesap 0,9 sn.
 - **Yorum sınırı:** 30'dan az işlem ve tek in-sample denemesi; bu sonuç bir kanıt değil, yalnızca tanımın stratejiyi test edilebilir kıldığını gösterir. Out-of-sample (2026) bilerek çalıştırılmadı; kullanıcı kuralları in-sample'da kesinleştirdikten sonra bir kez çalıştırmalı.
+## D37 — Araştırma laboratuvarı
+- **Tarih:** 2026-10-04 · **Durum:** Kabul edildi (M6.2)
+- **Hipotez:** Testten önce yazılan cümle + bir strateji versiyonu + sabit test düzeni (veri kümesi ve içerik özeti, in-sample aralığı, out-of-sample sınırı, maliyetler, bakiye, lot kuralları, belirsizlik kuralı). Hipotezin bütün çalışmaları bu düzenle yapılır. `trw-research` v2: `hypotheses`; çalışma kaydında `research` (hipotez, varyant değerleri, versiyondan farklıysa çalıştırılan kuralların tam kopyası).
+- **Parametre taraması:** Yalnızca kuralların kullandığı parametreler (hedef, stop/hedef tamponu, emir süresi, adımlar arası en fazla mum, tanım parametreleri); en fazla 2 eksen ve 100 kombinasyon; sabit sıra; her kombinasyonun kendi `specHash`'i; geçersiz kombinasyonlar çalıştırılmaz. **Yalnızca in-sample**; her kombinasyon bir deneme sayılır ve sayı ekranda görünür. Araç "en iyiyi" seçmez; ızgara hücreleri ortalama R + işlem sayısıyla (renk + metin) gösterilir.
+- **Out-of-sample kapısı:** Seçili ayarla onay sorularak açılır; açılan çalışmalar hipoteze yazılır, ikinci açılış kalıcı uyarı üretir.
+- **Sonuç:** Desteklendi / desteklenmedi için en az bir çalışma kanıt olarak seçilmelidir (kural 6); "yetersiz veri" kanıtsız olabilir. Yeniden açmak hükmü siler, çalışma geçmişi kalır.
+- **Varyanttan versiyon:** Bir tarama ayarı "yeni strateji versiyonu" olarak kaydedilebilir; değişiklik notu hipotezi ve değerleri yazar.
+
+## D38 — İlk tarama gözlemi (ICT Asya dibi → Londra MSS)
+- **Tarih:** 2026-10-04 · **Durum:** Bilgi (karar değil)
+- In-sample 2024-10-01 → 2026-01-01, maliyetler 0,2 / 0,1 pip / 3,5 USD. Hedef 1,5 / 2 / 3R × MSS penceresi 6 / 12 / 24 mum = 9 deneme (1,9 sn). Ortalama R: 6 mumda +0,45…+0,55 (10 işlem), 12 mumda +0,31…+0,43 (24–25), 24 mumda +0,18…+0,32 (32–34). 2R / 12 hücresi D36 ile birebir aynı (determinizm).
+- **Yorum sınırı:** Bütün hücreler pozitif ama 9 deneme yapıldı ve işlem sayıları küçük; 30'u geçen yalnız 24 mum sütunu. En iyi görünen hücre (3R / 6 mum, 10 işlem) seçilmemeli. Out-of-sample açılmadı; kullanıcının kararı.
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

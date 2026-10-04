@@ -1,15 +1,33 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-04 (M6.1 oturumu)_
+_Son güncelleme: 2026-10-04 (M6.2 oturumu)_
 
 ## Durum özeti
-- **M1–M5:** tamamlandı (veri ve grafik, seanslar ve çizim, replay ve günlük, feature engine, strateji ve backtest). Planlar `docs/PLAN-M2..M5.md`, kararlar D23–D34.
-- **M6.1 (Özel seanslar):** görev 1–7 tamamlandı; plan `docs/PLAN-M6-1.md`, kararlar D35–D36. **Kullanıcının kendi denemesi bekleniyor.**
-- **Sıradaki adaylar (kullanıcı seçecek):** araştırma laboratuvarı (hipotez, deney, yalnızca in-sample parametre taraması), AI araştırma asistanı (n8n / Langflow + YouTube fikri), paper trading; küçük işler: backtest işlemlerini grafikte göstermek, bir kurulumdan replay başlatmak, strateji arşivleme.
-- **Gelecek fikir (kullanıcı, 2026-10-02):** n8n / Langflow ile YouTube'daki stratejileri strateji şemasına çeviren, backtest'e veren, sonucu yorumlayan araştırma botu. Kurallar 6 ve 7 geçerli; YouTube metinlerinin kullanım koşulları o aşamada doğrulanacak.
-- Testler: **389 test yeşil** (58 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
+- **M1–M5, M6.1:** tamamlandı. Planlar `docs/PLAN-M2..M6-1.md`, kararlar D23–D36.
+- **M6.2 (Araştırma laboratuvarı):** görev 1–7 tamamlandı; plan `docs/PLAN-M6-2.md`, kararlar D37–D38. **Kullanıcının kendi denemesi bekleniyor.**
+- **Sıradaki (önerilen sıra):** paper trading + güncel/canlı veri adaptörü → AI araştırma asistanı (n8n / Langflow + YouTube). Küçük işler: backtest işlemlerini grafikte göstermek, bir kurulumdan replay başlatmak, strateji arşivleme.
+- **Canlı veri (kullanıcı sorusu, 2026-10-04):** Mümkün, ayrı faz. Amaç yalnızca grafik + paper trading (kural 7). Aday kaynaklar (hiçbiri doğrulanmadı): broker demo API'leri (ör. OANDA streaming; Türkiye'den hesap açılabilirliği kontrol edilecek), MetaTrader 5 Python bağlantısı (yalnız Windows, yerel), ücretsiz katmanlı veri servisleri (Twelve Data, Polygon; sınırlar ve koşullar kontrol edilecek), Dukascopy geçmişini her gün güncellemek. API anahtarları tarayıcıda tutulmamalı; bilgisayarda çalışan küçük bir yerel aracı (proxy) gerekecek. Kaynak seçilmeden önce kullanım koşulları okunacak.
+- **Gelecek fikir (2026-10-02):** n8n / Langflow ile YouTube stratejilerini şemaya çeviren araştırma botu; kural 6 ve 7 geçerli.
+- Testler: **400 test yeşil** (60 dosya; tam paket üç kez art arda çalıştırıldı). Web testlerinin süre sınırı 20 sn yapıldı (App testleri yük altında 5 sn'yi aşıp kararsızdı). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M6.2'de yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Tarama motoru | `research/sweep.ts`: taranabilir parametreler, `applyParam`, sabit sıralı ızgara (≤ 2 eksen, ≤ 100), kombinasyon başına `specHash` |
+| 2 | Hipotez modeli | `research/hypothesis.ts`: sabit test düzeni, doğrulama, out-of-sample kapısı, kanıtlı sonuç |
+| 3 | Depolama | `trw-research` v2 `hypotheses`; çalışmalar hipotez ve varyantla |
+| 4 | Çalıştırma | `runAndStore` (backtest paneli ve laboratuvar ortak); tarama sıralı, özellikler aynı parametrelerde yeniden kullanılır |
+| 5–6 | "Araştırma" sayfası | Hipotez oluşturma, temel in-sample, tarama + ızgara, deneme sayacı, varyantı versiyon yapma, OOS kapısı (onaylı), sonuç + kanıt |
+| 7 | Belgeler | D37–D38, sözlükte M6.2 |
+
+Gerçek EURUSD verisiyle: hipotez "ICT Asya dibi süpürmesi → Londra MSS (TEST)"; hedef 1,5 / 2 / 3R × MSS penceresi 6 / 12 / 24 mum = 9 in-sample deneme, 1,9 sn. Bütün hücreler pozitif (+0,18…+0,55R) ama işlem sayıları 10–34; 2R / 12 hücresi D36 ile birebir aynı. **Out-of-sample açılmadı** (kullanıcının kararı). Ayrıntı D38.
+
+## M6.2 iyileştirme listesi
+1. Rastgele giriş karşılaştırması (aynı sayıda, sabit tohumlu rastgele işlem) — "kurallar rastgeleden iyi mi?" sorusu için.
+2. Walk-forward (kayan pencereli in-sample / out-of-sample).
+3. Tarama sırasında iptal düğmesi ve tahmini süre.
+4. Hipotez silme / arşivleme.
 ## M6.1'de yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -229,9 +247,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-1. Kullanıcı dener: `Seanslar…` → ICT Asya aralığı şablonu → grafikte kutular → Strateji → seviye olarak "ICT Asya aralığı D" → in-sample backtest.
+1. Kullanıcı dener: Araştırma → Yeni hipotez → strateji ve test düzeni → temel in-sample → tarama → ızgarayı oku → (hazırsa) out-of-sample'ı bir kez aç → sonuç.
 2. `git push` (kullanıcı).
-3. Sonraki parçayı kullanıcı seçer: araştırma laboratuvarı (önerilen), AI araştırma asistanı, paper trading ya da küçük işler.
+3. Sonraki faz: paper trading + güncel/canlı veri adaptörü (önce veri kaynağı seçimi ve kullanım koşulları; kullanıcıyla birlikte).
 
 ## Çalıştırma ve test komutları
 ```bash

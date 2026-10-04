@@ -1,6 +1,6 @@
 # PLAN — M6.2: Araştırma laboratuvarı
 
-> Durum: kullanıcı 2026-10-04'te "nasıl istiyorsan öyle devam edelim" dedi; plan kaydedildi ve uygulamaya geçildi. Kararlar `docs/DECISIONS.md` (D37+).
+> Durum: kullanıcı 2026-10-04'te "nasıl istiyorsan öyle devam edelim" dedi; plan kaydedildi ve uygulandı. **Görev 1–7 tamamlandı (2026-10-04).** Kararlar `docs/DECISIONS.md` D37–D38.
 
 ## Amaç
 Strateji fikirlerini dağınık backtest'ler yerine **hipotez → deney → sonuç** düzeninde araştırmak; aşırı optimizasyonu görünür kılmak.
