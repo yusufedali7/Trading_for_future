@@ -351,3 +351,20 @@ Kurallar gerçekleştiği halde işleme dönüşmeyen kurulum: o sırada açık 
 
 ### "Örneklemde doğrulandı"
 Stratejinin durumu. Yalnızca "belirli veri ve koşullarda şu sonuç gözlendi" demektir; gelecekte işe yarayacağının kanıtı değildir.
+
+---
+
+## M6.1'de eklenenler: özel seanslar
+
+### Özel seans
+Kendi tanımladığın zaman aralığı: saat dilimi, başlangıç, bitiş ve günler. Grafikte kutu olarak görünür; en yüksek ve en düşük fiyatı süpürme seviyesi olur; stratejide kullanılabilir.
+*Uygulamada:* Araç çubuğunda "Seanslar…" → şablon seç ya da "Yeni seans".
+
+### ICT Asya aralığı
+ICT eğitimlerinde kullanılan Asya tanımı: 20:00–00:00 New York saati. Uygulamanın yerleşik "Asya (Tokyo)" seansından (09:00–18:00 Tokyo) farklıdır. Yerleşik Asya, Londra açılışına kadar sürdüğü için "Asya dibi süpürüldü, Londra'da dönüş" fikrini test etmeye uygun değildir; ICT tanımı Londra açılmadan saatler önce biter.
+
+### Kill zone
+ICT terimi: fiyatın en hareketli olduğu varsayılan kısa zaman aralıkları. Yaygın tanımlar: Londra 02:00–05:00, New York 07:00–10:00 (New York saati). Bunlar gözlemdir, kural değildir; işe yarayıp yaramadığı backtest ile ölçülür.
+
+### Seans kopyası (stratejide)
+Bir stratejide özel seans kullandığında, seansın o anki tanımı strateji versiyonunun içine kopyalanır. Seansı sonra değiştirsen ya da silsen bile o versiyonun backtest sonuçları aynı kalır.

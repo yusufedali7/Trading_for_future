@@ -1,6 +1,6 @@
 # PLAN — M6.1: Özel seanslar
 
-> Durum: kullanıcı 2026-10-04'te "devam edelim" dedi; plan kaydedildi ve uygulamaya geçildi. Gerekçe: D34 (yerleşik Asya seansı Londra penceresiyle çakışıyor). Kararlar `docs/DECISIONS.md` (D35+).
+> Durum: kullanıcı 2026-10-04'te "devam edelim" dedi; plan kaydedildi ve uygulandı. **Görev 1–7 tamamlandı (2026-10-04).** Gerekçe: D34 (yerleşik Asya seansı Londra penceresiyle çakışıyor). Kararlar `docs/DECISIONS.md` D35–D36.
 
 ## Amaç
 Kullanıcının kendi seanslarını tanımlayabilmesi (ör. ICT Asya aralığı 20:00–00:00 New York, Londra / New York kill zone) ve bu seansların her yerde yerleşik seanslar gibi çalışması: grafikte kutu, motor adaylarında süpürme seviyesi, strateji kurallarında seviye filtresi, backtest ve günlükte seans etiketi.

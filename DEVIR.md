@@ -1,15 +1,35 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-02 (M5 oturumu)_
+_Son güncelleme: 2026-10-04 (M6.1 oturumu)_
 
 ## Durum özeti
-- **M1 (Veri ve grafik), M2 (Session ve manuel analiz), M3 (Replay ve günlük), M4 (Feature engine v1):** tamamlandı. Planlar `docs/PLAN-M2..M4.md`, kararlar D23–D30.
-- **M5 (Strateji ve backtest):** görev 1–11 tamamlandı; plan `docs/PLAN-M5.md`, kararlar D31–D34, şema `docs/schema/strategy-v1.md`. **Kullanıcının kendi denemesi bekleniyor.**
-- **Sıradaki (M6 ve sonrası, her biri ayrı planlanır):** özel seans tanımları (ICT Asya aralığı gibi; D34 yüzünden öncelikli), araştırma laboratuvarı (hipotez kayıtları, deney geçmişi), kavram kütüphanesi, AI araştırma asistanı (kullanıcının n8n / Langflow + YouTube fikri buraya bağlanır), paper trading.
-- **Gelecek fikir (kullanıcı, 2026-10-02):** n8n / Langflow ile YouTube'daki stratejileri okuyup bu şemaya çeviren, backtest'e veren, sonucu yorumlayan bir araştırma botu. Kurallar: canlı işlem yok (kural 7), ölçülmemiş olasılık yok (kural 6); YouTube metinlerinin kullanım koşulları o aşamada doğrulanacak.
-- Testler: **377 test yeşil** (55 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
+- **M1–M5:** tamamlandı (veri ve grafik, seanslar ve çizim, replay ve günlük, feature engine, strateji ve backtest). Planlar `docs/PLAN-M2..M5.md`, kararlar D23–D34.
+- **M6.1 (Özel seanslar):** görev 1–7 tamamlandı; plan `docs/PLAN-M6-1.md`, kararlar D35–D36. **Kullanıcının kendi denemesi bekleniyor.**
+- **Sıradaki adaylar (kullanıcı seçecek):** araştırma laboratuvarı (hipotez, deney, yalnızca in-sample parametre taraması), AI araştırma asistanı (n8n / Langflow + YouTube fikri), paper trading; küçük işler: backtest işlemlerini grafikte göstermek, bir kurulumdan replay başlatmak, strateji arşivleme.
+- **Gelecek fikir (kullanıcı, 2026-10-02):** n8n / Langflow ile YouTube'daki stratejileri strateji şemasına çeviren, backtest'e veren, sonucu yorumlayan araştırma botu. Kurallar 6 ve 7 geçerli; YouTube metinlerinin kullanım koşulları o aşamada doğrulanacak.
+- Testler: **389 test yeşil** (58 dosya). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor (dokunulmadı, commit edilmedi).
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M6.1'de yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Motor | `validateSessionDefinition`, `allSessionDefs`; süpürme seviyeleri her seans tanımıyla (`<KİMLİK>_HIGH/_LOW`, aynı seans yeniden başlayana kadar) |
+| 2 | Şema | `spec.sessions` kopyası, `BAD_SESSION` / `UNKNOWN_LEVEL`; eski hash'ler değişmedi; seans kırılımı tanımlardan; `ENGINE_VERSION` 0.4.0 |
+| 3 | Depolama | `trw-user` v4 `sessions` (v3 verisi korunur, test) |
+| 4 | Worker | `load` / `replay` kullanıcı seanslarını alır; seviyeler tanım kümesine göre önbellekte; strateji ve backtest kopyaları kullanır |
+| 5 | Seans yöneticisi | "Seanslar…": ekle/düzenle/sil, ICT Asya / Londra KZ / NY KZ şablonları, renk, gerekçeli doğrulama; araç çubuğu ve grafikte |
+| 6 | Oluşturucu | Kullanıcı seansı seviyeleri süpürme filtresinde; kayıtta kopyalanır; özet seansları listeler |
+| 7 | Gerçek veri | D36 (aşağıda), belgeler |
+
+Gerçek EURUSD verisiyle (in-sample 2024-10-01 → 2025-12-31, spread 0,2 / kayma 0,1 / komisyon 3,5):
+- "Asya dibi süpürmesi + yükseliş MSS, Londra 08–11" kuralları yerleşik Asya ile **3 işlem** (D34), **ICT Asya aralığıyla 24 işlem**: kazanma %45,8, ortalama +0,31R, PF 1,52, maks. düşüş −6,37R / %3,08, maliyet 80,59 USD (D36).
+- 30'dan az işlem ve tek deneme: kanıt değil. **Out-of-sample (2026) bilerek çalıştırılmadı**; kurallar in-sample'da kesinleştikten sonra kullanıcı bir kez çalıştırmalı.
+- Gömülü tarayıcının IndexedDB'si oturumlar arasında yine boşalmıştı; veri yeniden içe aktarıldı. Tarayıcıda "(TEST)" adlı iki deneme stratejisi var.
+
+## M6.1 iyileştirme listesi
+1. Seans kutularının kalabalıkta üst üste binen etiketleri (M2 listesinden; kill zone'larla daha görünür oldu).
+2. Strateji zaman penceresini bir seansa bağlama ("yalnız Londra kill zone içinde").
+3. Kullanıcı seanslarında tatil günleri (tatil takvimiyle birlikte).
 ## M5'te yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -209,9 +229,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-1. Kullanıcı M5'i dener: Strateji → Yeni strateji → kuralları gir → kaydet → backtest (önce in-sample) → sonuçları ve dürüstlük kutusunu oku → `Kurulumları grafikte göster`.
+1. Kullanıcı dener: `Seanslar…` → ICT Asya aralığı şablonu → grafikte kutular → Strateji → seviye olarak "ICT Asya aralığı D" → in-sample backtest.
 2. `git push` (kullanıcı).
-3. M6 için kullanıcıyla öncelik seçimi: özel seanslar (D34), araştırma laboratuvarı, AI araştırma asistanı (n8n / Langflow fikri), paper trading.
+3. Sonraki parçayı kullanıcı seçer: araştırma laboratuvarı (önerilen), AI araştırma asistanı, paper trading ya da küçük işler.
 
 ## Çalıştırma ve test komutları
 ```bash

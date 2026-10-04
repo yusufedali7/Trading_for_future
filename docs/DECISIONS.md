@@ -212,6 +212,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Tarih:** 2026-10-02 · **Durum:** Bilgi (karar değil)
 - "Asya dibi süpürmesi + yükseliş MSS, Londra 08:00–11:00" stratejisi EURUSD 2024-10 → 2025-12 in-sample'da yalnızca 3 işlem üretti. Sebep tanımsal: yerleşik Asya seansı (09:00–18:00 Tokyo) 09:00 UTC'de biter, seviye ancak o zaman bilinir; Londra penceresinde süpürme + MSS için kışın 2, yazın 1 saat kalır. Süpürmelerin çoğu 09–12 UTC arasında. ICT tarzı "Asya aralığı" (20:00–00:00 New York) için özel seans tanımı gerekir (M2 iyileştirme listesi 3. madde; öncelik yükseldi).
 
+## D35 — Kullanıcı seansları
+- **Tarih:** 2026-10-04 · **Durum:** Kabul edildi (M6.1)
+- **Model:** Kullanıcı seansı = seans tanımı (kimlik, ad, IANA dilimi, yerel başlangıç/bitiş, başladığı günler, sürüm) + renk; `trw-user` v4 `sessions` tablosu. Kimlik `^[A-Z][A-Z0-9_]{1,15}$`; yerleşik kimlikler, `SWING` ve `NONE` ayrılmış. Saat değişirse sürüm artar.
+- **Her yerde aynı motor:** Grafik kutuları, replay (imleçte kesilir), motor adaylarındaki süpürme seviyeleri (`<KİMLİK>_HIGH/_LOW`, aynı seans yeniden başlayana kadar geçerli), günlük seans etiketleri, backtest seans kırılımı.
+- **Tekrarlanabilirlik:** Strateji bir kullanıcı seansının seviyesini kullanıyorsa tanımın o anki kopyası versiyona yazılır (`spec.sessions`) ve `specHash`'e girer. Seansı sonradan değiştirmek ya da silmek eski versiyonların sonucunu değiştirmez. Önceki versiyonların özetleri değişmedi (alan yoksa hash aynı).
+- **Şablonlar (yaygın kullanım, resmi değil):** ICT Asya aralığı 20:00–00:00 New York (Pazar–Perşembe akşamları), Londra kill zone 02:00–05:00 NY, New York kill zone 07:00–10:00 NY. `ENGINE_VERSION` 0.4.0.
+
+## D36 — D34'ün devamı: ICT Asya aralığıyla aynı strateji
+- **Tarih:** 2026-10-04 · **Durum:** Bilgi (karar değil)
+- Aynı kurallar (15m, Londra 08–11, süpürme → 12 mum içinde yükseliş MSS, piyasa girişi, stop süpürme ucu + 1 pip, 2R, %0,5; spread 0,2 / kayma 0,1 / komisyon 3,5) yalnızca seviye "ICT Asya aralığı dibi" yapılarak in-sample (2024-10-01 → 2025-12-31) çalıştırıldı: 26 kurulum, 24 işlem (2'si açık pozisyon nedeniyle atlandı), kazanma oranı %45,8, ortalama +0,31R, profit factor 1,52, maksimum düşüş −6,37R / %3,08, toplam maliyet 80,59 USD; hesap 0,9 sn.
+- **Yorum sınırı:** 30'dan az işlem ve tek in-sample denemesi; bu sonuç bir kanıt değil, yalnızca tanımın stratejiyi test edilebilir kıldığını gösterir. Out-of-sample (2026) bilerek çalıştırılmadı; kullanıcı kuralları in-sample'da kesinleştirdikten sonra bir kez çalıştırmalı.
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

@@ -19,7 +19,7 @@ Seans, yerel duvar saatiyle tanımlanmış bir zaman aralığıdır (`tz`, `star
 | `LONDON` | Londra | 08:00–17:00 Europe/London | 08:00–17:00 / 07:00–16:00 |
 | `NEW_YORK` | New York | 08:00–17:00 America/New_York | 13:00–22:00 / 12:00–21:00 |
 
-**Varsayım:** Bu saatler yaygın kullanımdır ama resmi bir tanım değildir. ICT tarzı "Asya aralığı" (20:00–00:00 New York) gibi farklı tanımlar özel seans olarak eklenebilir.
+**Varsayım:** Bu saatler yaygın kullanımdır ama resmi bir tanım değildir. ICT tarzı "Asya aralığı" (20:00–00:00 New York) gibi farklı tanımlar kullanıcı seansı olarak eklenebilir (M6.1, D35). Aynı motorla hesaplanırlar; seviyeleri `<KİMLİK>_HIGH` / `<KİMLİK>_LOW` adıyla süpürme seviyesi olur.
 
 ## Seans seviyeleri (high/low)
 - 1 dakikalık taban veriden hesaplanır. Bu yüzden grafikte hangi zaman dilimine bakılırsa bakılsın sonuç aynıdır.
