@@ -201,3 +201,13 @@ export { backtestStats } from './backtest/stats';
 export type { BacktestStats, BreakdownRow } from './backtest/stats';
 export { runRecord, splitRange } from './backtest/record';
 export type { BacktestRun, SplitRole, StoredBacktest } from './backtest/record';
+export { MAX_SWEEP_COMBINATIONS, applyParam, sweepGrid, sweepableParams } from './research/sweep';
+export type { SweepAxis, SweepParam, SweepParamId, SweepVariant } from './research/sweep';
+export { conclude, oosState, recordOos, reopen, validateHypothesis } from './research/hypothesis';
+export type {
+  ExperimentSetup,
+  Hypothesis,
+  HypothesisProblem,
+  HypothesisStatus,
+  OosState,
+} from './research/hypothesis';

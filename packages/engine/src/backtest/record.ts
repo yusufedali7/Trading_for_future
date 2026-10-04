@@ -4,6 +4,7 @@ import type { AmbiguityRule } from '../execution/trade-sim';
 import { FEATURE_DEFINITIONS } from '../features/compute';
 import type { LotRules } from '../risk/sizing';
 import { ENGINE_VERSION } from '../version';
+import type { StrategySpec } from '../strategy/schema';
 import type { BacktestCosts, BacktestResult } from './run';
 import type { BacktestStats } from './stats';
 
@@ -51,6 +52,17 @@ export interface BacktestRun {
    * likely a good in-sample result is luck (over-fitting is made visible, not prevented).
    */
   inSampleTrial: number | null;
+  /** Set for runs made inside a hypothesis (research lab, D37). */
+  research?: {
+    hypothesisId: string;
+    /** Swept parameter values; null for the version's own rules. */
+    variant: Record<string, number> | null;
+    /**
+     * The exact rules run when they differ from the version (a sweep variant); `strategy.specHash`
+     * is then the hash of this spec.
+     */
+    spec?: StrategySpec;
+  };
 }
 
 export interface StoredBacktest {
