@@ -10,6 +10,7 @@
     "dev": "npm run dev -w @trw/web",
     "build": "npm run build -w @trw/web",
     "test": "vitest run",
+    "test:bridge": "py -m unittest tools/mt5-bridge/test_bridge.py",
     "test:watch": "vitest",
     "typecheck": "tsc -p packages/engine --noEmit && tsc -p apps/web --noEmit",
     "lint": "eslint . && prettier --check .",

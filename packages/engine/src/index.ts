@@ -212,3 +212,5 @@ export type {
   HypothesisStatus,
   OosState,
 } from './research/hypothesis';
+export { detectServerOffset, mergeBrokerBars, offsetMayHaveChanged } from './data/broker';
+export type { BrokerBar, MergeResult, OffsetResult } from './data/broker';
