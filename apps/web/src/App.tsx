@@ -44,6 +44,7 @@ import {
   type StrategyRepo,
 } from './storage/strategy-repo';
 import { StrategyPage } from './features/strategy/StrategyPage';
+import { ResearchPage } from './features/research/ResearchPage';
 import { SessionManager } from './features/sessions/SessionManager';
 import {
   createMemorySessionsRepo,
@@ -70,8 +71,8 @@ export interface AppProps {
   newId?: () => string;
 }
 
-type View = 'CHART' | 'JOURNAL' | 'STRATEGY';
-const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY'];
+type View = 'CHART' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH';
+const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY', 'RESEARCH'];
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
@@ -383,6 +384,17 @@ export function App({
             repo={journalRepo}
             displayTz={settings.displayTz}
             sessionNames={sessionNames}
+          />
+        )}
+        {view === 'RESEARCH' && settings && datasets && (
+          <ResearchPage
+            research={researchRepo}
+            strategies={strategyRepo}
+            source={candleSource}
+            datasets={datasets}
+            displayTz={settings.displayTz}
+            now={now}
+            newId={newId}
           />
         )}
         {view === 'STRATEGY' && settings && datasets && (

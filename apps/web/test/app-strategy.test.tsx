@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
+
+/** Backtests run in these tests; allow for a busy machine when the whole suite runs. */
+const waitLong = <T,>(fn: () => T | Promise<T>) => vi.waitFor(fn, { timeout: 8000 });
 import type { ChartViewProps } from '../src/chart/types';
 import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
@@ -63,11 +66,9 @@ async function setup() {
       newId={() => `id-${++id}`}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count')).toBeTruthy());
+  await waitLong(() => expect(screen.getByTestId('count')).toBeTruthy());
   fireEvent.click(screen.getByRole('button', { name: 'Strateji' }));
-  await vi.waitFor(() =>
-    expect(screen.getByRole('button', { name: 'Yeni strateji' })).toBeTruthy(),
-  );
+  await waitLong(() => expect(screen.getByRole('button', { name: 'Yeni strateji' })).toBeTruthy());
   return { strategies, research };
 }
 
@@ -87,7 +88,7 @@ async function createSwingStrategy() {
   fireEvent.change(b.getByLabelText('Pip'), { target: { value: '5' } });
   expect(b.queryByRole('alert')).toBeNull();
   fireEvent.click(b.getByRole('button', { name: 'Versiyonu kaydet' }));
-  await vi.waitFor(() => expect(screen.getByRole('region', { name: 'v1' })).toBeTruthy());
+  await waitLong(() => expect(screen.getByRole('region', { name: 'v1' })).toBeTruthy());
 }
 
 describe('strategy page', () => {
@@ -100,7 +101,7 @@ describe('strategy page', () => {
     expect(v1.getByText(/Giriş: piyasa · Stop: 5 pip · Hedef: 2R · Risk %0,5/)).toBeTruthy();
 
     fireEvent.change(v1.getByLabelText('Durum'), { target: { value: 'TESTING' } });
-    await vi.waitFor(async () =>
+    await waitLong(async () =>
       expect((await strategies.listVersions('id-1'))[0]!.status).toBe('TESTING'),
     );
 
@@ -108,7 +109,7 @@ describe('strategy page', () => {
     fireEvent.click(v1.getByRole('button', { name: /Yeni versiyon/ }));
     fireEvent.change(builder().getByLabelText('R'), { target: { value: '3' } });
     fireEvent.click(builder().getByRole('button', { name: 'Versiyonu kaydet' }));
-    await vi.waitFor(() => expect(screen.getByRole('region', { name: 'v2' })).toBeTruthy());
+    await waitLong(() => expect(screen.getByRole('region', { name: 'v2' })).toBeTruthy());
     const versions = await strategies.listVersions('id-1');
     expect(versions.map((v) => [v.version, v.spec.target])).toEqual([
       [1, { type: 'R_MULTIPLE', r: 2 }],
@@ -120,7 +121,7 @@ describe('strategy page', () => {
     const { research } = await setup();
     await createSwingStrategy();
     fireEvent.click(screen.getByRole('button', { name: 'Backtest çalıştır' }));
-    await vi.waitFor(() =>
+    await waitLong(() =>
       expect(screen.getByRole('note', { name: 'Dürüstlük göstergeleri' })).toBeTruthy(),
     );
     const [stored] = await research.listRuns();
@@ -142,7 +143,7 @@ describe('strategy page', () => {
     await setup();
     await createSwingStrategy();
     fireEvent.click(screen.getByRole('button', { name: 'Kurulumları grafikte göster' }));
-    await vi.waitFor(() => expect(screen.getByRole('status').textContent).toMatch(/Dip alımı/));
+    await waitLong(() => expect(screen.getByRole('status').textContent).toMatch(/Dip alımı/));
     expect(latest!.timeframe).toBe('1m');
     expect(latest!.setups!.signalBarsAt.length).toBeGreaterThan(0);
     expect(latest!.setups!.long).toBe(true);

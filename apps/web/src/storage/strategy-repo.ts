@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import {
   setVersionStatus,
+  type Hypothesis,
   type StoredBacktest,
   type Strategy,
   type StrategyStatus,
@@ -34,11 +35,20 @@ export interface ResearchRepo {
   deleteRun(id: string): Promise<void>;
   /** In-sample runs stored for a strategy (all versions). */
   countInSample(strategyId: string): Promise<number>;
+  /** Runs made inside one hypothesis, newest first. */
+  listHypothesisRuns(hypothesisId: string): Promise<StoredBacktest[]>;
+  listHypotheses(): Promise<Hypothesis[]>;
+  saveHypothesis(h: Hypothesis): Promise<void>;
 }
 
 const versionKey = (strategyId: string, version: number) => `${strategyId}#${version}`;
 type VersionRow = StrategyVersion & { key: string };
-type RunRow = StoredBacktest & { id: string; strategyId: string; runAt: number };
+type RunRow = StoredBacktest & {
+  id: string;
+  strategyId: string;
+  runAt: number;
+  hypothesisId?: string;
+};
 
 const newestRunFirst = (a: StoredBacktest, b: StoredBacktest) =>
   b.run.runAt - a.run.runAt || a.run.id.localeCompare(b.run.id);
@@ -54,9 +64,15 @@ class StrategyDb extends Dexie {
 
 class ResearchDb extends Dexie {
   runs!: Table<RunRow, string>;
+  hypotheses!: Table<Hypothesis, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
+    // v2 (M6.2): hypotheses; runs can belong to one.
+    this.version(2).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+    });
   }
 }
 
@@ -108,10 +124,23 @@ export function createDexieStrategyRepo(dbName = 'trw-strategy'): StrategyRepo {
 
 export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
   const db = new ResearchDb(dbName);
-  const fromRow = ({ id: _id, strategyId: _s, runAt: _r, ...b }: RunRow): StoredBacktest => b;
+  const fromRow = ({
+    id: _id,
+    strategyId: _s,
+    runAt: _r,
+    hypothesisId: _h,
+    ...b
+  }: RunRow): StoredBacktest => b;
   return {
     async saveRun(b) {
-      await db.runs.put({ ...b, id: b.run.id, strategyId: b.run.strategy.id, runAt: b.run.runAt });
+      const hypothesisId = b.run.research?.hypothesisId;
+      await db.runs.put({
+        ...b,
+        id: b.run.id,
+        strategyId: b.run.strategy.id,
+        runAt: b.run.runAt,
+        ...(hypothesisId ? { hypothesisId } : {}),
+      });
     },
     async listRuns(strategyId) {
       const rows = strategyId
@@ -125,6 +154,17 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async countInSample(strategyId) {
       const rows = await db.runs.where('strategyId').equals(strategyId).toArray();
       return rows.filter((r) => r.run.split.role === 'IN_SAMPLE').length;
+    },
+    async listHypothesisRuns(hypothesisId) {
+      const rows = await db.runs.where('hypothesisId').equals(hypothesisId).toArray();
+      return rows.map(fromRow).sort(newestRunFirst);
+    },
+    listHypotheses: async () =>
+      (await db.hypotheses.toArray()).sort(
+        (a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id),
+      ),
+    async saveHypothesis(h) {
+      await db.hypotheses.put(h);
     },
   };
 }
@@ -171,6 +211,7 @@ export function createMemoryStrategyRepo(): StrategyRepo {
 
 export function createMemoryResearchRepo(): ResearchRepo {
   const runs = new Map<string, StoredBacktest>();
+  const hypotheses = new Map<string, Hypothesis>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -186,5 +227,14 @@ export function createMemoryResearchRepo(): ResearchRepo {
       [...runs.values()].filter(
         (b) => b.run.strategy.id === strategyId && b.run.split.role === 'IN_SAMPLE',
       ).length,
+    listHypothesisRuns: async (id) =>
+      [...runs.values()].filter((b) => b.run.research?.hypothesisId === id).sort(newestRunFirst),
+    listHypotheses: async () =>
+      [...hypotheses.values()].sort(
+        (a, b) => a.createdAt - b.createdAt || a.id.localeCompare(b.id),
+      ),
+    saveHypothesis: async (h) => {
+      hypotheses.set(h.id, h);
+    },
   };
 }

@@ -121,3 +121,43 @@ describe.each(repos)('%s strategy and research repos', (_name, make) => {
     expect((await r.listRuns())[0]!.run.engineVersion).toMatch(/^\d+\.\d+\.\d+$/);
   });
 });
+
+describe.each(repos)('%s research repo: hypotheses (v2)', (_name, make) => {
+  it('stores hypotheses and lists the runs made inside one', async () => {
+    const { r } = make();
+    const h = {
+      id: 'h1',
+      title: 'T',
+      statement: 'S',
+      strategyId: 's1',
+      strategyVersion: 1,
+      setup: {
+        datasetId: 'ds',
+        contentHash: 'c',
+        from: 0,
+        boundary: 5,
+        to: 10,
+        costs: { spreadPips: 0, slippagePips: 0, commissionPerLotPerSide: 0 },
+        ambiguity: 'STOP_FIRST' as const,
+        startEquity: 10_000,
+        lots: { lotStep: 0.01, minLot: 0.01 },
+      },
+      status: 'OPEN' as const,
+      conclusion: '',
+      evidenceRunIds: [],
+      oosRunIds: [],
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    await r.saveHypothesis(h);
+    await r.saveHypothesis({ ...h, status: 'INCONCLUSIVE', updatedAt: 2 });
+    expect(await r.listHypotheses()).toEqual([{ ...h, status: 'INCONCLUSIVE', updatedAt: 2 }]);
+    const inside = run('x', 4, 'IN_SAMPLE');
+    inside.run.research = { hypothesisId: 'h1', variant: { 'target.r': 3 } };
+    await r.saveRun(inside);
+    await r.saveRun(run('y', 5));
+    expect(
+      (await r.listHypothesisRuns('h1')).map((b) => [b.run.id, b.run.research?.variant]),
+    ).toEqual([['x', { 'target.r': 3 }]]);
+  });
+});

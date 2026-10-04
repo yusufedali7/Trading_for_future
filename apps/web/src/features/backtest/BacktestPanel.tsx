@@ -1,7 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
-  runRecord,
-  splitRange,
   timeframeMs,
   type AmbiguityRule,
   type DataSetMeta,
@@ -18,6 +16,7 @@ import { tr } from '../../i18n/tr';
 import type { ResearchRepo } from '../../storage/strategy-repo';
 import { formatR } from '../trade/TradePanel';
 import { BacktestReport } from './BacktestReport';
+import { runAndStore } from './run-and-store';
 
 const t = tr.backtest;
 const num = (v: string) => (v.trim() === '' ? NaN : Number(v.replace(',', '.')));
@@ -100,45 +99,24 @@ export function BacktestPanel(p: BacktestPanelProps) {
         from: Math.max(fromMs!, meta.range.from),
         to: Math.min(toMs!, meta.range.to + timeframeMs(meta.baseTimeframe)),
       };
-      const range = splitRange(full, role, boundaryMs);
-      const config = {
-        range,
+      const stored = await runAndStore({
+        source: p.source,
+        repo: p.repo,
+        meta,
+        strategy: p.strategy,
+        version: p.version,
+        spec,
+        specHash: p.version.specHash,
+        range: full,
+        role,
+        boundary: boundaryMs,
         costs,
         ambiguity,
         startEquity: num(equity),
         lots: { lotStep: num(lotStep), minLot: num(minLot) },
-      };
-      const out = await p.source.backtest(meta, spec, config);
-      const trial = role === 'IN_SAMPLE' ? (await p.repo.countInSample(p.strategy.id)) + 1 : null;
-      const stored: StoredBacktest = {
-        run: runRecord({
-          id: p.newId(),
-          runAt: p.now(),
-          strategy: {
-            id: p.strategy.id,
-            name: p.strategy.name,
-            version: p.version.version,
-            specHash: p.version.specHash,
-          },
-          data: {
-            datasetId: meta.id,
-            contentHash: meta.contentHash,
-            sourceName: meta.source.name,
-            instrument: meta.instrument,
-            timeframe: spec.timeframe,
-            from: range.from,
-            to: range.to,
-          },
-          split: { role, boundary: role === 'FULL' ? null : boundaryMs },
-          costs,
-          ambiguity,
-          startEquity: config.startEquity,
-          lots: config.lots,
-          inSampleTrial: trial,
-        }),
-        ...out,
-      };
-      await p.repo.saveRun(stored);
+        now: p.now,
+        newId: p.newId,
+      });
       setRuns(await p.repo.listRuns(p.strategy.id));
       setShownId(stored.run.id);
       setComparing(false);

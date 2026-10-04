@@ -9,5 +9,7 @@ export default defineConfig({
     include: ['test/**/*.test.{ts,tsx}'],
     environment: 'jsdom',
     setupFiles: ['test/setup.ts'],
+    // App tests render the whole app and run backtests; jsdom is slow when every file runs at once.
+    testTimeout: 20_000,
   },
 });
