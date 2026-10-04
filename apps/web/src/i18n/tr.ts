@@ -360,6 +360,57 @@ export const tr = {
     mark: 'Kurulum',
     noData: 'Bu stratejinin enstrümanı için veri kümesi yok.',
   },
+  paper: {
+    title: 'Paper trading',
+    intro:
+      'Bir strateji versiyonunu başlattığın andan sonra gelen yeni veride kağıt üzerinde çalıştırır. Veri, bilgisayarındaki MT5 demo terminalinden yerel köprüyle okunur. Broker’a hiçbir emir gönderilmez.',
+    feed: 'MT5 veri akışı',
+    instrument: 'Enstrüman',
+    brokerSymbol: 'Broker sembolü (farklıysa, ör. EURUSD.m)',
+    sync: 'Şimdi güncelle',
+    syncing: 'Güncelleniyor…',
+    auto: 'Her dakika otomatik güncelle',
+    connected: (server: string, offset: string) =>
+      `Bağlı: ${server} (DEMO) · ölçülen sunucu saati farkı ${offset}`,
+    lastSync: (added: number, revised: number, to: string) =>
+      `Son güncelleme: ${added} yeni mum${revised ? `, ${revised} düzeltilmiş mum` : ''} · veri sonu ${to}`,
+    dstWarning:
+      'Getirilen aralıkta bir yaz/kış saati değişimi var: eski mumların saati ölçülen farktan farklı olabilir.',
+    problems: {
+      BRIDGE_DOWN:
+        'Köprüye ulaşılamadı. MT5 açık ve demo hesaba girişli olmalı; ardından PowerShell’de: py tools/mt5-bridge/bridge.py',
+      NOT_CONNECTED: 'MT5 terminali bir hesaba bağlı değil. MT5’i aç ve demo hesaba giriş yap.',
+      NOT_DEMO:
+        'Bağlı hesap DEMO değil. Köprü yalnızca demo hesapla çalışır (gerçek parayla işlem yok).',
+      UNKNOWN_SYMBOL:
+        'Broker bu sembolü tanımıyor. Piyasa Gözlemi’ndeki adı “Broker sembolü”ne yaz.',
+      NO_DATA: 'MT5 geçmiş veri vermedi. Bir M1 grafiği açıp geriye kaydır, sonra tekrar dene.',
+      NO_TICK: 'Son fiyat (tik) yok; sunucu saati farkı ölçülemedi.',
+      MARKET_CLOSED:
+        'Piyasa kapalı: sunucu saati farkı ancak piyasa açıkken ölçülür. Saatler tahminle çevrilmez.',
+      STALE_TICK: 'Son fiyat eski; sunucu saati farkı güvenle ölçülemedi. Biraz sonra tekrar dene.',
+      BRIDGE_ERROR: 'Köprü beklenmeyen bir hata döndürdü.',
+    } as Record<string, string>,
+    noFeedData: 'Önce MT5 akışından veri çek (“Şimdi güncelle”).',
+    sessions: 'Paper oturumları',
+    newSession: 'Yeni paper oturumu',
+    start: 'Oturumu başlat (şu andan itibaren)',
+    stop: 'Durdur',
+    running: 'çalışıyor',
+    stopped: 'durduruldu',
+    startedAt: (time: string) => `Başlangıç: ${time}`,
+    forwardNote:
+      'Yalnızca başlangıçtan sonra onaylanan kurulumlar sayılır; geçmiş “boyanmaz”. Broker fiyatları Dukascopy’den biraz farklıdır; sonuçlar backtest’le birebir karşılaştırılmamalı.',
+    noStrategy: 'Bu enstrüman için strateji yok.',
+    openPosition: 'Açık pozisyon',
+    pending: 'Bekleyen emir',
+    none: 'Açık pozisyon ya da bekleyen emir yok.',
+    closed: 'Kapanan işlemler',
+    summary: (n: number, avg: string, total: string) =>
+      `${n} işlem · ortalama ${avg} · toplam ${total}`,
+    noTrades: 'Henüz işlem yok.',
+    liveR: 'Anlık sonuç',
+  },
   research: {
     title: 'Araştırma',
     empty:
@@ -554,7 +605,13 @@ export const tr = {
     },
   },
   journalPage: {
-    nav: { CHART: 'Grafik', JOURNAL: 'Günlük', STRATEGY: 'Strateji', RESEARCH: 'Araştırma' },
+    nav: {
+      CHART: 'Grafik',
+      JOURNAL: 'Günlük',
+      STRATEGY: 'Strateji',
+      RESEARCH: 'Araştırma',
+      PAPER: 'Paper',
+    },
     navLabel: 'Görünüm',
     title: 'İşlem günlüğü',
     empty:

@@ -98,12 +98,16 @@ export interface SyncResult {
 export async function syncMt5Dataset(opts: {
   client: Mt5Client;
   repo: MarketRepo;
+  /** Workstation instrument, e.g. EURUSD. */
   symbol: string;
+  /** The broker's name for it when different (e.g. EURUSD.m). */
+  brokerSymbol?: string;
   now: () => number;
 }): Promise<SyncResult> {
   const { client, repo, symbol } = opts;
+  const brokerSymbol = opts.brokerSymbol?.trim() || symbol;
   const inst = getInstrument(symbol);
-  const st = await client.status(symbol);
+  const st = await client.status(brokerSymbol);
   const offset = detectServerOffset(st.lastTickServerSec, st.utcNowMs, inst);
   if (!offset.ok) throw new FeedError(offset.reason);
   const id = mt5DatasetId(st.account.server, symbol);
@@ -123,7 +127,7 @@ export async function syncMt5Dataset(opts: {
   const last = rows.at(-1)?.t;
   const minutes =
     last === undefined ? INITIAL_MINUTES : Math.ceil((st.utcNowMs - last) / 60_000) + 5;
-  const bars = await client.rates(symbol, Math.max(1, Math.min(MAX_BARS, minutes)));
+  const bars = await client.rates(brokerSymbol, Math.max(1, Math.min(MAX_BARS, minutes)));
   if (bars.length === 0 && rows.length === 0) throw new FeedError('NO_DATA');
   const merged = mergeBrokerBars(rows, bars, offset.offsetMs);
   const series = seriesFromRows(merged.rows, true);

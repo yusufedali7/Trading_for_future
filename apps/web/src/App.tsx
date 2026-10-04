@@ -45,6 +45,8 @@ import {
 } from './storage/strategy-repo';
 import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
+import { PaperPage } from './features/paper/PaperPage';
+import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
 import { SessionManager } from './features/sessions/SessionManager';
 import {
   createMemorySessionsRepo,
@@ -65,14 +67,16 @@ export interface AppProps {
   researchRepo?: ResearchRepo;
   /** The user's own sessions (M6.1); in-memory when not given (tests). */
   sessionsRepo?: SessionsRepo;
+  /** Local MT5 bridge client (M6.3); the real bridge when not given. */
+  mt5Client?: Mt5Client;
   ChartComponent?: ComponentType<ChartViewProps>;
   /** App clock and id source; injectable for tests (the engine itself never reads the clock). */
   now?: () => number;
   newId?: () => string;
 }
 
-type View = 'CHART' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH';
-const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY', 'RESEARCH'];
+type View = 'CHART' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER';
+const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY', 'RESEARCH', 'PAPER'];
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
@@ -87,6 +91,7 @@ export function App({
   strategyRepo: givenStrategies,
   researchRepo: givenResearch,
   sessionsRepo: givenSessions,
+  mt5Client: givenMt5,
   ChartComponent = ChartView,
   now = Date.now,
   newId = () => crypto.randomUUID(),
@@ -103,6 +108,7 @@ export function App({
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
   const [researchRepo] = useState(() => givenResearch ?? createMemoryResearchRepo());
   const [sessionsRepo] = useState(() => givenSessions ?? createMemorySessionsRepo());
+  const [mt5Client] = useState(() => givenMt5 ?? createMt5Client());
   const [userSessions, setUserSessions] = useState<UserSession[]>([]);
   const [managingSessions, setManagingSessions] = useState(false);
   useEffect(() => {
@@ -318,7 +324,7 @@ export function App({
     <div className="app">
       <header className="app-header">
         <h1>{tr.app.title}</h1>
-        {datasets && datasets.length > 0 && (
+        {datasets && (
           <div className="segmented" role="group" aria-label={tr.journalPage.navLabel}>
             {VIEWS.map((v) => (
               <button
@@ -373,7 +379,9 @@ export function App({
 
       <main className="app-main">
         {datasets === null && <p className="muted">{tr.app.loading}</p>}
-        {datasets?.length === 0 && <EmptyState onImport={() => setImporting(true)} />}
+        {view === 'CHART' && datasets?.length === 0 && (
+          <EmptyState onImport={() => setImporting(true)} />
+        )}
         {error && (
           <p className="blocker" role="alert">
             {tr.app.loadError}: {error}
@@ -384,6 +392,19 @@ export function App({
             repo={journalRepo}
             displayTz={settings.displayTz}
             sessionNames={sessionNames}
+          />
+        )}
+        {view === 'PAPER' && settings && (
+          <PaperPage
+            research={researchRepo}
+            strategies={strategyRepo}
+            source={candleSource}
+            market={repo}
+            client={mt5Client}
+            displayTz={settings.displayTz}
+            now={now}
+            newId={newId}
+            onDatasetsChanged={refresh}
           />
         )}
         {view === 'RESEARCH' && settings && datasets && (

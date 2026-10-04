@@ -1,7 +1,10 @@
 import Dexie, { type Table } from 'dexie';
 import {
   setVersionStatus,
+  type AmbiguityRule,
+  type BacktestCosts,
   type Hypothesis,
+  type LotRules,
   type StoredBacktest,
   type Strategy,
   type StrategyStatus,
@@ -39,6 +42,27 @@ export interface ResearchRepo {
   listHypothesisRuns(hypothesisId: string): Promise<StoredBacktest[]>;
   listHypotheses(): Promise<Hypothesis[]>;
   saveHypothesis(h: Hypothesis): Promise<void>;
+  listPaperSessions(): Promise<PaperSession[]>;
+  savePaperSession(p: PaperSession): Promise<void>;
+}
+
+/**
+ * A forward (paper) test of one strategy version on a broker feed (M6.3): only setups confirmed
+ * after `startedAt` count; nothing is sent to the broker (rule 7).
+ */
+export interface PaperSession {
+  id: string;
+  strategyId: string;
+  strategyName: string;
+  strategyVersion: number;
+  datasetId: string;
+  startedAt: number;
+  stoppedAt: number | null;
+  costs: BacktestCosts;
+  ambiguity: AmbiguityRule;
+  startEquity: number;
+  lots: LotRules;
+  createdAt: number;
 }
 
 const versionKey = (strategyId: string, version: number) => `${strategyId}#${version}`;
@@ -65,6 +89,7 @@ class StrategyDb extends Dexie {
 class ResearchDb extends Dexie {
   runs!: Table<RunRow, string>;
   hypotheses!: Table<Hypothesis, string>;
+  paperSessions!: Table<PaperSession, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
@@ -72,6 +97,12 @@ class ResearchDb extends Dexie {
     this.version(2).stores({
       runs: 'id, strategyId, runAt, hypothesisId',
       hypotheses: 'id, strategyId',
+    });
+    // v3 (M6.3): paper trading sessions.
+    this.version(3).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+      paperSessions: 'id',
     });
   }
 }
@@ -166,6 +197,13 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async saveHypothesis(h) {
       await db.hypotheses.put(h);
     },
+    listPaperSessions: async () =>
+      (await db.paperSessions.toArray()).sort(
+        (a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id),
+      ),
+    async savePaperSession(p) {
+      await db.paperSessions.put(p);
+    },
   };
 }
 
@@ -212,6 +250,7 @@ export function createMemoryStrategyRepo(): StrategyRepo {
 export function createMemoryResearchRepo(): ResearchRepo {
   const runs = new Map<string, StoredBacktest>();
   const hypotheses = new Map<string, Hypothesis>();
+  const papers = new Map<string, PaperSession>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -235,6 +274,11 @@ export function createMemoryResearchRepo(): ResearchRepo {
       ),
     saveHypothesis: async (h) => {
       hypotheses.set(h.id, h);
+    },
+    listPaperSessions: async () =>
+      [...papers.values()].sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id)),
+    savePaperSession: async (p) => {
+      papers.set(p.id, p);
     },
   };
 }
