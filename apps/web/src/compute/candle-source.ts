@@ -1,5 +1,5 @@
 import {
-  BUILTIN_SESSIONS,
+  allSessionDefs,
   backtestStats,
   bucketStart,
   canonicalJson,
@@ -24,6 +24,7 @@ import {
   type FeatureSet,
   type PeriodLevel,
   type ResampledCandle,
+  type SessionDefinition,
   type SessionLevels,
   type Setup,
   type StrategySpec,
@@ -64,8 +65,14 @@ export interface BacktestOutcome {
 
 /** Supplies chart data for a dataset; heavy work may run in a worker. */
 export interface CandleSource {
-  load(meta: DataSetMeta, tf: Timeframe): Promise<ChartData>;
-  replay(meta: DataSetMeta, tf: Timeframe, cursor: UtcMs): Promise<ReplayTail>;
+  /** `userSessions`: the user's own session definitions (D35), shown and used next to the built-in ones. */
+  load(meta: DataSetMeta, tf: Timeframe, userSessions?: SessionDefinition[]): Promise<ChartData>;
+  replay(
+    meta: DataSetMeta,
+    tf: Timeframe,
+    cursor: UtcMs,
+    userSessions?: SessionDefinition[],
+  ): Promise<ReplayTail>;
   simulate(meta: DataSetMeta, order: TradeOrder, opts: SimulateOptions): Promise<SimResult>;
   /** Deterministic backtest of a strategy version on this dataset (D32). */
   backtest(meta: DataSetMeta, spec: StrategySpec, config: BacktestConfig): Promise<BacktestOutcome>;
@@ -88,13 +95,17 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
   };
 }
 
-function computeSessions(meta: DataSetMeta, series: CandleSeries): SessionLevels[] {
+function computeSessions(
+  meta: DataSetMeta,
+  series: CandleSeries,
+  defs: readonly SessionDefinition[],
+): SessionLevels[] {
   const first = series.t[0];
   const last = series.t[series.length - 1];
   if (first === undefined || last === undefined) return [];
   const inst = getInstrument(meta.instrument);
   const asOf = last + timeframeMs(meta.baseTimeframe);
-  const instances = BUILTIN_SESSIONS.flatMap((def) => sessionInstances(def, inst, first, asOf));
+  const instances = defs.flatMap((def) => sessionInstances(def, inst, first, asOf));
   instances.sort((a, b) => a.startUtc - b.startUtc || a.sessionId.localeCompare(b.sessionId));
   return sessionLevels(series, instances, asOf, timeframeMs(meta.baseTimeframe));
 }
@@ -111,8 +122,9 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
   let cached: {
     key: string;
     series: CandleSeries;
-    sessions: SessionLevels[];
     periods: PeriodLevel[];
+    /** Session levels per set of definitions (canonical JSON). */
+    sessions: Map<string, SessionLevels[]>;
   } | null = null;
   const get = async (meta: DataSetMeta) => {
     const key = `${meta.id}:${meta.contentHash}`;
@@ -121,20 +133,39 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       cached = {
         key,
         series,
-        sessions: computeSessions(meta, series),
         periods: computePeriods(meta, series),
+        sessions: new Map(),
       };
     }
     return cached;
   };
+  const sessionsFor = (
+    meta: DataSetMeta,
+    c: NonNullable<typeof cached>,
+    defs: readonly SessionDefinition[],
+  ) => {
+    const key = canonicalJson(defs);
+    let levels = c.sessions.get(key);
+    if (!levels) {
+      levels = computeSessions(meta, c.series, defs);
+      if (c.sessions.size >= 4) c.sessions.clear();
+      c.sessions.set(key, levels);
+    }
+    return levels;
+  };
   // Candles and features of one strategy's timeframe and detector parameters.
-  let strategyCache: { key: string; candles: ResampledCandle[]; features: FeatureSet } | null =
-    null;
+  let strategyCache: {
+    key: string;
+    candles: ResampledCandle[];
+    features: FeatureSet;
+    defs: SessionDefinition[];
+  } | null = null;
   const forStrategy = async (meta: DataSetMeta, spec: StrategySpec) => {
     if (spec.instrument !== meta.instrument)
       throw new Error(`strategy is for ${spec.instrument}, dataset is ${meta.instrument}`);
     const c = await get(meta);
-    const key = `${c.key}:${spec.timeframe}:${canonicalJson(spec.features)}`;
+    const defs = allSessionDefs(spec.sessions ?? []);
+    const key = `${c.key}:${spec.timeframe}:${canonicalJson(spec.features)}:${canonicalJson(defs)}`;
     if (strategyCache?.key !== key) {
       const candles = await candlesFor(meta, c.series, spec.timeframe);
       const features = computeFeatures(
@@ -143,33 +174,38 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
           inst: getInstrument(meta.instrument),
           tf: spec.timeframe,
           periods: c.periods,
-          sessions: c.sessions,
+          sessions: sessionsFor(meta, c, defs),
+          sessionDefs: defs,
         },
         spec.features,
       );
-      strategyCache = { key, candles, features };
+      strategyCache = { key, candles, features, defs };
     }
     return { c, ...strategyCache };
   };
   return {
-    async load(meta, tf) {
+    async load(meta, tf, userSessions = []) {
       const c = await get(meta);
+      const defs = allSessionDefs(userSessions);
+      const sessions = sessionsFor(meta, c, defs);
       const candles = await candlesFor(meta, c.series, tf);
       const features = computeFeatures({
         candles,
         inst: getInstrument(meta.instrument),
         tf,
         periods: c.periods,
-        sessions: c.sessions,
+        sessions,
+        sessionDefs: defs,
       });
-      return { candles, sessions: c.sessions, features };
+      return { candles, sessions, features };
     },
-    async replay(meta, tf, cursor) {
+    async replay(meta, tf, cursor, userSessions = []) {
       const c = await get(meta);
+      const all = sessionsFor(meta, c, allSessionDefs(userSessions));
       const baseMs = timeframeMs(meta.baseTimeframe);
       const inst = getInstrument(meta.instrument);
       const visible = seriesUpTo(c.series, cursor, baseMs);
-      const runningInstances = c.sessions.filter((s) => s.startUtc < cursor && cursor < s.endUtc);
+      const runningInstances = all.filter((s) => s.startUtc < cursor && cursor < s.endUtc);
       const running = sessionLevels(c.series, runningInstances, cursor, baseMs);
       if (visible.length === 0) return { tailStart: null, tail: [], running };
       const tailStart = bucketStart(inst, tf, visible.t[visible.length - 1]!);
@@ -193,7 +229,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       return simulateTrade(order, c.series, { ...opts, baseMs: timeframeMs(meta.baseTimeframe) });
     },
     async backtest(meta, spec, config) {
-      const { c, candles, features } = await forStrategy(meta, spec);
+      const { c, candles, features, defs } = await forStrategy(meta, spec);
       const inst = getInstrument(meta.instrument);
       const result = runBacktest({
         spec,
@@ -204,7 +240,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         features,
         config,
       });
-      return { result, stats: backtestStats(result, inst, config.range.from) };
+      return { result, stats: backtestStats(result, inst, config.range.from, defs) };
     },
     async setups(meta, spec) {
       const { candles, features } = await forStrategy(meta, spec);
@@ -222,8 +258,21 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
 }
 
 export type CandleRequest =
-  | { id: number; method: 'load'; meta: DataSetMeta; tf: Timeframe }
-  | { id: number; method: 'replay'; meta: DataSetMeta; tf: Timeframe; cursor: UtcMs }
+  | {
+      id: number;
+      method: 'load';
+      meta: DataSetMeta;
+      tf: Timeframe;
+      userSessions?: SessionDefinition[];
+    }
+  | {
+      id: number;
+      method: 'replay';
+      meta: DataSetMeta;
+      tf: Timeframe;
+      cursor: UtcMs;
+      userSessions?: SessionDefinition[];
+    }
   | { id: number; method: 'simulate'; meta: DataSetMeta; order: TradeOrder; opts: SimulateOptions }
   | {
       id: number;
@@ -240,9 +289,9 @@ type Response =
 function dispatch(source: CandleSource, req: CandleRequest): Promise<unknown> {
   switch (req.method) {
     case 'load':
-      return source.load(req.meta, req.tf);
+      return source.load(req.meta, req.tf, req.userSessions);
     case 'replay':
-      return source.replay(req.meta, req.tf, req.cursor);
+      return source.replay(req.meta, req.tf, req.cursor, req.userSessions);
     case 'simulate':
       return source.simulate(req.meta, req.order, req.opts);
     case 'backtest':
@@ -284,8 +333,9 @@ export function createWorkerCandleSource(): CandleSource {
       worker.postMessage({ ...req, id } as CandleRequest);
     });
   return {
-    load: (meta, tf) => call<ChartData>({ method: 'load', meta, tf }),
-    replay: (meta, tf, cursor) => call<ReplayTail>({ method: 'replay', meta, tf, cursor }),
+    load: (meta, tf, userSessions) => call<ChartData>({ method: 'load', meta, tf, userSessions }),
+    replay: (meta, tf, cursor, userSessions) =>
+      call<ReplayTail>({ method: 'replay', meta, tf, cursor, userSessions }),
     simulate: (meta, order, opts) => call<SimResult>({ method: 'simulate', meta, order, opts }),
     backtest: (meta, spec, config) =>
       call<BacktestOutcome>({ method: 'backtest', meta, spec, config }),

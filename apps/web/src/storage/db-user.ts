@@ -10,6 +10,7 @@ import type {
 import type { FeatureLayer } from '../chart/primitives/feature-layout';
 import { assertValidDrawing, byCreated, type DrawingsRepo } from './drawings-repo';
 import { newestDecisionFirst, type JournalRepo, type Screenshot } from './journal-repo';
+import { byCreatedSession, type SessionsRepo, type UserSession } from './sessions-repo';
 
 export interface Prefs {
   datasetId: string | null;
@@ -46,6 +47,7 @@ class UserDb extends Dexie {
   trades!: Table<ReplayTrade, string>;
   journal!: Table<JournalEntry, string>;
   screenshots!: Table<Screenshot, string>;
+  sessions!: Table<UserSession, string>;
 
   constructor(name: string) {
     super(name);
@@ -64,6 +66,16 @@ class UserDb extends Dexie {
       trades: 'id, instrument',
       journal: 'id, instrument, decidedAt',
       screenshots: 'id',
+    });
+    // v4 (M6.1): the user's own session definitions.
+    this.version(4).stores({
+      prefs: 'key',
+      drawings: 'id, instrument',
+      levels: 'id, instrument, drawingId',
+      trades: 'id, instrument',
+      journal: 'id, instrument, decidedAt',
+      screenshots: 'id',
+      sessions: 'id',
     });
   }
 }
@@ -145,14 +157,32 @@ function journalRepo(db: UserDb): JournalRepo {
   };
 }
 
+function sessionsRepo(db: UserDb): SessionsRepo {
+  return {
+    list: async () => (await db.sessions.toArray()).sort(byCreatedSession),
+    save: async (s) => {
+      await db.sessions.put(s);
+    },
+    delete: async (id) => {
+      await db.sessions.delete(id);
+    },
+  };
+}
+
 /** User-data domain ("trw-user"): preferences, drawings and levels, replay trades and journal. */
 export function createDexieUserRepos(options: { dbName?: string } = {}): {
   prefs: PrefsRepo;
   drawings: DrawingsRepo;
   journal: JournalRepo;
+  sessions: SessionsRepo;
 } {
   const db = new UserDb(options.dbName ?? 'trw-user');
-  return { prefs: prefsRepo(db), drawings: drawingsRepo(db), journal: journalRepo(db) };
+  return {
+    prefs: prefsRepo(db),
+    drawings: drawingsRepo(db),
+    journal: journalRepo(db),
+    sessions: sessionsRepo(db),
+  };
 }
 
 export function createDexiePrefsRepo(options: { dbName?: string } = {}): PrefsRepo {
