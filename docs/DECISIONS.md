@@ -235,6 +235,13 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Tarih:** 2026-10-04 · **Durum:** Bilgi (karar değil)
 - In-sample 2024-10-01 → 2026-01-01, maliyetler 0,2 / 0,1 pip / 3,5 USD. Hedef 1,5 / 2 / 3R × MSS penceresi 6 / 12 / 24 mum = 9 deneme (1,9 sn). Ortalama R: 6 mumda +0,45…+0,55 (10 işlem), 12 mumda +0,31…+0,43 (24–25), 24 mumda +0,18…+0,32 (32–34). 2R / 12 hücresi D36 ile birebir aynı (determinizm).
 - **Yorum sınırı:** Bütün hücreler pozitif ama 9 deneme yapıldı ve işlem sayıları küçük; 30'u geçen yalnız 24 mum sütunu. En iyi görünen hücre (3R / 6 mum, 10 işlem) seçilmemeli. Out-of-sample açılmadı; kullanıcının kararı.
+## D39 — Paper trading ve MetaTrader 5 köprüsü
+- **Tarih:** 2026-10-04 · **Durum:** Kabul edildi (M6.3); gerçek MT5 ile deneme kullanıcının demo hesabını bekliyor
+- **Kaynak seçimi (kullanıcı, 2026-10-04):** MT5 demo. Araştırma: MT5 demo hesapları ücretsiz (MetaQuotes-Demo kimlik istemiyor; SPK lisanslı kurumların demoları da ücretsiz); resmi `MetaTrader5` Python paketi MIT lisanslı, yalnız Windows x86-64, açık ve girişli bir terminal gerektiriyor. OANDA v20 API'si ücretsiz ama demo için bile kimlik doğrulaması istiyor; Türkiye'den hesap açılabilirliği kaynaklarda çelişkili (doğrulanmadı). CSV ile elle güncelleme kullanıcı tarafından istenmedi.
+- **Köprü (`tools/mt5-bridge/bridge.py`):** Python standart kütüphanesi + MetaTrader5. Yalnızca `/status` ve `/rates` (kapanmış 1m mumlar, `copy_rates_from_pos` 1. konumdan). Hesap DEMO değilse 403 ve açılışta kapanış (kural 7). 127.0.0.1, izinli origin listesi, Host başlığı kontrolü. Emir fonksiyonu çağrılmadığı testle kontrol edilir. Ham sunucu zamanı + son tik zamanı + bilgisayar saati döndürür.
+- **Saat:** Sunucu−UTC farkı yalnızca piyasa açıkken, taze tikten (çeyrek saate en fazla 2 dk uzaklık) ölçülür; ölçülemiyorsa veri çevrilmez (tahmin yok). Getirilen aralıkta New York / Londra / Doğu Avrupa yaz-kış saati değişimi varsa uyarı verilir (eski mumlar farklı ofsetle damgalanmış olabilir).
+- **Veri:** Broker verisi kendi veri kümesinde tutulur (`mt5:<sunucu>:<sembol>`, kaynak adı "MT5: <sunucu>"); ilk senkron 7 gün, sonra yalnız eksik dakikalar; düzeltilen mumlar sayılır. Fiyat tipi BID kabul edildi (MT5 forex grafikleri bid ile çizilir; broker'a göre doğrulanmalı).
+- **Paper oturumu:** Strateji versiyonu + broker veri kümesi + maliyetler; `startedAt`'ten sonra onaylanan kurulumlar, aynı motor (`runBacktest` + `keepOpenAtEnd`): açık işlem kapatılmaz, anlık R gösterilir. Durdurulunca o ana kadar değerlendirilir. `trw-research` v3 `paperSessions`.
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

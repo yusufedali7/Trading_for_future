@@ -1,6 +1,6 @@
 # PLAN — M6.3: Paper trading + MetaTrader 5 veri köprüsü
 
-> Durum: kullanıcı 2026-10-04'te MT5 demo ile devam etmeyi seçti ("önce adımları at sonra başla"). Araştırma özeti ve kaynaklar sohbette; kararlar `docs/DECISIONS.md` (D39+).
+> Durum: kullanıcı 2026-10-04'te MT5 demo ile devam etmeyi seçti. **Görev 1–5 tamamlandı (2026-10-04);** görev 6 (gerçek MT5 demo ile deneme) kullanıcının demo hesabını ve `pip install MetaTrader5` onayını bekliyor. Karar `docs/DECISIONS.md` D39.
 
 ## Amaç
 Bir strateji versiyonunu **ileriye dönük** (forward) olarak, başladığı andan sonra gelen yeni veride kağıt üzerinde çalıştırmak. Veri, kullanıcının bilgisayarında açık olan MT5 **demo** terminalinden yerel bir köprüyle okunur. Gerçek emir yok (kural 7).
@@ -8,7 +8,7 @@ Bir strateji versiyonunu **ileriye dönük** (forward) olarak, başladığı and
 ## Kurallar
 - **Yalnızca okuma:** Köprü MT5'ten fiyat okur; emir fonksiyonlarını hiç çağırmaz. Hesap demo değilse (`trade_mode` ≠ DEMO) veri vermez.
 - **Yalnızca yerel:** Köprü 127.0.0.1'de dinler; yalnızca uygulamanın adresinden gelen istekleri kabul eder. Şifre ve hesap bilgisi uygulamaya gelmez.
-- **Saat:** MT5 mum zamanları broker sunucu saatinde gelir. Köprü sunucu saati ile UTC farkını son tik zamanından **ölçer** (15 dk'ya yuvarlar) ve uygulamaya bildirir; fark ölçülemiyorsa (piyasa kapalı) veri UTC'ye çevrilmez ve uyarı verilir. Tahminle sabit ofset yazılmaz.
+- **Saat:** MT5 mum zamanları broker sunucu saatinde gelir. Köprü ham sunucu zamanını ve son tik zamanını verir; uygulama farkı **ölçer** (15 dk'ya yuvarlar); fark ölçülemiyorsa (piyasa kapalı) veri UTC'ye çevrilmez ve uyarı verilir. Tahminle sabit ofset yazılmaz.
 - **Ayrı veri kümesi:** Broker verisi Dukascopy kümesine eklenmez; kendi kümesi olur (kaynak adı "MT5: <sunucu>"). Fiyatlar birebir aynı değildir; karşılaştırmalar bunu belirtir.
 - **İleriye dönük:** Paper oturumu başladığı andan (`startedAt`) sonra onaylanan kurulumları işler; geçmiş "boyanmaz". Açık işlemler oturum boyunca açık kalır (aralık sonunda kapatılmaz).
 - **Aynı motor:** Kurulum ve dolum kuralları backtest ve replay ile aynıdır (D26, D32).

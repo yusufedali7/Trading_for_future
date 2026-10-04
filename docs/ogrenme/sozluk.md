@@ -394,3 +394,26 @@ Out-of-sample verisine yalnızca **bir kez**, ayarı kesinleştirdikten sonra ba
 - **Yetersiz veri:** İşlem sayısı ya da veri karar vermeye yetmiyorsa.
 
 "Desteklendi" bile gelecekte işe yarayacağının garantisi değildir; yalnızca "bu veride ve bu koşullarda böyle gözlendi" demektir.
+
+---
+
+## M6.3'te eklenenler: paper trading ve MT5
+
+### Paper trading (kağıt üzerinde işlem)
+Bir stratejiyi gerçek para kullanmadan, **başlattığın andan sonra** gelen yeni fiyatlarla denemek. Backtest geçmişe bakar; paper trading ileriye bakar. Bu yüzden out-of-sample'ın en dürüst halidir: sonuçlar henüz yaşanmamış veride oluşur.
+*Uygulamada:* Üst menüde "Paper". Bir strateji versiyonu seçip oturumu başlatırsın; uygulama yeni mumlar geldikçe kurulumları ve işlemleri kendisi işler. Broker'a emir gitmez.
+
+### Demo hesap
+Broker'ın sanal parayla açtığı hesap. Fiyatlar gerçek piyasadan gelir, para gerçek değildir. Bu projede MT5 demo hesabı yalnızca **fiyat okumak** için kullanılır.
+
+### MetaTrader 5 (MT5)
+Birçok broker'ın kullandığı işlem programı. Bilgisayarında açık olduğunda Python ile fiyatları okunabilir.
+
+### Köprü (bridge)
+MT5 ile uygulama arasında duran küçük program. Yalnızca bilgisayarının içinden erişilebilir, yalnızca okur, yalnızca demo hesapla çalışır.
+
+### Sunucu saati
+Broker'ların MT5 sunucuları genelde kendi saat dilimlerini kullanır (çoğunlukla UTC+2 ya da UTC+3). Uygulama farkı son fiyatın zamanından ölçer ve mumları UTC'ye çevirir. Piyasa kapalıyken fark ölçülemez; o zaman güncelleme yapılmaz.
+
+### Broker fiyatı farkı
+Her broker'ın fiyatı biraz farklıdır (spread, kaynak). Bu yüzden Dukascopy verisiyle yapılan backtest ile MT5 verisindeki paper sonuçları birebir aynı çıkmaz; karşılaştırırken bunu akılda tut.

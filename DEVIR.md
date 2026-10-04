@@ -1,16 +1,31 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-04 (M6.2 oturumu)_
+_Son güncelleme: 2026-10-04 (M6.3 oturumu)_
 
 ## Durum özeti
-- **M1–M5, M6.1:** tamamlandı. Planlar `docs/PLAN-M2..M6-1.md`, kararlar D23–D36.
-- **M6.2 (Araştırma laboratuvarı):** görev 1–7 tamamlandı; plan `docs/PLAN-M6-2.md`, kararlar D37–D38. **Kullanıcının kendi denemesi bekleniyor.**
-- **Sıradaki (önerilen sıra):** paper trading + güncel/canlı veri adaptörü → AI araştırma asistanı (n8n / Langflow + YouTube). Küçük işler: backtest işlemlerini grafikte göstermek, bir kurulumdan replay başlatmak, strateji arşivleme.
-- **Canlı veri (kullanıcı sorusu, 2026-10-04):** Mümkün, ayrı faz. Amaç yalnızca grafik + paper trading (kural 7). Aday kaynaklar (hiçbiri doğrulanmadı): broker demo API'leri (ör. OANDA streaming; Türkiye'den hesap açılabilirliği kontrol edilecek), MetaTrader 5 Python bağlantısı (yalnız Windows, yerel), ücretsiz katmanlı veri servisleri (Twelve Data, Polygon; sınırlar ve koşullar kontrol edilecek), Dukascopy geçmişini her gün güncellemek. API anahtarları tarayıcıda tutulmamalı; bilgisayarda çalışan küçük bir yerel aracı (proxy) gerekecek. Kaynak seçilmeden önce kullanım koşulları okunacak.
-- **Gelecek fikir (2026-10-02):** n8n / Langflow ile YouTube stratejilerini şemaya çeviren araştırma botu; kural 6 ve 7 geçerli.
-- Testler: **400 test yeşil** (60 dosya; tam paket üç kez art arda çalıştırıldı). Web testlerinin süre sınırı 20 sn yapıldı (App testleri yük altında 5 sn'yi aşıp kararsızdı). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
+- **M1–M5, M6.1, M6.2:** tamamlandı. Planlar `docs/PLAN-M2..M6-2.md`, kararlar D23–D38.
+- **M6.3 (Paper trading + MT5 köprüsü):** görev 1–5 tamamlandı; plan `docs/PLAN-M6-3.md`, karar D39. **Görev 6 bekliyor:** kullanıcı MT5 demo hesabını açacak; `py -m pip install MetaTrader5` kurulumu için kullanıcı onayı istenecek; ardından gerçek MT5 ile deneme (sunucu saati farkı ölçümü, ilk 7 gün, paper oturumu).
+- **MT5 demo kurulum adımları (kullanıcıya verildi):** [metatrader5.com/en/download](https://www.metatrader5.com/en/download) → kur → Dosya → Hesap Aç → MetaQuotes-Demo → Demo hesap aç (ya da SPK lisanslı bir kurumun demosu) → Araçlar → Seçenekler → Grafikler → en fazla çubuk: Sınırsız → Piyasa Gözlemi'nde EURUSD → bir EURUSD M1 grafiği aç. Şifre ve hesap numarası bana yazılmaz. Köprü kullanımı: `tools/mt5-bridge/README.md`.
+- **Sonra:** AI araştırma asistanı (n8n / Langflow + YouTube); küçük işler (backtest işlemlerini grafikte göstermek, kurulumdan replay, strateji/hipotez arşivleme).
+- Testler: **411 test yeşil** (63 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
+## M6.3'te yapılanlar
+| # | Görev | Sonuç |
+|---|---|---|
+| 1 | Motor | `runBacktest` `keepOpenAtEnd` (paper): açık işlem/emir `result.open`'da, kapatılmaz |
+| 2 | Köprü | `tools/mt5-bridge/bridge.py`: yalnız okuma, yalnız demo, 127.0.0.1, origin + Host kontrolü; sahte MT5 ile 7 test |
+| 3 | Veri akışı | `engine/data/broker.ts` (ofset ölçümü, DST uyarısı, birleştirme) + `features/paper/mt5-feed.ts` (kendi veri kümesi, ilk 7 gün, sonra eksik dakikalar) |
+| 4 | Depolama | `trw-research` v3 `paperSessions` |
+| 5 | Arayüz | "Paper" sayfası: köprü durumu, elle / dakikalık güncelleme, sorun açıklamaları, oturum başlat/durdur, açık pozisyon + anlık R, kapanan işlemler; veri yokken de üst menü görünür |
+
+Araştırma (kaynaklar sohbette): MT5 demo ücretsiz; MetaTrader5 Python paketi MIT, yalnız Windows x86-64; OANDA v20 API ücretsiz ama KYC gerekli, Türkiye durumu çelişkili.
+
+## M6.3 iyileştirme listesi
+1. Paper oturumunda elle işlem (replay işlem panelinin canlı kenarda kullanımı).
+2. Paper işlemlerini grafikte göstermek; yeni kurulumda bildirim.
+3. Broker'ın gerçek spread'ini tiklerden ölçüp maliyet önerisi olarak göstermek.
+4. Köprüyü Windows açılışında otomatik başlatma (isteğe bağlı).
 ## M6.2'de yapılanlar
 | # | Görev | Sonuç |
 |---|---|---|
@@ -247,9 +262,9 @@ Uzun 1m geçmişi için seçenekler (karar bekliyor):
 - PLAN §5'teki `ValidationReport` taslağı değişti; güncel hali DECISIONS D19'da.
 
 ## Sonraki adım
-1. Kullanıcı dener: Araştırma → Yeni hipotez → strateji ve test düzeni → temel in-sample → tarama → ızgarayı oku → (hazırsa) out-of-sample'ı bir kez aç → sonuç.
-2. `git push` (kullanıcı).
-3. Sonraki faz: paper trading + güncel/canlı veri adaptörü (önce veri kaynağı seçimi ve kullanım koşulları; kullanıcıyla birlikte).
+1. Kullanıcı MT5 demo hesabını açar ve "MT5 hazır" der.
+2. Onay alınınca `py -m pip install MetaTrader5`; köprü çalıştırılır; Paper → Şimdi güncelle; ölçülen ofset ve ilk veri kontrol edilir (Dukascopy ile birkaç mum karşılaştırması); bir paper oturumu başlatılır.
+3. `git push` (kullanıcı).
 
 ## Çalıştırma ve test komutları
 ```bash
@@ -258,6 +273,7 @@ npm run dev        # uygulamayı başlat → http://localhost:5173
 npm test           # tüm testler (Vitest)
 npm run lint       # ESLint + Prettier kontrolü
 npm run typecheck  # TypeScript kontrolü
+npm run test:bridge  # MT5 köprüsü testleri (Python, MT5 gerekmez)
 npm run build      # üretim derlemesi
 ```
 
