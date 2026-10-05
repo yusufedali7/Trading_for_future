@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   listInstruments,
   timeframeMs,
@@ -13,22 +13,20 @@ import { tr } from '../../i18n/tr';
 import type { MarketRepo } from '../../storage/market-repo';
 import type { PaperSession, ResearchRepo, StrategyRepo } from '../../storage/strategy-repo';
 import { formatR } from '../trade/TradePanel';
-import { FeedError, syncMt5Dataset, type Mt5Client, type SyncResult } from './mt5-feed';
+import type { Mt5Feed } from './use-mt5-feed';
 
 const t = tr.paper;
-const AUTO_MS = 60_000;
 
 export interface PaperPageProps {
   research: ResearchRepo;
   strategies: StrategyRepo;
   source: CandleSource;
   market: MarketRepo;
-  client: Mt5Client;
+  /** The MT5 feed lives in the app shell so its auto-update survives view switches. */
+  feed: Mt5Feed;
   displayTz: IanaTz;
   now: () => number;
   newId: () => string;
-  /** The feed added or replaced a dataset: the app's dataset list must refresh. */
-  onDatasetsChanged: () => Promise<void>;
 }
 
 const offsetLabel = (ms: number) => {
@@ -39,12 +37,8 @@ const offsetLabel = (ms: number) => {
 };
 
 export function PaperPage(p: PaperPageProps) {
-  const [instrument, setInstrument] = useState('EURUSD');
-  const [brokerSymbol, setBrokerSymbol] = useState('');
-  const [syncing, setSyncing] = useState(false);
-  const [problem, setProblem] = useState<string | null>(null);
-  const [last, setLast] = useState<SyncResult | null>(null);
-  const [auto, setAuto] = useState(false);
+  const { config, setConfig, syncing, problem, last, sync } = p.feed;
+  const { instrument, brokerSymbol, auto } = config;
   const [sessions, setSessions] = useState<PaperSession[]>([]);
   const [outcomes, setOutcomes] = useState<Record<string, BacktestOutcome>>({});
   const [strategies, setStrategies] = useState<Strategy[]>([]);
@@ -58,11 +52,16 @@ export function PaperPage(p: PaperPageProps) {
     for (const s of list) vs[s.id] = await p.strategies.listVersions(s.id);
     setVersions(vs);
     setSessions(await p.research.listPaperSessions());
-    setFeeds((await p.market.listDatasets()).filter((d) => d.id.startsWith('mt5:')));
-  }, [p.strategies, p.research, p.market]);
+  }, [p.strategies, p.research]);
   useEffect(() => {
     void loadAll();
   }, [loadAll]);
+  // Every sync (also those made while another view was open) brings new feed data.
+  useEffect(() => {
+    void p.market
+      .listDatasets()
+      .then((list) => setFeeds(list.filter((d) => d.id.startsWith('mt5:'))));
+  }, [p.market, last]);
 
   const specOf = (s: PaperSession) =>
     versions[s.strategyId]?.find((v) => v.version === s.strategyVersion)?.spec ?? null;
@@ -94,49 +93,7 @@ export function PaperPage(p: PaperPageProps) {
   );
   useEffect(() => {
     void evaluate(sessions);
-  }, [evaluate, sessions]);
-
-  const sync = useCallback(async () => {
-    setSyncing(true);
-    setProblem(null);
-    try {
-      const res = await syncMt5Dataset({
-        client: p.client,
-        repo: p.market,
-        symbol: instrument,
-        brokerSymbol,
-        now: p.now,
-      });
-      setLast(res);
-      setFeeds((await p.market.listDatasets()).filter((d) => d.id.startsWith('mt5:')));
-      await p.onDatasetsChanged();
-      await evaluate(sessions);
-    } catch (e) {
-      setProblem(e instanceof FeedError ? e.problem : 'BRIDGE_ERROR');
-    } finally {
-      setSyncing(false);
-    }
-  }, [
-    p.client,
-    p.market,
-    p.now,
-    p.onDatasetsChanged,
-    instrument,
-    brokerSymbol,
-    evaluate,
-    sessions,
-  ]);
-
-  // Automatic update every minute while the page is open; syncs right away when turned on
-  // instead of waiting up to a minute for the first tick.
-  const syncRef = useRef(sync);
-  syncRef.current = sync;
-  useEffect(() => {
-    if (!auto) return;
-    void syncRef.current();
-    const id = setInterval(() => void syncRef.current(), AUTO_MS);
-    return () => clearInterval(id);
-  }, [auto]);
+  }, [evaluate, sessions, last]);
 
   return (
     <div className="journal-page paper-page">
@@ -148,7 +105,7 @@ export function PaperPage(p: PaperPageProps) {
         <div className="builder-grid">
           <label className="inline-field">
             <span>{t.instrument}</span>
-            <select value={instrument} onChange={(e) => setInstrument(e.target.value)}>
+            <select value={instrument} onChange={(e) => setConfig({ instrument: e.target.value })}>
               {listInstruments().map((i) => (
                 <option key={i.symbol} value={i.symbol}>
                   {i.symbol}
@@ -161,7 +118,7 @@ export function PaperPage(p: PaperPageProps) {
             <input
               type="text"
               value={brokerSymbol}
-              onChange={(e) => setBrokerSymbol(e.target.value)}
+              onChange={(e) => setConfig({ brokerSymbol: e.target.value })}
             />
           </label>
         </div>
@@ -175,7 +132,11 @@ export function PaperPage(p: PaperPageProps) {
             {syncing ? t.syncing : t.sync}
           </button>
           <label className="check">
-            <input type="checkbox" checked={auto} onChange={(e) => setAuto(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={auto}
+              onChange={(e) => setConfig({ auto: e.target.checked })}
+            />
             <span>{t.auto}</span>
           </label>
         </div>

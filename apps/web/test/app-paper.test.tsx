@@ -74,12 +74,13 @@ async function setup() {
     ),
   );
   const research = createMemoryResearchRepo();
+  const prefs = createMemoryPrefsRepo();
   const clock = { now: t('2026-01-06T10:00:30Z') };
   let id = 0;
   render(
     <App
       repo={repo}
-      prefs={createMemoryPrefsRepo()}
+      prefs={prefs}
       drawingsRepo={createMemoryDrawingsRepo()}
       journalRepo={createMemoryJournalRepo()}
       createImporter={createInProcessImporter}
@@ -94,7 +95,7 @@ async function setup() {
   );
   // No dataset yet: the empty state shows, but the view switch is there.
   fireEvent.click(await screen.findByRole('button', { name: 'Paper' }));
-  return { repo, research, clock };
+  return { repo, research, clock, prefs };
 }
 
 describe('paper trading with the MT5 bridge', () => {
@@ -134,6 +135,33 @@ describe('paper trading with the MT5 bridge', () => {
     await waitLong(async () =>
       expect((await research.listPaperSessions())[0]!.stoppedAt).toBe(clock.now),
     );
+  });
+
+  it('keeps updating every minute on other views and remembers the choice', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      const { repo, clock, prefs } = await setup();
+      fireEvent.click(screen.getByRole('checkbox', { name: /otomatik güncelle/ }));
+      // Turning it on syncs at once, not a minute later.
+      await waitLong(async () => expect(await repo.listDatasets()).toHaveLength(1));
+      await waitLong(async () => expect((await prefs.load()).paperFeed.auto).toBe(true));
+      const endBefore = (await repo.listDatasets())[0]!.range.to;
+
+      fireEvent.click(screen.getByRole('button', { name: 'Strateji' }));
+      expect(screen.getByText('● MT5 canlı')).toBeTruthy();
+      clock.now += 5 * MIN;
+      await vi.advanceTimersByTimeAsync(60_000);
+      await waitLong(async () =>
+        expect((await repo.listDatasets())[0]!.range.to).toBe(endBefore + 5 * MIN),
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Paper' }));
+      expect(
+        (screen.getByRole('checkbox', { name: /otomatik güncelle/ }) as HTMLInputElement).checked,
+      ).toBe(true);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('explains why it cannot convert times when the market is closed', async () => {

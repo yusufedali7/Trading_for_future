@@ -372,6 +372,10 @@ export const tr = {
     sync: 'Şimdi güncelle',
     syncing: 'Güncelleniyor…',
     auto: 'Her dakika otomatik güncelle',
+    live: '● MT5 canlı',
+    liveProblem: '● MT5: sorun',
+    liveTitle:
+      'MT5 verisi her dakika güncelleniyor (hangi sekmede olursan ol). Kapatmak için Paper sayfasındaki kutuyu kaldır.',
     connected: (server: string, offset: string) =>
       `Bağlı: ${server} (DEMO) · ölçülen sunucu saati farkı ${offset}`,
     lastSync: (added: number, revised: number, to: string) =>

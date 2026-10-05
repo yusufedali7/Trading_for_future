@@ -17,6 +17,7 @@ describe('user preferences repo', () => {
       displayTz: 'Europe/Istanbul',
       sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
       features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
+      paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
     });
   });
 

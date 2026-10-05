@@ -47,6 +47,7 @@ import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
 import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
+import { useMt5Feed } from './features/paper/use-mt5-feed';
 import { SessionManager } from './features/sessions/SessionManager';
 import {
   createMemorySessionsRepo,
@@ -144,6 +145,17 @@ export function App({
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  // Only the dataset list: a background feed sync must not reload (and overwrite) preferences.
+  const refreshDatasets = useCallback(async () => setDatasets(await repo.listDatasets()), [repo]);
+  const feed = useMt5Feed({
+    client: mt5Client,
+    repo,
+    now,
+    config: settings?.paperFeed ?? null,
+    onConfig: (paperFeed) => update({ paperFeed }),
+    onSynced: refreshDatasets,
+  });
 
   const active = datasets?.find((d) => d.id === settings?.datasetId) ?? datasets?.[0] ?? null;
   const instrument = useMemo(() => (active ? getInstrument(active.instrument) : null), [active]);
@@ -342,6 +354,14 @@ export function App({
             ))}
           </div>
         )}
+        {feed?.config.auto && (
+          <span
+            className={`feed-indicator ${feed.problem ? 'warn-text' : ''}`}
+            title={feed.problem ? tr.paper.problems[feed.problem] : tr.paper.liveTitle}
+          >
+            {feed.problem ? tr.paper.liveProblem : tr.paper.live}
+          </span>
+        )}
         {active && settings && datasets && (
           <Toolbar
             datasets={datasets}
@@ -400,11 +420,10 @@ export function App({
             strategies={strategyRepo}
             source={candleSource}
             market={repo}
-            client={mt5Client}
+            feed={feed!}
             displayTz={settings.displayTz}
             now={now}
             newId={newId}
-            onDatasetsChanged={refresh}
           />
         )}
         {view === 'RESEARCH' && settings && datasets && (

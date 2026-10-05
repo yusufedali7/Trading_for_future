@@ -20,6 +20,14 @@ export interface Prefs {
   sessions: string[];
   /** Engine candidate layers drawn on the chart (M4). */
   features: FeatureLayer[];
+  /** MT5 feed (M6.3): kept here so auto-update survives tab switches and reloads. */
+  paperFeed: PaperFeedPrefs;
+}
+
+export interface PaperFeedPrefs {
+  instrument: string;
+  brokerSymbol: string;
+  auto: boolean;
 }
 
 export const DEFAULT_PREFS: Prefs = {
@@ -28,6 +36,7 @@ export const DEFAULT_PREFS: Prefs = {
   displayTz: 'Europe/Istanbul',
   sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
   features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
+  paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
 };
 
 export interface PrefsRepo {

@@ -188,6 +188,13 @@ input[type='file'] {
   flex: 1;
 }
 
+.feed-indicator {
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: help;
+}
+
 .toolbar-group {
   position: relative;
 }
