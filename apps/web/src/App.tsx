@@ -435,7 +435,6 @@ export function App({
         {view === 'CHART' && active && settings && data && instrument && (
           <>
             <div className="tool-row">
-              <DrawingTools tool={tool} onTool={setTool} />
               {shownStrategy && (
                 <div className="strategy-badge" role="status">
                   <span>
@@ -465,6 +464,7 @@ export function App({
               />
             </div>
             <div className="workspace">
+              <DrawingTools tool={tool} onTool={setTool} />
               {chartData ? (
                 <ChartComponent
                   sessionStyles={sessionStyles}

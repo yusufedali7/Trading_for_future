@@ -446,12 +446,32 @@ input[type='file'] {
 /* --- M2: drawing tools, side panel, levels --- */
 .drawing-tools {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px 12px;
-  padding: 4px 8px;
-  border-bottom: 1px solid var(--border);
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  width: 132px;
+  flex: none;
+  padding: 8px;
+  border-right: 1px solid var(--border);
   background: var(--bg-panel);
+  overflow-y: auto;
+}
+
+.segmented-vertical {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: visible;
+}
+
+.segmented-vertical .seg {
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+.segmented-vertical .seg:last-child {
+  border-bottom: 0;
 }
 
 .seg-text {
@@ -498,6 +518,26 @@ input[type='file'] {
     width: auto;
     border-left: 0;
     border-top: 1px solid var(--border);
+  }
+  .drawing-tools {
+    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .segmented-vertical {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: auto;
+  }
+  .segmented-vertical .seg {
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+  }
+  .segmented-vertical .seg:last-child {
+    border-right: 0;
   }
 }
 
@@ -622,10 +662,6 @@ input[type='number'] {
   gap: 4px 12px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
-}
-
-.tool-row > .drawing-tools {
-  border-bottom: 0;
 }
 
 .replay-bar {

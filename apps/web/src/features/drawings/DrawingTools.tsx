@@ -14,7 +14,7 @@ const TOOLS: Tool[] = [
 export function DrawingTools({ tool, onTool }: { tool: Tool; onTool: (t: Tool) => void }) {
   return (
     <div className="drawing-tools">
-      <div className="segmented" role="group" aria-label={tr.drawings.tools}>
+      <div className="segmented segmented-vertical" role="group" aria-label={tr.drawings.tools}>
         {TOOLS.map((t) => (
           <button
             key={t}
