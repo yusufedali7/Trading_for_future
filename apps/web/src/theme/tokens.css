@@ -1178,3 +1178,57 @@ input[type='number'] {
   padding: 8px 10px;
   margin: 0;
 }
+
+/* --- M6.4: concept library --- */
+.concepts-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 260px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.concept-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.concept-item {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.concept-item:last-child {
+  border-bottom: 0;
+}
+
+.concept-item[aria-pressed='true'] {
+  background: var(--bg-panel);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.concept-card h4 {
+  margin: 8px 0 4px;
+  font-size: 13px;
+}
+
+.concept-card p,
+.concept-card ul {
+  margin: 4px 0;
+}
+
+@media (max-width: 820px) {
+  .concepts-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

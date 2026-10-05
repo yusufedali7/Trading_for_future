@@ -244,6 +244,16 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Paper oturumu:** Strateji versiyonu + broker veri kümesi + maliyetler; `startedAt`'ten sonra onaylanan kurulumlar, aynı motor (`runBacktest` + `keepOpenAtEnd`): açık işlem kapatılmaz, anlık R gösterilir. Durdurulunca o ana kadar değerlendirilir. `trw-research` v3 `paperSessions`.
 - **Gerçek doğrulama (2026-10-05):** Kullanıcı MetaQuotes-Demo hesabı açtı, `MetaTrader5` paketini kurdu, köprüyü çalıştırdı. `/status` demo hesabı doğru bildirdi (`server: MetaQuotes-Demo`, `mode: DEMO`); uygulamadan "Şimdi güncelle" ile gerçek 10.080 adet 1m mum çekildi (ilk senkron, 7 gün), sunucu saati farkı ölçüldü (**UTC+3:00**), ayrı `mt5:MetaQuotes-Demo:EURUSD` veri kümesi oluştu. Gerçek bir paper oturumu başlatmak, o enstrüman için kayıtlı bir strateji versiyonu gerektiriyor (henüz yok).
 
+## D40 — Kavram kütüphanesi
+- **Tarih:** 2026-10-05 · **Durum:** Kabul edildi (M6.4)
+- **Bağlam:** Kullanıcı yol haritasını sırayla bitirmek istiyor; ürünün eğitim ayağı. Plan `docs/PLAN-M6-4.md`.
+- **İçerik yeri:** Kavram metinleri `apps/web/src/content/concepts.ts` dosyasında: CLAUDE.md'deki ayrı "eğitim içeriği" alanı. Sayfa düğmeleri ve etiketleri `i18n/tr.ts`'de. Metinler `docs/definitions/*-v1.md` ile aynı tutulur.
+- **Örnekler gerçek veriden:** Grafikte seçili veri kümesi ve zaman diliminin `computeFeatures` çıktısı kullanılır (grafikle aynı adaylar). Veri yoksa örnek ve sayı gösterilmez (kural 1). "Grafikte göster" grafiği o ana götürür ve gerekli katmanı ya da seansı açar; açık replay işlemi varken kapalıdır.
+- **outcome-v1:** Aday onayından sonraki N (varsayılan 12) mum içinde, belirli bir fiyatın gerisine **kapanış** = "beklendiği gibi gitmedi". Fiyatlar: swing seviyesi, FVG'nin uzak kenarı, kırılan seviye, süpürme fitilinin ucu. N mum dolmadan sonuç "bekliyor" (ileriye bakma yok; kesme değişmezliği testi). Önceki gün/hafta seviyeleri ve seanslar için v1'de ölçüt yok.
+- **Dürüstlük:** Oran yalnızca "bu veride, bu zaman diliminde ölçülen sıklık" olarak sunulur; 30'dan az sonuçlanmış adayda uyarı. Ölçütün resmi bir ICT/SMC kuralı olmadığı ekranda yazar (kural 6).
+- **İlk gerçek gözlem (bilgi):** MT5 MetaQuotes-Demo EURUSD, 1m, 2026-09-24 → 2026-10-05, N = 12: 1.885 swing adayından 1.884'ü sonuçlandı, %43,3'ü beklendiği gibi gitmedi. Tek veri kümesi ve tek zaman dilimi; genelleme değil.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

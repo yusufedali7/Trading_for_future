@@ -1,6 +1,6 @@
 # PLAN — M6.4: Kavram kütüphanesi
 
-> Durum: kullanıcı 2026-10-05'te "kaldığımız adımdan devam, önce bitirelim" dedi; yol haritasında kalan iki adım kavram kütüphanesi ve AI araştırma asistanı. Bu taş kavram kütüphanesi. Karar `docs/DECISIONS.md` D40.
+> Durum: **tamamlandı (2026-10-05)**, görev 1–5. Kullanıcı 2026-10-05'te "kaldığımız adımdan devam, önce bitirelim" dedi; yol haritasında kalan iki adım kavram kütüphanesi ve AI araştırma asistanı. Bu taş kavram kütüphanesi. Karar `docs/DECISIONS.md` D40.
 
 ## Amaç
 Uygulamanın kullandığı her kavramı (swing, FVG, yapı kırılımı, likidite süpürmesi, önceki gün/hafta seviyeleri, seanslar) tek yerde öğretmek: ne olduğu, motorun tam tanımı, **gerçek veriden** örnekler, **gerçek veriden** "beklendiği gibi gitmeyen" örnekler ve sınırlar. Ürünün "eğitim" ayağının çekirdeği.

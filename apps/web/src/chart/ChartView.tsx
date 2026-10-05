@@ -166,6 +166,17 @@ export function ChartView(props: ChartViewProps) {
     // timeframe/times change together with candles; candles is the trigger.
   }, [candles]);
 
+  // An outside request to show a moment (after the data effect, so it wins on first load).
+  const focus = props.focus;
+  const focusedSeq = useRef<number | null>(null);
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!focus || !chart || times.length === 0 || focusedSeq.current === focus.seq) return;
+    focusedSeq.current = focus.seq;
+    const i = indexAtOrAfter(times, focus.at);
+    chart.timeScale().setVisibleLogicalRange({ from: i - 40, to: i + 40 });
+  }, [focus, times]);
+
   // Session boxes (engine layer). Hidden on daily/weekly charts where a session is narrower than a bar.
   const sessionStyles = props.sessionStyles;
   useEffect(() => {

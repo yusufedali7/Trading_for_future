@@ -417,3 +417,16 @@ Broker'ların MT5 sunucuları genelde kendi saat dilimlerini kullanır (çoğunl
 
 ### Broker fiyatı farkı
 Her broker'ın fiyatı biraz farklıdır (spread, kaynak). Bu yüzden Dukascopy verisiyle yapılan backtest ile MT5 verisindeki paper sonuçları birebir aynı çıkmaz; karşılaştırırken bunu akılda tut.
+
+---
+
+## M6.4'te eklenenler: kavram kütüphanesi
+
+### Kavram kütüphanesi
+Üst menüde "Kavramlar". Swing, FVG, yapı kırılımı, likidite süpürmesi, önceki gün/hafta seviyeleri ve seanslar için: ne oldukları, motorun tam tanımı, **yüklü gerçek veriden** örnekler ve sınırlar. "Grafikte göster" seni grafikte o ana götürür.
+
+### "Beklendiği gibi gitmedi" ölçütü (outcome-v1)
+Her kavram için yaygın bir beklenti vardır (ör. "dip destek olur"). Uygulama bunu tek, açık bir kuralla ölçer: aday onaylandıktan sonraki **N mum** içinde bir mum belirli bir fiyatın gerisinde **kapanırsa** "beklendiği gibi gitmedi", N mum boyunca kapanmazsa "tuttu" sayılır. N mum dolmadıysa "henüz belli değil". Bu bizim tanımımızdır; ICT/SMC'nin resmi bir kuralı yoktur.
+
+### Ölçülen sıklık ve olasılık farkı
+"Bu veride swing diplerinin %43'ü 12 mum içinde bozuldu" bir **ölçümdür**: belirli bir veri, zaman dilimi ve tanım için geçmişte ne olduğunu söyler. "Bu dip %57 ihtimalle tutar" ise bir **tahmindir**; uygulama bunu söylemez. Az sayıda örnekle ölçülen oranlar (30'dan az) özellikle güvenilmezdir.

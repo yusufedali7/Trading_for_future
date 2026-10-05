@@ -45,6 +45,7 @@ import {
 } from './storage/strategy-repo';
 import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
+import { ConceptsPage, type ShowTarget } from './features/concepts/ConceptsPage';
 import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
 import { useMt5Feed } from './features/paper/use-mt5-feed';
@@ -76,8 +77,8 @@ export interface AppProps {
   newId?: () => string;
 }
 
-type View = 'CHART' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER';
-const VIEWS: readonly View[] = ['CHART', 'JOURNAL', 'STRATEGY', 'RESEARCH', 'PAPER'];
+type View = 'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER';
+const VIEWS: readonly View[] = ['CHART', 'CONCEPTS', 'JOURNAL', 'STRATEGY', 'RESEARCH', 'PAPER'];
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
@@ -106,6 +107,8 @@ export function App({
   const [tool, setTool] = useState<Tool>('SELECT');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<View>('CHART');
+  // Concept library: a moment to bring into view on the chart.
+  const [focus, setFocus] = useState<{ at: number; seq: number } | null>(null);
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
   const [researchRepo] = useState(() => givenResearch ?? createMemoryResearchRepo());
   const [sessionsRepo] = useState(() => givenSessions ?? createMemorySessionsRepo());
@@ -278,6 +281,19 @@ export function App({
     void prefs.save(patch);
   };
 
+  const showConcept = (target: ShowTarget) => {
+    if (!settings || trading.busy) return;
+    if (inReplay) replay.exit();
+    const patch: Partial<Prefs> = {};
+    if (target.layer && !settings.features.includes(target.layer))
+      patch.features = [...settings.features, target.layer];
+    if (target.sessionId && !settings.sessions.includes(target.sessionId))
+      patch.sessions = [...settings.sessions, target.sessionId];
+    if (Object.keys(patch).length > 0) update(patch);
+    setView('CHART');
+    setFocus((f) => ({ at: target.at, seq: (f?.seq ?? 0) + 1 }));
+  };
+
   const onSaved = async (meta: DataSetMeta) => {
     setImporting(false);
     await prefs.save({ datasetId: meta.id });
@@ -414,6 +430,18 @@ export function App({
             sessionNames={sessionNames}
           />
         )}
+        {view === 'CONCEPTS' && settings && (
+          <ConceptsPage
+            data={active && instrument ? data : null}
+            meta={active}
+            instrument={instrument}
+            timeframe={data?.tf ?? timeframe}
+            displayTz={settings.displayTz}
+            sessionNames={sessionNames}
+            canShow={!trading.busy}
+            onShow={showConcept}
+          />
+        )}
         {view === 'PAPER' && settings && (
           <PaperPage
             research={researchRepo}
@@ -501,6 +529,7 @@ export function App({
                   setups={setupMarks}
                   tradeLines={tradeLines}
                   screenshotRef={screenshotRef}
+                  focus={focus}
                   drawings={visibleDrawings}
                   levels={store.levels}
                   selectedId={selectedId}

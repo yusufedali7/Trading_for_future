@@ -5,6 +5,7 @@ import type {
   ResampledCandle,
   SessionLevels,
   Timeframe,
+  UtcMs,
 } from '@trw/engine';
 import type { FeatureLayer } from './primitives/feature-layout';
 import type { MutableRefObject } from 'react';
@@ -33,6 +34,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   featureLayers?: readonly FeatureLayer[];
   /** Filled by the chart with a function that captures it as an image (for the journal). */
   screenshotRef?: MutableRefObject<ChartScreenshot | null>;
+  /** Bring this time into view; a new `seq` repeats the jump (concept library examples). */
+  focus?: { at: UtcMs; seq: number } | null;
 }
 
 export type ChartScreenshot = () => Promise<{ mime: string; data: ArrayBuffer } | null>;

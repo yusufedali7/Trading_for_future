@@ -1,0 +1,114 @@
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { seriesFromRows, type DataSetMeta } from '@trw/engine';
+import { App } from '../src/App';
+import type { ChartViewProps } from '../src/chart/types';
+import { createInProcessCandleSource } from '../src/compute/candle-source';
+import { CONCEPTS } from '../src/content/concepts';
+import { createInProcessImporter } from '../src/import/importer';
+import { createMemoryPrefsRepo } from '../src/storage/db-user';
+import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
+import { createMemoryJournalRepo } from '../src/storage/journal-repo';
+import { createMemoryRepo } from '../src/storage/memory-repo';
+
+// SYNTHETIC: six hours of wave-shaped 1m bars from Tue 2026-01-06 18:00Z (2-hour cycle).
+const rows = Array.from({ length: 360 }, (_, i) => {
+  const mid = 1.1 + 0.002 * Math.sin((2 * Math.PI * i) / 120) + ((i * 13) % 7) / 100_000;
+  return {
+    t: Date.parse('2026-01-06T18:00:00Z') + i * 60_000,
+    o: mid,
+    h: Math.round((mid + 0.0004) * 1e5) / 1e5,
+    l: Math.round((mid - 0.0004) * 1e5) / 1e5,
+    c: Math.round((mid + 0.0001) * 1e5) / 1e5,
+  };
+});
+
+let latest: ChartViewProps | null = null;
+function FakeChart(p: ChartViewProps) {
+  latest = p;
+  return <span data-testid="count">{p.candles.length}</span>;
+}
+
+async function setup(withData: boolean) {
+  const repo = createMemoryRepo();
+  if (withData) {
+    const series = seriesFromRows(rows, false);
+    await repo.saveDataset(
+      {
+        id: 'ds',
+        instrument: 'EURUSD',
+        baseTimeframe: '1m',
+        contentHash: series.contentHash,
+        source: { name: 'SYNTHETIC', importedAt: 1 },
+        range: { from: rows[0]!.t, to: rows[rows.length - 1]!.t },
+      } as DataSetMeta,
+      series,
+    );
+  }
+  const prefs = createMemoryPrefsRepo();
+  render(
+    <App
+      repo={repo}
+      prefs={prefs}
+      drawingsRepo={createMemoryDrawingsRepo()}
+      journalRepo={createMemoryJournalRepo()}
+      createImporter={createInProcessImporter}
+      candleSource={createInProcessCandleSource(repo)}
+      ChartComponent={FakeChart}
+    />,
+  );
+  if (withData) await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  fireEvent.click(await screen.findByRole('button', { name: 'Kavramlar' }));
+  return { prefs };
+}
+
+const card = (name: string) => within(screen.getByRole('article', { name }));
+
+describe('concept library', () => {
+  it('teaches every engine concept, but shows no examples without real data', async () => {
+    await setup(false);
+    const list = within(screen.getByRole('navigation', { name: 'Kavramlar' }));
+    expect(list.getAllByRole('button')).toHaveLength(CONCEPTS.length);
+    const swing = card('Swing (tepe / dip)');
+    expect(swing.getByText(/Sağındaki 3 mum kapanınca bilinir/)).toBeTruthy();
+    expect(swing.getByText(/Veri yok/)).toBeTruthy();
+    expect(swing.queryByRole('button', { name: 'Grafikte göster' })).toBeNull();
+  });
+
+  it('counts candidates in the loaded data, measures them and jumps to one on the chart', async () => {
+    await setup(true);
+    const swings = latest!.features!.swings;
+    expect(swings.length).toBeGreaterThan(0);
+
+    const swing = card('Swing (tepe / dip)');
+    expect(swing.getByText(`Bu veride ${swings.length} aday.`)).toBeTruthy();
+    expect(swing.getByText(/EURUSD · SYNTHETIC · 15m/)).toBeTruthy();
+    expect(swing.getByRole('status').textContent).toMatch(/Sonuçlanan \d+ aday|Henüz sonuçlanan/);
+    expect(swing.getByText(/olasılık değildir/)).toBeTruthy();
+
+    // A shorter window decides more candidates.
+    fireEvent.change(swing.getByLabelText('Kaç mum içinde (N)'), { target: { value: '1' } });
+    expect(swing.getByRole('status').textContent).toMatch(/Sonuçlanan \d+ aday/);
+
+    const examples = within(swing.getByRole('group', { name: 'Örnekler' }));
+    fireEvent.click(examples.getByRole('button', { name: 'Grafikte göster' }));
+    await vi.waitFor(() => expect(latest!.focus).toEqual({ at: swings.at(-1)!.formedAt, seq: 1 }));
+    expect(screen.queryByRole('article')).toBeNull();
+  });
+
+  it('turns on the layer of the concept it shows', async () => {
+    const { prefs } = await setup(true);
+    expect(latest!.featureLayers).not.toContain('FVG');
+    fireEvent.click(screen.getByRole('button', { name: /^FVG \(fair value gap\)/ }));
+    const fvg = card('FVG (fair value gap)');
+    const n = latest!.features!.fvgs.length;
+    expect(n).toBeGreaterThan(0);
+    fireEvent.click(
+      within(fvg.getByRole('group', { name: 'Örnekler' })).getByRole('button', {
+        name: 'Grafikte göster',
+      }),
+    );
+    await vi.waitFor(() => expect(latest!.featureLayers).toContain('FVG'));
+    await vi.waitFor(async () => expect((await prefs.load()).features).toContain('FVG'));
+  });
+});
