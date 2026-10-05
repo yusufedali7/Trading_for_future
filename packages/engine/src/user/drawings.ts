@@ -9,17 +9,54 @@ export interface Anchor {
 }
 
 export type DrawingKind =
-  'HLINE' | 'TRENDLINE' | 'RECT' | 'PRICE_RANGE' | 'POSITION_LONG' | 'POSITION_SHORT';
+  | 'HLINE'
+  | 'HRAY'
+  | 'VLINE'
+  | 'CROSSLINE'
+  | 'TRENDLINE'
+  | 'RAY'
+  | 'EXTENDED_LINE'
+  | 'CHANNEL'
+  | 'FIB_RETRACEMENT'
+  | 'FIB_EXTENSION'
+  | 'RECT'
+  | 'ELLIPSE'
+  | 'ARROW'
+  | 'TEXT'
+  | 'ARROW_UP'
+  | 'ARROW_DOWN'
+  | 'PRICE_RANGE'
+  | 'DATE_RANGE'
+  | 'DATE_PRICE_RANGE'
+  | 'POSITION_LONG'
+  | 'POSITION_SHORT';
 
 /**
- * Anchors per tool. Positions: [entry (start time), stop (end time), target (end time)].
- * HLINE uses only the price; its time marks where it was drawn.
+ * Anchors per tool. HLINE uses only the price, VLINE only the time; their other value marks
+ * where they were drawn. CHANNEL: two points of the base line + one point on the parallel line.
+ * FIB_EXTENSION: the move (two points) + the point it is projected from.
+ * Positions: [entry (start time), stop (end time), target (end time)].
  */
 export const ANCHOR_COUNT: Record<DrawingKind, number> = {
   HLINE: 1,
+  HRAY: 1,
+  VLINE: 1,
+  CROSSLINE: 1,
   TRENDLINE: 2,
+  RAY: 2,
+  EXTENDED_LINE: 2,
+  CHANNEL: 3,
+  FIB_RETRACEMENT: 2,
+  FIB_EXTENSION: 3,
   RECT: 2,
+  ELLIPSE: 2,
+  ARROW: 2,
+  TEXT: 1,
+  ARROW_UP: 1,
+  ARROW_DOWN: 1,
   PRICE_RANGE: 2,
+  DATE_RANGE: 2,
+  DATE_PRICE_RANGE: 2,
   POSITION_LONG: 3,
   POSITION_SHORT: 3,
 };
@@ -33,6 +70,8 @@ export interface Drawing {
   createdOnTimeframe: Timeframe;
   anchors: Anchor[];
   style: { color?: string };
+  /** Shown on the chart (TEXT tool). */
+  text?: string;
   note?: string;
   locked: boolean;
   hidden: boolean;
@@ -60,7 +99,7 @@ export interface SupportResistanceLevel {
   updatedAt: UtcMs;
 }
 
-export type DrawingProblem = 'NOT_USER' | 'ANCHOR_COUNT' | 'NON_FINITE';
+export type DrawingProblem = 'NOT_USER' | 'ANCHOR_COUNT' | 'NON_FINITE' | 'NO_TEXT';
 
 export function validateDrawing(d: Drawing): DrawingProblem[] {
   const problems: DrawingProblem[] = [];
@@ -69,7 +108,39 @@ export function validateDrawing(d: Drawing): DrawingProblem[] {
   if (d.anchors.some((a) => !Number.isFinite(a.t) || !Number.isFinite(a.p))) {
     problems.push('NON_FINITE');
   }
+  if (d.kind === 'TEXT' && !d.text?.trim()) problems.push('NO_TEXT');
   return problems;
+}
+
+/** Our default levels (D41); not verified to equal TradingView's defaults. */
+export const FIB_RETRACEMENT_LEVELS = [0, 0.236, 0.382, 0.5, 0.618, 0.786, 1];
+export const FIB_EXTENSION_LEVELS = [0, 0.618, 1, 1.272, 1.618, 2, 2.618];
+
+/**
+ * Fibonacci prices. Retracement (A → B): level 0 at B, 1 at A, price = B − (B − A) × level.
+ * Trend-based extension (A → B, then C): price = C + (B − A) × level.
+ * Prices are rounded to the instrument's tick; with no instrument (pixel geometry) they are not.
+ */
+export function fibLevels(
+  inst: Instrument | null,
+  kind: 'FIB_RETRACEMENT' | 'FIB_EXTENSION',
+  anchors: readonly Anchor[],
+): { level: number; price: number }[] {
+  const [a, b, c] = anchors;
+  if (!a || !b) return [];
+  const move = b.p - a.p;
+  const tick = (p: number) => (inst ? roundToTick(inst, p) : p);
+  if (kind === 'FIB_RETRACEMENT') {
+    return FIB_RETRACEMENT_LEVELS.map((level) => ({
+      level,
+      price: tick(b.p - move * level),
+    }));
+  }
+  if (!c) return [];
+  return FIB_EXTENSION_LEVELS.map((level) => ({
+    level,
+    price: tick(c.p + move * level),
+  }));
 }
 
 /** What the price-range tool shows between two anchors (b relative to a). */

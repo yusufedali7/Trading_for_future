@@ -2,7 +2,10 @@
 import { getInstrument } from '../src/instruments/registry';
 import {
   ANCHOR_COUNT,
+  FIB_EXTENSION_LEVELS,
+  FIB_RETRACEMENT_LEVELS,
   defaultPosition,
+  fibLevels,
   positionStats,
   priceRangeStats,
   setLevelStatus,
@@ -35,12 +38,50 @@ describe('anchor counts', () => {
   it('defines how many anchors each tool uses', () => {
     expect(ANCHOR_COUNT).toEqual({
       HLINE: 1,
+      HRAY: 1,
+      VLINE: 1,
+      CROSSLINE: 1,
       TRENDLINE: 2,
+      RAY: 2,
+      EXTENDED_LINE: 2,
+      CHANNEL: 3,
+      FIB_RETRACEMENT: 2,
+      FIB_EXTENSION: 3,
       RECT: 2,
+      ELLIPSE: 2,
+      ARROW: 2,
+      TEXT: 1,
+      ARROW_UP: 1,
+      ARROW_DOWN: 1,
       PRICE_RANGE: 2,
+      DATE_RANGE: 2,
+      DATE_PRICE_RANGE: 2,
       POSITION_LONG: 3,
       POSITION_SHORT: 3,
     });
+  });
+});
+
+describe('fibonacci levels (our defaults, D41)', () => {
+  const a = { t: t('2026-01-06T10:00:00Z'), p: 1.08 };
+  const b = { t: t('2026-01-06T12:00:00Z'), p: 1.09 };
+
+  it('retracement: 0 at the second point, 1 at the first, prices on the tick grid', () => {
+    const levels = fibLevels(eurusd, 'FIB_RETRACEMENT', [a, b]);
+    expect(levels.map((l) => l.level)).toEqual(FIB_RETRACEMENT_LEVELS);
+    expect(levels.find((l) => l.level === 0)!.price).toBe(1.09);
+    expect(levels.find((l) => l.level === 1)!.price).toBe(1.08);
+    expect(levels.find((l) => l.level === 0.5)!.price).toBe(1.085);
+    expect(levels.find((l) => l.level === 0.618)!.price).toBe(1.08382);
+  });
+
+  it('trend-based extension projects the first move from the third point', () => {
+    const c = { t: t('2026-01-06T13:00:00Z'), p: 1.086 };
+    const levels = fibLevels(eurusd, 'FIB_EXTENSION', [a, b, c]);
+    expect(levels.map((l) => l.level)).toEqual(FIB_EXTENSION_LEVELS);
+    expect(levels.find((l) => l.level === 0)!.price).toBe(1.086);
+    expect(levels.find((l) => l.level === 1)!.price).toBe(1.096);
+    expect(levels.find((l) => l.level === 1.618)!.price).toBe(1.10218);
   });
 });
 
@@ -51,6 +92,13 @@ describe('validateDrawing', () => {
       { t: t('2026-01-06T12:00:00Z'), p: 1.087 },
     ]);
     expect(validateDrawing(d)).toEqual([]);
+  });
+
+  it('a text drawing needs some text', () => {
+    const d = drawing('TEXT', [{ t: t('2026-01-06T10:00:00Z'), p: 1.085 }]);
+    expect(validateDrawing(d)).toEqual(['NO_TEXT']);
+    expect(validateDrawing({ ...d, text: '  ' })).toEqual(['NO_TEXT']);
+    expect(validateDrawing({ ...d, text: 'Londra açılışı' })).toEqual([]);
   });
 
   it('rejects the wrong number of anchors and non-finite values', () => {

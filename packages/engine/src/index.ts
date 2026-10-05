@@ -53,7 +53,10 @@ export { sessionLevels } from './session/levels';
 export type { SessionLevels } from './session/levels';
 export {
   ANCHOR_COUNT,
+  FIB_EXTENSION_LEVELS,
+  FIB_RETRACEMENT_LEVELS,
   defaultPosition,
+  fibLevels,
   positionStats,
   priceRangeStats,
   setLevelStatus,

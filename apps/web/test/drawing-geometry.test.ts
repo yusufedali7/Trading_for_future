@@ -118,3 +118,83 @@ describe('handles', () => {
     expect(hitTestHandle(trend, { x: 200, y: 200 }, map)).toBeNull();
   });
 });
+
+describe('M7 tools', () => {
+  it('a ray runs from the first point through the second to the right edge', () => {
+    const ray = d('ray', 'RAY', [
+      { t: 100_000, p: 1.9 }, // (100, 100)
+      { t: 200_000, p: 1.8 }, // (200, 200)
+    ]);
+    expect(shapeOf(ray, map)).toEqual({ type: 'segment', x1: 100, y1: 100, x2: 800, y2: 800 });
+    expect(hitTestDrawings([ray], { x: 600, y: 602 }, map)).toBe('ray');
+    expect(hitTestDrawings([ray], { x: 50, y: 50 }, map)).toBeNull();
+  });
+
+  it('an extended line reaches both edges', () => {
+    const ext = d('e', 'EXTENDED_LINE', [
+      { t: 100_000, p: 1.9 },
+      { t: 200_000, p: 1.8 },
+    ]);
+    expect(shapeOf(ext, map)).toEqual({ type: 'segment', x1: 0, y1: 0, x2: 800, y2: 800 });
+    expect(hitTestDrawings([ext], { x: 50, y: 51 }, map)).toBe('e');
+  });
+
+  it('vertical line, horizontal ray and cross line hit along their own axes', () => {
+    const v = d('v', 'VLINE', [{ t: 300_000, p: 1.5 }]);
+    const r = d('r', 'HRAY', [{ t: 300_000, p: 1.5 }]);
+    const c = d('c', 'CROSSLINE', [{ t: 300_000, p: 1.5 }]);
+    expect(hitTestDrawings([v], { x: 303, y: 10 }, map)).toBe('v');
+    expect(hitTestDrawings([r], { x: 700, y: 502 }, map)).toBe('r');
+    expect(hitTestDrawings([r], { x: 200, y: 500 }, map)).toBeNull();
+    expect(hitTestDrawings([c], { x: 300, y: 10 }, map)).toBe('c');
+    expect(hitTestDrawings([c], { x: 10, y: 500 }, map)).toBe('c');
+  });
+
+  it('a parallel channel goes through the third point and hits between its lines', () => {
+    const ch = d('ch', 'CHANNEL', [
+      { t: 100_000, p: 1.9 }, // (100, 100)
+      { t: 300_000, p: 1.7 }, // (300, 300)
+      { t: 200_000, p: 1.75 }, // (200, 250): base line is at y 200 there → offset +50
+    ]);
+    expect(shapeOf(ch, map)).toEqual({
+      type: 'channel',
+      a: { x1: 100, y1: 100, x2: 300, y2: 300 },
+      b: { x1: 100, y1: 150, x2: 300, y2: 350 },
+    });
+    expect(hitTestDrawings([ch], { x: 200, y: 225 }, map)).toBe('ch');
+    expect(hitTestDrawings([ch], { x: 200, y: 280 }, map)).toBeNull();
+  });
+
+  it('fibonacci levels span the two points; a three-point tool shows its base line first', () => {
+    const fib = d('f', 'FIB_RETRACEMENT', [
+      { t: 100_000, p: 1.8 }, // (100, 200)
+      { t: 300_000, p: 1.9 }, // (300, 100)
+    ]);
+    const s = shapeOf(fib, map)!;
+    expect(s.type).toBe('fib');
+    if (s.type !== 'fib') return;
+    expect([s.x1, s.x2]).toEqual([100, 300]);
+    expect(s.levels.find((l) => l.level === 0)!.y).toBe(100);
+    expect(s.levels.find((l) => l.level === 1)!.y).toBe(200);
+    expect(hitTestDrawings([fib], { x: 200, y: 150 }, map)).toBe('f');
+    const ext = d('x', 'FIB_EXTENSION', fib.anchors);
+    expect(shapeOf(ext, map)!.type).toBe('segment');
+  });
+
+  it('an ellipse is hit inside but not in the corner of its box', () => {
+    const el = d('el', 'ELLIPSE', [
+      { t: 100_000, p: 1.9 },
+      { t: 300_000, p: 1.7 },
+    ]);
+    expect(hitTestDrawings([el], { x: 200, y: 200 }, map)).toBe('el');
+    expect(hitTestDrawings([el], { x: 105, y: 105 }, map)).toBeNull();
+  });
+
+  it('text is hit over its label and arrow markers near their tip', () => {
+    const text = { ...d('tx', 'TEXT', [{ t: 100_000, p: 1.5 }]), text: 'Londra' };
+    expect(hitTestDrawings([text], { x: 130, y: 503 }, map)).toBe('tx');
+    expect(hitTestDrawings([text], { x: 300, y: 500 }, map)).toBeNull();
+    const up = d('u', 'ARROW_UP', [{ t: 100_000, p: 1.5 }]);
+    expect(hitTestDrawings([up], { x: 102, y: 508 }, map)).toBe('u');
+  });
+});

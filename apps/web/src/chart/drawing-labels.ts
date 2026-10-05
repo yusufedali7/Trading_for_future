@@ -37,6 +37,11 @@ export function priceRangeLabel(inst: Instrument, a: Anchor, b: Anchor): string 
   return `${signed(s.pips, 1)} pip · ${signed(s.percent, 2)}% · ${formatDuration(s.durationMs)}`;
 }
 
+export function dateRangeLabel(bars: number | null, a: Anchor, b: Anchor): string {
+  const duration = formatDuration(Math.abs(b.t - a.t));
+  return bars === null ? duration : `${tr.drawings.bars(bars)} · ${duration}`;
+}
+
 export function positionLabels(
   inst: Instrument,
   kind: 'POSITION_LONG' | 'POSITION_SHORT',

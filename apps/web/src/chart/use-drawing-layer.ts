@@ -1,6 +1,7 @@
 ﻿import { useEffect, useRef, type RefObject } from 'react';
 import type { IChartApi, ISeriesApi } from 'lightweight-charts';
 import {
+  ANCHOR_COUNT,
   defaultPosition,
   roundToTick,
   timeframeMs,
@@ -17,28 +18,51 @@ import { logicalToX, timeScaleAdapter, xToLogical } from './lwc-coords';
 import { isClick, isInPane } from './pointer-click';
 import { DrawingsPrimitive } from './primitives/drawings';
 
-export type Tool = 'SELECT' | DrawingKind;
+export type Tool = 'SELECT' | 'ERASER' | DrawingKind;
 
 export interface DrawingLayerProps {
   drawings: readonly Drawing[];
   levels: readonly SupportResistanceLevel[];
   selectedId: string | null;
   tool: Tool;
+  /** Snap new and moved anchors to the nearest open/high/low/close of the bar under the pointer. */
+  magnet?: boolean;
   onDrawn: (kind: DrawingKind, anchors: Anchor[]) => void;
   onSelect: (id: string | null) => void;
   onChange: (d: Drawing) => void;
+  /** Eraser tool: the drawing that was clicked. */
+  onErase?: (id: string) => void;
 }
 
 interface Inputs extends DrawingLayerProps {
   times: number[];
+  candles: readonly { t: number; o: number; h: number; l: number; c: number }[];
   timeframe: Timeframe;
   instrument: Instrument;
+}
+
+/** While a three-point tool has only its first point, the preview is the base line. */
+function previewKind(kind: DrawingKind, placed: number): DrawingKind {
+  return placed + 1 < ANCHOR_COUNT[kind] ? 'TRENDLINE' : kind;
+}
+
+/** Index of the first time >= t (times ascending). */
+function lowerBound(times: readonly number[], t: number): number {
+  let lo = 0;
+  let hi = times.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (times[mid]! < t) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
 }
 
 /** Moves one handle; positions keep stop and target on the same end time. */
 export function moveAnchor(d: Drawing, index: number, to: Anchor): Drawing {
   const anchors = d.anchors.map((a) => ({ ...a }));
   if (d.kind === 'HLINE') anchors[0] = { t: anchors[0]!.t, p: to.p };
+  else if (d.kind === 'VLINE') anchors[0] = { t: to.t, p: anchors[0]!.p };
   else if ((d.kind === 'POSITION_LONG' || d.kind === 'POSITION_SHORT') && index > 0) {
     anchors[index] = { t: to.t, p: to.p };
     anchors[index === 1 ? 2 : 1]!.t = to.t;
@@ -59,7 +83,7 @@ export function useDrawingLayer(
   const primitiveRef = useRef<DrawingsPrimitive | null>(null);
   const latest = useRef(inputs);
   latest.current = inputs;
-  const pendingRef = useRef<Anchor | null>(null);
+  const pendingRef = useRef<Anchor[]>([]);
   const previewRef = useRef<Drawing | null>(null);
   const draftRef = useRef<Drawing | null>(null);
 
@@ -75,6 +99,7 @@ export function useDrawingLayer(
       x: (t) => logicalToX(adapter, timeToPosition(times, tfMs, t)),
       y: (p) => series.priceToCoordinate(p),
       width: ts.width(),
+      bars: (a, b) => lowerBound(times, Math.max(a, b)) - lowerBound(times, Math.min(a, b)),
     };
   };
 
@@ -82,10 +107,24 @@ export function useDrawingLayer(
     const chart = chartRef.current;
     const series = seriesRef.current;
     if (!chart || !series) return null;
-    const { times, timeframe, instrument } = latest.current;
+    const { times, timeframe, instrument, magnet, candles } = latest.current;
     const price = series.coordinateToPrice(pt.y);
     const logical = xToLogical(timeScaleAdapter(chart.timeScale()), pt.x);
     if (price === null || logical === null || times.length === 0) return null;
+    const bar = magnet ? candles[Math.round(logical)] : undefined;
+    if (bar) {
+      // Closest of the bar's four prices, in pixels.
+      let best = bar.c;
+      let bestDist = Infinity;
+      for (const v of [bar.o, bar.h, bar.l, bar.c]) {
+        const y = series.priceToCoordinate(v);
+        if (y !== null && Math.abs(y - pt.y) < bestDist) {
+          best = v;
+          bestDist = Math.abs(y - pt.y);
+        }
+      }
+      return { t: bar.t, p: roundToTick(instrument, best) };
+    }
     return {
       t: positionToTime(times, timeframeMs(timeframe), logical),
       p: roundToTick(instrument, price),
@@ -125,7 +164,7 @@ export function useDrawingLayer(
   useEffect(() => {
     if (toolRef.current !== inputs.tool) {
       toolRef.current = inputs.tool;
-      pendingRef.current = null;
+      pendingRef.current = [];
       previewRef.current = null;
     }
     render();
@@ -150,25 +189,28 @@ export function useDrawingLayer(
 
     const handleClick = (pt: Point) => {
       const s = latest.current;
-      if (s.tool === 'SELECT') {
+      if (s.tool === 'SELECT' || s.tool === 'ERASER') {
         const m = mapper();
-        s.onSelect(m ? hitTestDrawings(s.drawings, pt, m) : null);
+        const id = m ? hitTestDrawings(s.drawings, pt, m) : null;
+        if (s.tool === 'SELECT') s.onSelect(id);
+        else if (id) s.onErase?.(id);
         return;
       }
       const a = anchorAt(pt);
       if (!a) return;
       const kind = s.tool;
-      if (kind === 'HLINE') s.onDrawn(kind, [a]);
-      else if (kind === 'POSITION_LONG' || kind === 'POSITION_SHORT') {
+      if (kind === 'POSITION_LONG' || kind === 'POSITION_SHORT') {
         s.onDrawn(kind, defaultPosition(s.instrument, kind, a, timeframeMs(s.timeframe)));
-      } else if (!pendingRef.current) {
-        pendingRef.current = a;
-      } else {
-        const first = pendingRef.current;
-        pendingRef.current = null;
-        previewRef.current = null;
-        s.onDrawn(kind, [first, a]);
+        return;
       }
+      const placed = [...pendingRef.current, a];
+      if (placed.length < ANCHOR_COUNT[kind]) {
+        pendingRef.current = placed;
+        return;
+      }
+      pendingRef.current = [];
+      previewRef.current = null;
+      s.onDrawn(kind, placed);
     };
 
     const onDown = (e: PointerEvent) => {
@@ -203,18 +245,19 @@ export function useDrawingLayer(
         render();
         return;
       }
-      const first = pendingRef.current;
+      const placed = pendingRef.current;
       const s = latest.current;
-      if (!first || s.tool === 'SELECT' || !isInPane(pt, pane())) return;
+      if (placed.length === 0 || s.tool === 'SELECT' || s.tool === 'ERASER') return;
+      if (!isInPane(pt, pane())) return;
       const b = anchorAt(pt);
       if (!b) return;
       previewRef.current = {
         id: '__preview__',
         source: 'USER',
-        kind: s.tool,
+        kind: previewKind(s.tool, placed.length),
         instrument: s.instrument.symbol,
         createdOnTimeframe: s.timeframe,
-        anchors: [first, b],
+        anchors: [...placed, b],
         style: {},
         locked: false,
         hidden: false,
