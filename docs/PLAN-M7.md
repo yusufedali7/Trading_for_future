@@ -1,6 +1,6 @@
 # PLAN — M7: TradingView tarzı çizim araç takımı
 
-> Durum: kullanıcı 2026-10-05'te istedi ("TradingView'deki sol taraftaki çizim araç takımını getir; sonra indikatörler"). M7.1 bu oturumda. Karar `docs/DECISIONS.md` D41.
+> Durum: **M7.1 tamamlandı (2026-10-05)**, görev 1–7. Kullanıcı 2026-10-05'te istedi ("TradingView'deki sol taraftaki çizim araç takımını getir; sonra indikatörler"). M7.1 bu oturumda. Karar `docs/DECISIONS.md` D41.
 
 ## Neden kendimiz yazıyoruz
 TradingView'in hazır çizim araç çubuğu yalnızca lisanslı "Advanced Charts" kütüphanesinde var; kişisel projelere verilmiyor (D1). Kullandığımız Lightweight Charts'ta hazır çizim aracı yok. Bu yüzden aynı düzeni (sol dikey şerit, gruplar, açılır listeler, alttaki yardımcı düğmeler) ve araçları kendi çizim katmanımızda yazıyoruz. Araç listesi TradingView'in resmi listesinden alındı: [Drawing tools available on TradingView](https://www.tradingview.com/support/solutions/43000703396-drawing-tools-available-on-tradingview/).

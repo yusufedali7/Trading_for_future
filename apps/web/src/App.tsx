@@ -105,6 +105,11 @@ export function App({
   const [data, setData] = useState<(ChartData & { tf: Timeframe }) | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tool, setTool] = useState<Tool>('SELECT');
+  // Drawing toolbar switches (this session only).
+  const [magnet, setMagnet] = useState(false);
+  const [keepDrawing, setKeepDrawing] = useState(false);
+  const [lockAll, setLockAll] = useState(false);
+  const [hideAll, setHideAll] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<View>('CHART');
   // Concept library: a moment to bring into view on the chart.
@@ -196,9 +201,14 @@ export function App({
   // In replay the chart only gets data as known at the cursor (rule 3).
   const chartData = inReplay ? replay.view : data;
   // Drawings placed after the cursor would leak hindsight into the replay: hide them.
-  const visibleDrawings = inReplay
-    ? store.drawings.filter((d) => Math.min(...d.anchors.map((a) => a.t)) < replay.cursor!)
-    : store.drawings;
+  const shownDrawings = hideAll
+    ? []
+    : inReplay
+      ? store.drawings.filter((d) => Math.min(...d.anchors.map((a) => a.t)) < replay.cursor!)
+      : store.drawings;
+  const visibleDrawings = lockAll
+    ? shownDrawings.map((d) => ({ ...d, locked: true }))
+    : shownDrawings;
 
   const trading = useReplayTrade({
     source: candleSource,
@@ -264,6 +274,10 @@ export function App({
       } else if (inReplay && e.key === ' ') {
         e.preventDefault();
         replay.togglePlay();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z' || e.key === 'y')) {
+        e.preventDefault();
+        if (e.key === 'y' || e.shiftKey) void store.redo();
+        else void store.undo();
       } else if ((e.key === 'Delete' || e.key === 'Backspace') && selectedId) {
         void store.deleteDrawing(selectedId);
         setSelectedId(null);
@@ -335,6 +349,7 @@ export function App({
         createdOnTimeframe: timeframe,
         anchors,
         style: {},
+        ...(kind === 'TEXT' ? { text: tr.drawings.defaultText } : {}),
         locked: false,
         hidden: false,
         createdAt: at,
@@ -343,7 +358,12 @@ export function App({
       true,
     );
     setSelectedId(id);
-    setTool('SELECT');
+    if (!keepDrawing) setTool('SELECT');
+  };
+
+  const eraseDrawing = (id: string) => {
+    void store.deleteDrawing(id);
+    if (selectedId === id) setSelectedId(null);
   };
 
   const lastClose = chartData?.candles[chartData.candles.length - 1]?.c ?? null;
@@ -482,6 +502,7 @@ export function App({
         {view === 'CHART' && active && settings && data && instrument && (
           <>
             <div className="tool-row">
+              <span className="hint tool-hint">{tr.drawings.hints[tool]}</span>
               {shownStrategy && (
                 <div className="strategy-badge" role="status">
                   <span>
@@ -511,7 +532,33 @@ export function App({
               />
             </div>
             <div className="workspace">
-              <DrawingTools tool={tool} onTool={setTool} />
+              <DrawingTools
+                tool={tool}
+                onTool={(t) => {
+                  setTool(t);
+                  if (t !== 'SELECT') setSelectedId(null);
+                }}
+                magnet={magnet}
+                onMagnet={() => setMagnet((x) => !x)}
+                keep={keepDrawing}
+                onKeep={() => setKeepDrawing((x) => !x)}
+                lockAll={lockAll}
+                onLockAll={() => setLockAll((x) => !x)}
+                hideAll={hideAll}
+                onHideAll={() => {
+                  setHideAll((x) => !x);
+                  setSelectedId(null);
+                }}
+                count={store.drawings.length}
+                onRemoveAll={() => {
+                  setSelectedId(null);
+                  void store.deleteDrawings(store.drawings.map((d) => d.id));
+                }}
+                canUndo={store.canUndo}
+                onUndo={() => void store.undo()}
+                canRedo={store.canRedo}
+                onRedo={() => void store.redo()}
+              />
               {chartData ? (
                 <ChartComponent
                   sessionStyles={sessionStyles}
@@ -536,6 +583,8 @@ export function App({
                   tool={tool}
                   onDrawn={onDrawn}
                   onSelect={setSelectedId}
+                  magnet={magnet}
+                  onErase={eraseDrawing}
                   onChange={(d) => void store.saveDrawing(d)}
                 />
               ) : (

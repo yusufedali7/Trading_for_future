@@ -430,3 +430,31 @@ Her kavram için yaygın bir beklenti vardır (ör. "dip destek olur"). Uygulama
 
 ### Ölçülen sıklık ve olasılık farkı
 "Bu veride swing diplerinin %43'ü 12 mum içinde bozuldu" bir **ölçümdür**: belirli bir veri, zaman dilimi ve tanım için geçmişte ne olduğunu söyler. "Bu dip %57 ihtimalle tutar" ise bir **tahmindir**; uygulama bunu söylemez. Az sayıda örnekle ölçülen oranlar (30'dan az) özellikle güvenilmezdir.
+
+---
+
+## M7.1'de eklenenler: çizim araçları
+
+### Işın ve uzatılmış çizgi
+**Trend çizgisi** iki nokta arasında kalır. **Işın** ikinci noktadan sonra sonsuza uzar; **uzatılmış çizgi** iki yöne de uzar. Eğimli bir destek/direncin ileride nereye denk geleceğini görmek için kullanılır.
+
+### Yatay ışın, dikey çizgi, artı çizgi
+Yatay ışın bir fiyattan başlayıp sağa uzar (ör. "bu seviye şu andan itibaren önemli"). Dikey çizgi bir zamanı işaretler (ör. haber saati). Artı çizgi ikisinin kesişimidir.
+
+### Paralel kanal
+Bir trend çizgisi ve ona paralel ikinci bir çizgi. Fiyatın iki çizgi arasında gidip geldiği dönemleri gösterir. Ortadaki kesikli çizgi kanalın ortasıdır.
+
+### Fibonacci düzeltme (retracement)
+Bir hareketin başına ve sonuna çizilir; hareketin ne kadarının geri alındığını oranlarla gösterir (0,236 · 0,382 · 0,5 · 0,618 · 0,786). Uygulamada 0 ikinci noktada, 1 ilk noktadadır. Bu oranların "işe yaradığı" bir varsayımdır; Kavramlar ve backtest ile ölçülmeden kanıt sayılmaz.
+
+### Trend bazlı Fibonacci uzantısı (extension)
+Üç nokta: bir hareket (A → B) ve geri çekilmenin bittiği yer (C). İlk hareketin oranlarla C'den ileri taşınmış hâlini gösterir (0,618 · 1 · 1,272 · 1,618 · 2 · 2,618); hedef fikri vermek için kullanılır.
+
+### Tarih aralığı / tarih ve fiyat aralığı
+İki nokta arasındaki mum sayısını ve süreyi (ikincisinde ayrıca pip ve yüzde farkını) ölçer.
+
+### Mıknatıs
+Açıkken tıkladığın nokta, en yakın mumun açılış, en yüksek, en düşük ya da kapanış fiyatına yapışır. Çizgileri tam fitil ucuna koymak için.
+
+### Geri al / yinele
+Ctrl+Z son çizim değişikliğini geri alır, Ctrl+Y yineler. Silinen bir çizim geri gelince bağlı destek/direnç seviyesi de geri gelir.

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   TIMEFRAMES,
+  fibLevels,
   roundToTick,
   setLevelStatus,
   type Drawing,
@@ -46,6 +47,9 @@ export function DrawingPanel(p: DrawingPanelProps) {
   const d = p.drawing;
   const [note, setNote] = useState(d.note ?? '');
   useEffect(() => setNote(d.note ?? ''), [d.id, d.note]);
+  const [text, setText] = useState(d.text ?? '');
+  useEffect(() => setText(d.text ?? ''), [d.id, d.text]);
+  const isFib = d.kind === 'FIB_RETRACEMENT' || d.kind === 'FIB_EXTENSION';
 
   const isPosition = d.kind === 'POSITION_LONG' || d.kind === 'POSITION_SHORT';
   const canBeLevel = d.kind === 'HLINE' || d.kind === 'RECT';
@@ -93,6 +97,37 @@ export function DrawingPanel(p: DrawingPanelProps) {
       )}
 
       {isPosition && <PositionFields {...p} />}
+
+      {d.kind === 'TEXT' && (
+        <label className="stack">
+          <span>{tr.drawings.textLabel}</span>
+          <input
+            type="text"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onBlur={() => {
+              if (text.trim() && text !== d.text) p.onSave({ ...d, text: text.trim() });
+              else setText(d.text ?? '');
+            }}
+          />
+        </label>
+      )}
+
+      {isFib && (
+        <div className="stack">
+          <dl className="kv">
+            {fibLevels(p.instrument, d.kind as 'FIB_RETRACEMENT' | 'FIB_EXTENSION', d.anchors).map(
+              (l) => (
+                <div className="kv-row" key={l.level}>
+                  <dt>{l.level}</dt>
+                  <dd>{l.price.toFixed(p.instrument.pricePrecision)}</dd>
+                </div>
+              ),
+            )}
+          </dl>
+          <p className="hint">{tr.drawings.fibNote}</p>
+        </div>
+      )}
 
       <label className="stack">
         <span>{tr.drawings.note}</span>

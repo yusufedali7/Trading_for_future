@@ -1,6 +1,6 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-05 (M6.3 bitti, M6.4 kavram kütüphanesi)_
+_Son güncelleme: 2026-10-05 (M6.4 kavram kütüphanesi, M7.1 çizim araçları)_
 
 ## Durum özeti
 - **M1–M5, M6.1, M6.2:** tamamlandı. Planlar `docs/PLAN-M2..M6-2.md`, kararlar D23–D38.
@@ -14,9 +14,11 @@ _Son güncelleme: 2026-10-05 (M6.3 bitti, M6.4 kavram kütüphanesi)_
 - **MT5 köprüsünü çalıştırma:** MT5'te demo hesaba giriş yap, Piyasa Gözlemi'nde EURUSD görünsün, sonra `py tools/mt5-bridge/bridge.py`. Detay: `tools/mt5-bridge/README.md`.
 - **M6.4 (Kavram kütüphanesi):** tamamlandı (plan `docs/PLAN-M6-4.md`, karar D40). "Kavramlar" sekmesi: 6 kavram; sade açıklama, motor tanımı, gerçek veriden örnekler, "beklendiği gibi gitmedi" ölçümü (outcome-v1, N ayarlanabilir), sınırlar; "Grafikte göster".
 - **M6.4 iyileştirme listesi:** (1) gösterilen örneği grafikte vurgulamak (şu an yalnızca o ana gidiyor); (2) önceki gün/hafta ve seanslar için ölçüt; (3) kavramdan doğrudan strateji adımı oluşturma.
+- **M7.1 (TradingView tarzı çizim araç takımı):** tamamlandı (plan `docs/PLAN-M7.md`, karar D41). Sol şeritte 6 grup, 23 araç; mıknatıs, çizimde kal, tümünü kilitle/gizle/sil, geri al/yinele (Ctrl+Z/Y). Dar ekranda şerit yatay satıra döner. Sırada: kullanıcıyla birlikte **indikatörler**; sonra M7.2 (pitchfork, Gann, formasyonlar, fırça, stiller).
+- **Kullanıcının ürün hedefi (2026-10-05):** Strateji seçilince uygulama canlı veride koşulları kontrol edip grafikte/tabloda gösterecek, kuralların verdiği yönü, giriş/stop/hedefi ve lot miktarını söyleyecek; alım-satımı **kullanıcı kendisi** yapacak, uygulama asla işlem açmayacak. Arkasındaki AI/quant botu kullanıcı kesinleştiriyor.
 - **Yol haritasında kalan:** AI araştırma asistanı. Kullanıcının sırası: yol haritasını bitir → eklemelere karar ver → sistemi toparla → başkalarıyla kullanıcı testi. Ürün hedefi "eğitim ve tavsiye botu": "tavsiye" kural 6 ile çelişir; başkalarına yatırım tavsiyesi Türkiye'de SPK lisansı gerektirebilir (doğrulanmadı) — kullanıcı testinden önce tekrar konuşulmalı.
 - **Sonra:** AI araştırma asistanı (n8n / Langflow + YouTube); küçük işler (backtest işlemlerini grafikte göstermek, kurulumdan replay, strateji/hipotez arşivleme).
-- Testler: **422 test yeşil** (65 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
+- Testler: **435 test yeşil** (65 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
 
 ## M6.3'te yapılanlar

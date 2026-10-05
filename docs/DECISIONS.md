@@ -254,6 +254,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **İlk gerçek gözlem (bilgi):** MT5 MetaQuotes-Demo EURUSD, 1m, 2026-09-24 → 2026-10-05, N = 12: 1.885 swing adayından 1.884'ü sonuçlandı, %43,3'ü beklendiği gibi gitmedi. Tek veri kümesi ve tek zaman dilimi; genelleme değil.
 ---
 
+## D41 — TradingView tarzı çizim araç takımı (M7.1)
+- **Tarih:** 2026-10-05 · **Durum:** Kabul edildi
+- **Bağlam:** Kullanıcı TradingView'in solundaki çizim araç takımını istedi. TradingView'in kendi araç çubuğu yalnızca lisanslı Advanced Charts'ta (D1), bu yüzden aynı düzen ve araçlar kendi çizim katmanımızda yazıldı. Araç adları ve gruplar TradingView'in resmi listesinden: https://www.tradingview.com/support/solutions/43000703396-drawing-tools-available-on-tradingview/
+- **Araçlar (M7.1):** İmleçler (Seç, Silgi) · Çizgiler (trend, ışın, uzatılmış, yatay, yatay ışın, dikey, artı, paralel kanal) · Fibonacci (düzeltme, trend bazlı uzantı) · Şekiller (dikdörtgen, elips, ok) · Notlar (metin, yukarı/aşağı ok işareti) · Tahmin ve ölçüm (long/short pozisyon, fiyat, tarih, tarih+fiyat aralığı). Yardımcılar: mıknatıs (en yakın OHLC), çizimde kal, tümünü kilitle/gizle (bu oturum için), tümünü sil (onaylı), geri al/yinele (Ctrl+Z / Ctrl+Y, son 100 adım).
+- **Veri modeli:** Yeni `DrawingKind`'ler ve çapa sayıları motorda (`ANCHOR_COUNT`); metin `Drawing.text` (boşsa geçersiz). Eski çizimler değişmedi. Çizimler hâlâ UTC + fiyat çapalarıyla saklanır.
+- **Fibonacci:** Düzeltmede 0 ikinci noktada, 1 ilk noktada; seviyeler 0 · 0,236 · 0,382 · 0,5 · 0,618 · 0,786 · 1. Uzantı (A → B, C): fiyat = C + (B − A) × seviye; seviyeler 0 · 0,618 · 1 · 1,272 · 1,618 · 2 · 2,618. Bunlar bizim varsayılanımızdır; TradingView'in varsayılanlarıyla birebir aynı olduğu **doğrulanmadı** (panelde yazar).
+- **Geri al:** Her değişiklikten önceki durum saklanır; geri alma yalnızca farkı depoya yazar. Çizim silinince bağlı seviye de silindiği için geri alma onu da geri yazar. İşlemler sırayla çalışır (hızlı çift Ctrl+Z aynı adımı iki kez geri almaz; testle bulunan ve düzeltilen hata).
+- **Kısayollar:** Yalnızca Ctrl+Z/Ctrl+Y, Delete, Escape. TradingView'in araç kısayolları (Alt+T vb.) doğrulanmadığı için eklenmedi.
+- **Sonraya (M7.2+):** pitchfork, Gann, formasyonlar, fırça/yol, balonlar, çizim stilleri, favoriler; anchored VWAP ve hacim profili indikatörlerle.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
