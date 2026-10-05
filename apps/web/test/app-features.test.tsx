@@ -59,10 +59,12 @@ async function setup() {
 }
 
 const toggles = () => within(screen.getByRole('group', { name: 'Motor adayları' }));
+const openLayerGroup = () => fireEvent.click(screen.getByRole('button', { name: /^Katmanlar/ }));
 
 describe('engine candidate layers', () => {
   it('passes the computed candidates and the chosen layers to the chart; choices are saved', async () => {
     const { prefs } = await setup();
+    openLayerGroup();
     expect(latest!.featureLayers).toEqual(['SWING', 'STRUCTURE', 'PREV_DAY']);
     expect(latest!.features!.swings.length).toBeGreaterThan(0);
     expect(toggles().getByRole('button', { name: 'FVG' }).getAttribute('aria-pressed')).toBe(

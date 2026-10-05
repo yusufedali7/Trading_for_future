@@ -39,6 +39,7 @@ export const tr = {
     goTo: 'Tarihe git',
     goToButton: 'Git',
     sessions: 'Seanslar',
+    sessionsGroup: (active: number) => `Seanslar (${active})`,
   },
   sessions: {
     running: 'devam ediyor',
@@ -85,6 +86,7 @@ export const tr = {
   },
   features: {
     toggle: 'Motor adayları',
+    toggleGroup: (active: number) => `Katmanlar (${active})`,
     layers: {
       SWING: 'Swing',
       FVG: 'FVG',

@@ -71,6 +71,7 @@ async function setup() {
 const manager = () => within(screen.getByRole('dialog', { name: 'Seanslarım' }));
 
 async function addIctAsia() {
+  fireEvent.click(screen.getByRole('button', { name: /^Seanslar \(/ }));
   fireEvent.click(screen.getByRole('button', { name: 'Seanslar…' }));
   fireEvent.click(manager().getByRole('button', { name: /ICT Asya aralığı/ }));
   fireEvent.click(manager().getByRole('button', { name: 'Kaydet' }));
@@ -104,6 +105,7 @@ describe('user sessions', () => {
 
   it('rejects an invalid definition with a reason', async () => {
     await setup();
+    fireEvent.click(screen.getByRole('button', { name: /^Seanslar \(/ }));
     fireEvent.click(screen.getByRole('button', { name: 'Seanslar…' }));
     fireEvent.click(manager().getByRole('button', { name: 'Yeni seans' }));
     const form = within(manager().getByRole('form', { name: 'Yeni seans' }));

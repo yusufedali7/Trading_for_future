@@ -78,43 +78,57 @@ export function Toolbar(p: ToolbarProps) {
         </select>
       </label>
 
-      <div className="segmented" role="group" aria-label={tr.toolbar.sessions}>
-        {[...BUILTIN_SESSIONS, ...p.userSessions].map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            className="seg seg-session"
-            aria-pressed={p.visibleSessions.includes(s.id)}
-            onClick={() => p.onToggleSession(s.id)}
-          >
-            <span className="dot" style={{ background: colors[s.id] }} aria-hidden="true" />
-            {s.name}
+      <details className="toolbar-group">
+        <summary className="btn" role="button">
+          {tr.toolbar.sessionsGroup(p.visibleSessions.length)}
+        </summary>
+        <div className="toolbar-group-panel">
+          <div className="segmented" role="group" aria-label={tr.toolbar.sessions}>
+            {[...BUILTIN_SESSIONS, ...p.userSessions].map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                className="seg seg-session"
+                aria-pressed={p.visibleSessions.includes(s.id)}
+                onClick={() => p.onToggleSession(s.id)}
+              >
+                <span className="dot" style={{ background: colors[s.id] }} aria-hidden="true" />
+                {s.name}
+              </button>
+            ))}
+          </div>
+          <button type="button" className="btn" onClick={p.onManageSessions}>
+            {tr.sessions.manage}
           </button>
-        ))}
-      </div>
-      <button type="button" className="btn" onClick={p.onManageSessions}>
-        {tr.sessions.manage}
-      </button>
+        </div>
+      </details>
 
-      <div
-        className="segmented"
-        role="group"
-        aria-label={tr.features.toggle}
-        title={tr.features.candidateNote}
-      >
-        {FEATURE_LAYERS.map((layer) => (
-          <button
-            key={layer}
-            type="button"
-            className="seg"
-            aria-pressed={p.visibleFeatures.includes(layer)}
-            title={tr.features.layerHints[layer]}
-            onClick={() => p.onToggleFeature(layer)}
+      <details className="toolbar-group">
+        <summary className="btn" role="button">
+          {tr.features.toggleGroup(p.visibleFeatures.length)}
+        </summary>
+        <div className="toolbar-group-panel">
+          <div
+            className="segmented"
+            role="group"
+            aria-label={tr.features.toggle}
+            title={tr.features.candidateNote}
           >
-            {tr.features.layers[layer]}
-          </button>
-        ))}
-      </div>
+            {FEATURE_LAYERS.map((layer) => (
+              <button
+                key={layer}
+                type="button"
+                className="seg"
+                aria-pressed={p.visibleFeatures.includes(layer)}
+                title={tr.features.layerHints[layer]}
+                onClick={() => p.onToggleFeature(layer)}
+              >
+                {tr.features.layers[layer]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </details>
 
       <span className="spacer" />
       <button type="button" className="btn" onClick={p.onImport}>
