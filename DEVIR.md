@@ -1,11 +1,15 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-04 (M6.3 oturumu)_
+_Son güncelleme: 2026-10-05 (M6.3 oturumu, devam)_
 
 ## Durum özeti
 - **M1–M5, M6.1, M6.2:** tamamlandı. Planlar `docs/PLAN-M2..M6-2.md`, kararlar D23–D38.
-- **M6.3 (Paper trading + MT5 köprüsü):** görev 1–5 tamamlandı; plan `docs/PLAN-M6-3.md`, karar D39. **Görev 6 bekliyor:** kullanıcı MT5 demo hesabını açacak; `py -m pip install MetaTrader5` kurulumu için kullanıcı onayı istenecek; ardından gerçek MT5 ile deneme (sunucu saati farkı ölçümü, ilk 7 gün, paper oturumu).
-- **MT5 demo kurulum adımları (kullanıcıya verildi):** [metatrader5.com/en/download](https://www.metatrader5.com/en/download) → kur → Dosya → Hesap Aç → MetaQuotes-Demo → Demo hesap aç (ya da SPK lisanslı bir kurumun demosu) → Araçlar → Seçenekler → Grafikler → en fazla çubuk: Sınırsız → Piyasa Gözlemi'nde EURUSD → bir EURUSD M1 grafiği aç. Şifre ve hesap numarası bana yazılmaz. Köprü kullanımı: `tools/mt5-bridge/README.md`.
+- **M6.3 (Paper trading + MT5 köprüsü):** görev 1–6 tamamlandı; plan `docs/PLAN-M6-3.md`, karar D39. Kullanıcı gerçek bir MetaQuotes-Demo hesabı açtı, `MetaTrader5` paketini kurdu, köprüyü çalıştırdı; uygulama **gerçek 10.080 adet 1m mum** çekti, sunucu saati farkını ölçtü (UTC+3:00). **Kalan:** kullanıcının EURUSD için bir strateji kaydedip gerçek bir paper oturumu başlatması (henüz kayıtlı strateji yok).
+- **Bu oturumda ek düzeltmeler (2026-10-05):**
+  - Paper sayfasında "Her dakika otomatik güncelle" artık işaretlenir işaretlenmez hemen senkronize oluyor (önce ilk tık için 60 sn bekliyordu). **Açık kalan konu:** Paper sekmesinden ayrılıp geri dönünce otomatik güncelleme kapanıyor (sayfa yeniden kuruluyor); kalıcı arka plan güncellemesi istenirse ayrı bir iş.
+  - Grafikteki çizim aracı "Long"/"Short" isimleri **"Long taslağı"/"Short taslağı"** oldu — Replay işlem panelindeki gerçek Long/Short girişiyle karıştırılmasın diye.
+  - Üst araç çubuğu kalabalıktı (~25 düğme tek sırada); Seanslar ve Katmanlar (motor adayları) artık **"Seanslar (n)" / "Katmanlar (n)"** açılır panellere toplandı.
+- **MT5 köprüsünü çalıştırma:** MT5'te demo hesaba giriş yap, Piyasa Gözlemi'nde EURUSD görünsün, sonra `py tools/mt5-bridge/bridge.py`. Detay: `tools/mt5-bridge/README.md`.
 - **Sonra:** AI araştırma asistanı (n8n / Langflow + YouTube); küçük işler (backtest işlemlerini grafikte göstermek, kurulumdan replay, strateji/hipotez arşivleme).
 - Testler: **411 test yeşil** (63 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
 - Git: tüm işler yerel `main` dalında. **Push'u kullanıcı yapıyor** (`git push`).
