@@ -1,6 +1,6 @@
 # PLAN — M6.3: Paper trading + MetaTrader 5 veri köprüsü
 
-> Durum: kullanıcı 2026-10-04'te MT5 demo ile devam etmeyi seçti. **Görev 1–5 tamamlandı (2026-10-04).** Görev 6: köprü ve feed gerçek MT5 demo hesabıyla **2026-10-05'te doğrulandı** (gerçek 10.080 mum çekildi, sunucu saati farkı ölçüldü). Kalan: kullanıcının EURUSD için bir strateji kaydedip gerçek bir paper oturumu başlatması. Karar `docs/DECISIONS.md` D39.
+> Durum: kullanıcı 2026-10-04'te MT5 demo ile devam etmeyi seçti. **Görev 1–5 tamamlandı (2026-10-04).** Görev 6: köprü ve feed gerçek MT5 demo hesabıyla **2026-10-05'te doğrulandı** (gerçek 10.080 mum çekildi, sunucu saati farkı ölçüldü). **M6.3 tamamlandı:** 2026-10-05'te D36 stratejisiyle ilk gerçek paper oturumu başlatıldı. Karar `docs/DECISIONS.md` D39.
 
 ## Amaç
 Bir strateji versiyonunu **ileriye dönük** (forward) olarak, başladığı andan sonra gelen yeni veride kağıt üzerinde çalıştırmak. Veri, kullanıcının bilgisayarında açık olan MT5 **demo** terminalinden yerel bir köprüyle okunur. Gerçek emir yok (kural 7).

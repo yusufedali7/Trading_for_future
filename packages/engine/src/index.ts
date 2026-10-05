@@ -122,6 +122,20 @@ export {
 export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
 export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
+export {
+  OUTCOME_DEFAULTS,
+  OUTCOME_VERSION,
+  candidateOutcome,
+  featureOutcomes,
+  summarizeOutcomes,
+} from './features/outcomes';
+export type {
+  CandidateOutcome,
+  OutcomeConcept,
+  OutcomeParams,
+  OutcomeStatus,
+  OutcomeSummary,
+} from './features/outcomes';
 export { STRUCTURE_DEFAULTS, detectStructureBreaks } from './features/structure';
 export { SWEEP_DEFAULTS, detectSweeps, liquidityLevels } from './features/sweep';
 export type { LiquiditySources } from './features/sweep';
