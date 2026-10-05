@@ -675,8 +675,8 @@ export const tr = {
       TRENDLINE: 'Trend çizgisi',
       RECT: 'Bölge',
       PRICE_RANGE: 'Fiyat aralığı',
-      POSITION_LONG: 'Long',
-      POSITION_SHORT: 'Short',
+      POSITION_LONG: 'Long taslağı',
+      POSITION_SHORT: 'Short taslağı',
     },
     hints: {
       SELECT: 'Bir çizime tıklayarak seç. Seçili çizimi Delete ile silebilirsin.',

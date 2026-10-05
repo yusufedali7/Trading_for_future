@@ -127,11 +127,13 @@ export function PaperPage(p: PaperPageProps) {
     sessions,
   ]);
 
-  // Automatic update every minute while the page is open.
+  // Automatic update every minute while the page is open; syncs right away when turned on
+  // instead of waiting up to a minute for the first tick.
   const syncRef = useRef(sync);
   syncRef.current = sync;
   useEffect(() => {
     if (!auto) return;
+    void syncRef.current();
     const id = setInterval(() => void syncRef.current(), AUTO_MS);
     return () => clearInterval(id);
   }, [auto]);
