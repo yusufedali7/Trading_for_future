@@ -1,0 +1,51 @@
+{
+  "id": "donchian_breakout_d1",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Donchian kanal kırılımı (trend takibi)",
+  "source": "Klasik trend takip kuralları (Turtle kurallarından esinlenme)",
+  "instrument": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "AUDUSD",
+    "USDCAD"
+  ],
+  "timeframe": "1d",
+  "direction": "BOTH",
+  "sequence": [
+    {
+      "id": "breakout",
+      "type": "BAR_CLOSE",
+      "params": {
+        "condition": "close > highest(high,20)[1] (long) / close < lowest(low,20)[1] (short)"
+      }
+    },
+    {
+      "id": "entry",
+      "type": "NEXT_OPEN"
+    }
+  ],
+  "stop": {
+    "type": "ATR_MULTIPLE",
+    "params": {
+      "atr": 20,
+      "mult": 2.0
+    }
+  },
+  "exit": {
+    "type": "CHANNEL_EXIT",
+    "params": {
+      "long": "close < lowest(low,10)[1]",
+      "short": "close > highest(high,10)[1]"
+    }
+  },
+  "risk": {
+    "percentPerTrade": 0.5
+  },
+  "ambiguities": [
+    "[1] ile önceki mumun seviyesi kullanılır (ileriye bakma yok)."
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

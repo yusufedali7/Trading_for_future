@@ -1,0 +1,164 @@
+[
+  {
+    "name": "TA-Lib",
+    "url": "https://ta-lib.org",
+    "kind": "library (C)",
+    "role": "oracle: candlestick",
+    "license": "BSD",
+    "license_checked": true,
+    "notes": "61 mum formasyonu; Python sarmalayıcıyla test altın değerleri üretilir."
+  },
+  {
+    "name": "talib-rs",
+    "url": "https://github.com/search?q=talib-rs",
+    "kind": "library (Rust)",
+    "role": "oracle (opsiyonel)",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "61 formasyonda C sürümüyle aynı sinyalleri ürettiğini söylüyor."
+  },
+  {
+    "name": "zeta-zetra/chart_patterns",
+    "url": "https://github.com/zeta-zetra/chart_patterns",
+    "kind": "library (Python)",
+    "role": "oracle: chart",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "bayrak, H&S, ikili tepe/dip, üçgen, pennant"
+  },
+  {
+    "name": "tradingpattern",
+    "url": "https://pypi.org/project/tradingpattern/",
+    "kind": "library (Python)",
+    "role": "oracle: chart",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "birim testi yok"
+  },
+  {
+    "name": "BennyThadikaran/stock-pattern",
+    "url": "https://github.com/BennyThadikaran/stock-pattern",
+    "kind": "tool (Python)",
+    "role": "oracle: chart",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "algoritmalar wiki'de"
+  },
+  {
+    "name": "neurotrader888/TechnicalAnalysisAutomation",
+    "url": "https://github.com/neurotrader888/TechnicalAnalysisAutomation",
+    "kind": "code (Python)",
+    "role": "oracle: chart + harmonic",
+    "license": "MIT",
+    "license_checked": true,
+    "notes": "yönlü değişim, H&S, bayrak, harmonik oran tabloları"
+  },
+  {
+    "name": "joshyattridge/smart-money-concepts",
+    "url": "https://github.com/joshyattridge/smart-money-concepts",
+    "kind": "library (Python)",
+    "role": "oracle: smc",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "BETA; OB gücü hacme dayalı"
+  },
+  {
+    "name": "ggne/harmonic-pattern-pine",
+    "url": "https://github.com/ggne/harmonic-pattern-pine",
+    "kind": "code (Pine)",
+    "role": "oracle: harmonic",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": ""
+  },
+  {
+    "name": "djoffrey/HarmonicPatterns",
+    "url": "https://github.com/djoffrey/HarmonicPatterns",
+    "kind": "code (Python)",
+    "role": "referans",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "arşivlenmiş"
+  },
+  {
+    "name": "AxeAlgo Pattern Atlas",
+    "url": "https://www.tradingview.com/scripts/",
+    "kind": "code (Pine)",
+    "role": "referans",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "17 klasik formasyon, onaylı pivotlardan"
+  },
+  {
+    "name": "tradingview/lightweight-charts",
+    "url": "https://github.com/tradingview/lightweight-charts",
+    "kind": "library (TS)",
+    "role": "chart",
+    "license": "Apache-2.0",
+    "license_checked": true,
+    "notes": "TradingView atıf koşulu var"
+  },
+  {
+    "name": "kernc/backtesting.py",
+    "url": "https://github.com/kernc/backtesting.py",
+    "kind": "library (Python)",
+    "role": "referans",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": ""
+  },
+  {
+    "name": "polakowo/vectorbt",
+    "url": "https://github.com/polakowo/vectorbt",
+    "kind": "library (Python)",
+    "role": "referans",
+    "license": "Apache-2.0 + Commons Clause",
+    "license_checked": true,
+    "notes": "ticari kullanım kısıtlı"
+  },
+  {
+    "name": "paperswithbacktest/awesome-systematic-trading",
+    "url": "https://github.com/paperswithbacktest/awesome-systematic-trading",
+    "kind": "list",
+    "role": "strateji fikir kaynağı",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": ""
+  },
+  {
+    "name": "NeoQuasar/Kronos",
+    "url": "https://huggingface.co/NeoQuasar",
+    "kind": "model",
+    "role": "research lab (ileride)",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": "tahmin modeli, kural motoruna karışmaz"
+  },
+  {
+    "name": "HistData.com",
+    "url": "https://www.histdata.com",
+    "kind": "data",
+    "role": "market data",
+    "license": "kullanım koşulları: kişisel/eğitim, yeniden dağıtım kısıtlı",
+    "license_checked": true,
+    "notes": "hacim yok; saat dilimini belgeden doğrula"
+  },
+  {
+    "name": "dukascopy-python",
+    "url": "https://pypi.org/project/dukascopy-python/",
+    "kind": "data client",
+    "role": "market data",
+    "license": "KONTROL ET",
+    "license_checked": false,
+    "notes": ""
+  },
+  {
+    "name": "Astral",
+    "url": "https://heyastral.ai",
+    "kind": "commercial product",
+    "role": "tasarım referansı",
+    "license": "kapalı kaynak",
+    "license_checked": true,
+    "notes": "forex dokümanda geçmiyor; kod kopyalanmaz"
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "id": "engulfing_at_candidate_sr",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Aday destekte yutan mum",
+  "source": "Ders 2 + candlestick katalogu",
+  "instrument": [
+    "EURUSD",
+    "GBPUSD"
+  ],
+  "timeframe": "4h",
+  "direction": "LONG",
+  "filters": [
+    {
+      "type": "EMA_TREND",
+      "params": {
+        "slow": 200,
+        "require": "close>slow"
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "id": "zone",
+      "type": "PRICE_IN_ZONE",
+      "params": {
+        "zone": "candidate_sr",
+        "side": "support"
+      }
+    },
+    {
+      "id": "trigger",
+      "type": "PATTERN_EVENT",
+      "params": {
+        "definition": "cdlengulfing",
+        "direction": "bullish"
+      },
+      "within": {
+        "after": "zone",
+        "maxBars": 0
+      }
+    },
+    {
+      "id": "entry",
+      "type": "NEXT_OPEN"
+    }
+  ],
+  "stop": {
+    "type": "BELOW_REF",
+    "params": {
+      "ref": "trigger.low",
+      "bufferAtr": 0.2
+    }
+  },
+  "target": {
+    "type": "R_MULTIPLE",
+    "params": {
+      "r": 2
+    }
+  },
+  "risk": {
+    "percentPerTrade": 0.5
+  },
+  "ambiguities": [
+    "Kullanıcının elle çizdiği seviyeler mi, motorun aday seviyeleri mi? İkisi ayrı versiyon."
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

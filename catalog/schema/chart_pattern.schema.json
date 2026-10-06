@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ChartPatternDefinition",
+  "type": "object",
+  "required": [
+    "id",
+    "version",
+    "name_tr",
+    "family",
+    "direction",
+    "input",
+    "pivot_sequence",
+    "params",
+    "rules",
+    "confirmation",
+    "invalidation",
+    "target",
+    "known_at",
+    "prototype",
+    "status",
+    "prototype_pivots"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "family": {
+      "enum": [
+        "reversal",
+        "continuation",
+        "bilateral"
+      ]
+    },
+    "direction": {
+      "enum": [
+        "bullish",
+        "bearish",
+        "either",
+        "pole_direction"
+      ]
+    },
+    "pivot_sequence": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "H",
+          "L"
+        ]
+      },
+      "minItems": 3
+    },
+    "params": {
+      "type": "object"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
+    },
+    "confirmation": {
+      "type": "object",
+      "required": [
+        "type"
+      ]
+    },
+    "invalidation": {
+      "type": "object",
+      "required": [
+        "type"
+      ]
+    },
+    "target": {
+      "type": "object",
+      "required": [
+        "type"
+      ]
+    },
+    "prototype": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      },
+      "minItems": 3
+    },
+    "definition_confidence": {
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "status": {
+      "enum": [
+        "TO_IMPLEMENT",
+        "IMPLEMENTED",
+        "VERIFIED",
+        "BLOCKED_NEEDS_SOURCE"
+      ]
+    },
+    "prototype_pivots": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "minItems": 3,
+      "description": "prototype dizisinde pivot_sequence'e karşılık gelen noktaların indeksleri (P1, P2, ...)"
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "id": "d1_trend_pullback",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Günlük trend içinde geri çekilme",
+  "source": "Forex çalışma defteri, Ders 6 (eğitim şablonu)",
+  "instrument": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY",
+    "AUDUSD"
+  ],
+  "timeframe": "1d",
+  "direction": "BOTH",
+  "filters": [
+    {
+      "type": "EMA_TREND",
+      "params": {
+        "fast": 50,
+        "slow": 200,
+        "require": "close>slow and fast>slow (long)"
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "id": "pullback",
+      "type": "TOUCH_LEVEL",
+      "params": {
+        "level": "EMA(50)",
+        "side": "from_above"
+      }
+    },
+    {
+      "id": "trigger",
+      "type": "BAR_CLOSE",
+      "params": {
+        "condition": "close>EMA(50) and close>open"
+      },
+      "within": {
+        "after": "pullback",
+        "maxBars": 0
+      }
+    },
+    {
+      "id": "entry",
+      "type": "NEXT_OPEN"
+    }
+  ],
+  "stop": {
+    "type": "ATR_MULTIPLE",
+    "params": {
+      "atr": 14,
+      "mult": 1.5
+    }
+  },
+  "target": {
+    "type": "R_MULTIPLE",
+    "params": {
+      "r": 2
+    }
+  },
+  "risk": {
+    "percentPerTrade": 1.0
+  },
+  "ambiguities": [
+    "Ders 6'daki 'desteğe dönmüş direnç' ve 'güçlü mum' koşulları bu sürümde yok; v2 adayı."
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

@@ -1,0 +1,49 @@
+{
+  "id": "double_bottom_confirmed",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Onaylı ikili dip",
+  "source": "Bulkowski'nin onay kuralı + katalogdaki double_bottom@1.0.0",
+  "instrument": [
+    "EURUSD",
+    "GBPUSD",
+    "USDJPY"
+  ],
+  "timeframe": "4h",
+  "direction": "LONG",
+  "sequence": [
+    {
+      "id": "pattern",
+      "type": "PATTERN_EVENT",
+      "params": {
+        "definition": "double_bottom@1.0.0",
+        "state": "confirmed"
+      }
+    },
+    {
+      "id": "entry",
+      "type": "NEXT_OPEN"
+    }
+  ],
+  "stop": {
+    "type": "BELOW_REF",
+    "params": {
+      "ref": "pattern.invalidation_level",
+      "bufferAtr": 0.2
+    }
+  },
+  "target": {
+    "type": "PATTERN_TARGET",
+    "params": {
+      "ref": "pattern.target"
+    }
+  },
+  "risk": {
+    "percentPerTrade": 0.5
+  },
+  "ambiguities": [
+    "Hedef ölçülen hareket mi, yoksa sabit 2R mi? İki versiyon olarak test et."
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

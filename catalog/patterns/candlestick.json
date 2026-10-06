@@ -1,0 +1,560 @@
+{
+  "family": "candlestick",
+  "version": "1.0.0",
+  "definition_source": "TA-Lib (BSD). Tanımlar TA-Lib'in kaynak kodudur; motor bunu birebir yeniden üretir ya da farkını belgeler.",
+  "output_encoding": "TA-Lib: +100 boğa, -100 ayı, 0 yok (bazı fonksiyonlarda ±200 onay). Motor bunu direction ve strength alanlarına çevirir.",
+  "tunable_settings": "TA-Lib mum sınıflandırma eşikleri (BodyLong, BodyDoji, ShadowLong, Near, Far, Equal ...) ayarlanabilir; varsayılanlar kullanılır ve sürümlenir.",
+  "forex_note": "Forex 24/5 işlem gördüğü için ardışık mumlar arasında fiyat ve gövde boşluğu nadirdir. gap_sensitivity 'yes' olanlar forex gün içi veride neredeyse hiç oluşmayabilir; 'likely' olanlar TA-Lib tanımı gövde boşluğu istiyorsa nadir olabilir. Gerçek veride sıklık raporuyla doğrulanacak.",
+  "known_at": "son mumun kapanışı",
+  "patterns": [
+    {
+      "id": "cdl2crows",
+      "talib_function": "CDL2CROWS",
+      "name_en": "Two Crows",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3blackcrows",
+      "talib_function": "CDL3BLACKCROWS",
+      "name_en": "Three Black Crows",
+      "name_tr": "Üç Kara Karga",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3inside",
+      "talib_function": "CDL3INSIDE",
+      "name_en": "Three Inside Up/Down",
+      "name_tr": "Üç İçeride",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3linestrike",
+      "talib_function": "CDL3LINESTRIKE",
+      "name_en": "Three-Line Strike",
+      "name_tr": "Üç Çizgi Vuruşu",
+      "candles": 4,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3outside",
+      "talib_function": "CDL3OUTSIDE",
+      "name_en": "Three Outside Up/Down",
+      "name_tr": "Üç Dışarıda",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3starsinsouth",
+      "talib_function": "CDL3STARSINSOUTH",
+      "name_en": "Three Stars In The South",
+      "name_tr": "Güneyde Üç Yıldız",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdl3whitesoldiers",
+      "talib_function": "CDL3WHITESOLDIERS",
+      "name_en": "Three Advancing White Soldiers",
+      "name_tr": "Üç Beyaz Asker",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlabandonedbaby",
+      "talib_function": "CDLABANDONEDBABY",
+      "name_en": "Abandoned Baby",
+      "name_tr": "Terk Edilmiş Bebek",
+      "candles": 3,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdladvanceblock",
+      "talib_function": "CDLADVANCEBLOCK",
+      "name_en": "Advance Block",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlbelthold",
+      "talib_function": "CDLBELTHOLD",
+      "name_en": "Belt-hold",
+      "name_tr": "Kemer Tutma",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlbreakaway",
+      "talib_function": "CDLBREAKAWAY",
+      "name_en": "Breakaway",
+      "name_tr": "Kopuş",
+      "candles": 5,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlclosingmarubozu",
+      "talib_function": "CDLCLOSINGMARUBOZU",
+      "name_en": "Closing Marubozu",
+      "name_tr": "Kapanış Marubozu",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlconcealbabyswall",
+      "talib_function": "CDLCONCEALBABYSWALL",
+      "name_en": "Concealing Baby Swallow",
+      "name_tr": null,
+      "candles": 4,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlcounterattack",
+      "talib_function": "CDLCOUNTERATTACK",
+      "name_en": "Counterattack",
+      "name_tr": "Karşı Saldırı",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdldarkcloudcover",
+      "talib_function": "CDLDARKCLOUDCOVER",
+      "name_en": "Dark Cloud Cover",
+      "name_tr": "Kara Bulut Örtüsü",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdldoji",
+      "talib_function": "CDLDOJI",
+      "name_en": "Doji",
+      "name_tr": "Doji",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdldojistar",
+      "talib_function": "CDLDOJISTAR",
+      "name_en": "Doji Star",
+      "name_tr": "Doji Yıldız",
+      "candles": 2,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdldragonflydoji",
+      "talib_function": "CDLDRAGONFLYDOJI",
+      "name_en": "Dragonfly Doji",
+      "name_tr": "Yusufçuk Doji",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlengulfing",
+      "talib_function": "CDLENGULFING",
+      "name_en": "Engulfing Pattern",
+      "name_tr": "Yutan Mum",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdleveningdojistar",
+      "talib_function": "CDLEVENINGDOJISTAR",
+      "name_en": "Evening Doji Star",
+      "name_tr": "Akşam Doji Yıldızı",
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdleveningstar",
+      "talib_function": "CDLEVENINGSTAR",
+      "name_en": "Evening Star",
+      "name_tr": "Akşam Yıldızı",
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlgapsidesidewhite",
+      "talib_function": "CDLGAPSIDESIDEWHITE",
+      "name_en": "Up/Down-gap side-by-side white lines",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlgravestonedoji",
+      "talib_function": "CDLGRAVESTONEDOJI",
+      "name_en": "Gravestone Doji",
+      "name_tr": "Mezar Taşı Doji",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhammer",
+      "talib_function": "CDLHAMMER",
+      "name_en": "Hammer",
+      "name_tr": "Çekiç",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhangingman",
+      "talib_function": "CDLHANGINGMAN",
+      "name_en": "Hanging Man",
+      "name_tr": "Asılı Adam",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlharami",
+      "talib_function": "CDLHARAMI",
+      "name_en": "Harami Pattern",
+      "name_tr": "Harami",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlharamicross",
+      "talib_function": "CDLHARAMICROSS",
+      "name_en": "Harami Cross Pattern",
+      "name_tr": "Harami Haç",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhighwave",
+      "talib_function": "CDLHIGHWAVE",
+      "name_en": "High-Wave Candle",
+      "name_tr": "Yüksek Dalga Mumu",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhikkake",
+      "talib_function": "CDLHIKKAKE",
+      "name_en": "Hikkake Pattern",
+      "name_tr": "Hikkake",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhikkakemod",
+      "talib_function": "CDLHIKKAKEMOD",
+      "name_en": "Modified Hikkake Pattern",
+      "name_tr": "Değiştirilmiş Hikkake",
+      "candles": 4,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlhomingpigeon",
+      "talib_function": "CDLHOMINGPIGEON",
+      "name_en": "Homing Pigeon",
+      "name_tr": "Yuva Güvercini",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlidentical3crows",
+      "talib_function": "CDLIDENTICAL3CROWS",
+      "name_en": "Identical Three Crows",
+      "name_tr": "Özdeş Üç Karga",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlinneck",
+      "talib_function": "CDLINNECK",
+      "name_en": "In-Neck Pattern",
+      "name_tr": null,
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlinvertedhammer",
+      "talib_function": "CDLINVERTEDHAMMER",
+      "name_en": "Inverted Hammer",
+      "name_tr": "Ters Çekiç",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlkicking",
+      "talib_function": "CDLKICKING",
+      "name_en": "Kicking",
+      "name_tr": "Tekme",
+      "candles": 2,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlkickingbylength",
+      "talib_function": "CDLKICKINGBYLENGTH",
+      "name_en": "Kicking - bull/bear determined by the longer marubozu",
+      "name_tr": "Tekme (uzunluğa göre)",
+      "candles": 2,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlladderbottom",
+      "talib_function": "CDLLADDERBOTTOM",
+      "name_en": "Ladder Bottom",
+      "name_tr": "Merdiven Dibi",
+      "candles": 5,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdllongleggeddoji",
+      "talib_function": "CDLLONGLEGGEDDOJI",
+      "name_en": "Long Legged Doji",
+      "name_tr": "Uzun Bacaklı Doji",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdllongline",
+      "talib_function": "CDLLONGLINE",
+      "name_en": "Long Line Candle",
+      "name_tr": "Uzun Gövdeli Mum",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlmarubozu",
+      "talib_function": "CDLMARUBOZU",
+      "name_en": "Marubozu",
+      "name_tr": "Marubozu",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlmatchinglow",
+      "talib_function": "CDLMATCHINGLOW",
+      "name_en": "Matching Low",
+      "name_tr": "Eşleşen Dip",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlmathold",
+      "talib_function": "CDLMATHOLD",
+      "name_en": "Mat Hold",
+      "name_tr": null,
+      "candles": 5,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlmorningdojistar",
+      "talib_function": "CDLMORNINGDOJISTAR",
+      "name_en": "Morning Doji Star",
+      "name_tr": "Sabah Doji Yıldızı",
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlmorningstar",
+      "talib_function": "CDLMORNINGSTAR",
+      "name_en": "Morning Star",
+      "name_tr": "Sabah Yıldızı",
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlonneck",
+      "talib_function": "CDLONNECK",
+      "name_en": "On-Neck Pattern",
+      "name_tr": null,
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlpiercing",
+      "talib_function": "CDLPIERCING",
+      "name_en": "Piercing Pattern",
+      "name_tr": "Delen Mum",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlrickshawman",
+      "talib_function": "CDLRICKSHAWMAN",
+      "name_en": "Rickshaw Man",
+      "name_tr": null,
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlrisefall3methods",
+      "talib_function": "CDLRISEFALL3METHODS",
+      "name_en": "Rising/Falling Three Methods",
+      "name_tr": "Yükselen/Düşen Üç Yöntem",
+      "candles": 5,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlseparatinglines",
+      "talib_function": "CDLSEPARATINGLINES",
+      "name_en": "Separating Lines",
+      "name_tr": "Ayrılan Çizgiler",
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlshootingstar",
+      "talib_function": "CDLSHOOTINGSTAR",
+      "name_en": "Shooting Star",
+      "name_tr": "Kayan Yıldız",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlshortline",
+      "talib_function": "CDLSHORTLINE",
+      "name_en": "Short Line Candle",
+      "name_tr": "Kısa Gövdeli Mum",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlspinningtop",
+      "talib_function": "CDLSPINNINGTOP",
+      "name_en": "Spinning Top",
+      "name_tr": "Topaç",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlstalledpattern",
+      "talib_function": "CDLSTALLEDPATTERN",
+      "name_en": "Stalled Pattern",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlsticksandwich",
+      "talib_function": "CDLSTICKSANDWICH",
+      "name_en": "Stick Sandwich",
+      "name_tr": "Çubuk Sandviç",
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdltakuri",
+      "talib_function": "CDLTAKURI",
+      "name_en": "Takuri (Dragonfly Doji with very long lower shadow)",
+      "name_tr": "Takuri",
+      "candles": 1,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdltasukigap",
+      "talib_function": "CDLTASUKIGAP",
+      "name_en": "Tasuki Gap",
+      "name_tr": "Tasuki Boşluğu",
+      "candles": 3,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlthrusting",
+      "talib_function": "CDLTHRUSTING",
+      "name_en": "Thrusting Pattern",
+      "name_tr": null,
+      "candles": 2,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdltristar",
+      "talib_function": "CDLTRISTAR",
+      "name_en": "Tristar Pattern",
+      "name_tr": "Üç Yıldız",
+      "candles": 3,
+      "gap_sensitivity": "likely",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlunique3river",
+      "talib_function": "CDLUNIQUE3RIVER",
+      "name_en": "Unique 3 River",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "no",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlupsidegap2crows",
+      "talib_function": "CDLUPSIDEGAP2CROWS",
+      "name_en": "Upside Gap Two Crows",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cdlxsidegap3methods",
+      "talib_function": "CDLXSIDEGAP3METHODS",
+      "name_en": "Upside/Downside Gap Three Methods",
+      "name_tr": null,
+      "candles": 3,
+      "gap_sensitivity": "yes",
+      "status": "TO_IMPLEMENT"
+    }
+  ]
+}

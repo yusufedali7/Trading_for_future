@@ -1,0 +1,375 @@
+{
+  "family": "harmonic",
+  "version": "1.0.0",
+  "common": {
+    "known_at_rule": "Bir tespit yalnızca 'known_at' mumunun kapanışından itibaren var sayılır. Pivotlar sağdaki 'pivot_right' mum kapandıktan sonra bilinir.",
+    "display_rule": "Motorun tespitleri arayüzde 'aday' olarak gösterilir; kesinlik ifadesi kullanılmaz."
+  },
+  "warning": "Aynı formasyon farklı kaynaklarda farklı oranlarla tanımlanıyor. Her ratio_set ayrı bir tanım versiyonudur (ör. gartley@neurotrader888). verification 'unverified' olanlar uygulanmadan önce bir kaynaktan doğrulanmalı; 'missing' olanlar uygulanmaz.",
+  "patterns": [
+    {
+      "id": "gartley",
+      "name_tr": "Gartley",
+      "ratio_sets": [
+        {
+          "source": "neurotrader888/TechnicalAnalysisAutomation",
+          "verification": "sourced",
+          "AB_XA": [
+            0.618,
+            0.618
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            1.13,
+            1.618
+          ],
+          "AD_XA": [
+            0.786,
+            0.786
+          ]
+        },
+        {
+          "source": "ggne/harmonic-pattern-pine",
+          "verification": "sourced",
+          "AB_XA": [
+            0.618,
+            0.618
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            1.27,
+            1.618
+          ],
+          "AD_XA": [
+            0.786,
+            0.786
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "butterfly",
+      "name_tr": "Kelebek",
+      "ratio_sets": [
+        {
+          "source": "neurotrader888/TechnicalAnalysisAutomation",
+          "verification": "partial",
+          "AB_XA": [
+            0.786,
+            0.786
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": null,
+          "AD_XA": [
+            1.27,
+            1.41
+          ]
+        },
+        {
+          "source": "ggne/harmonic-pattern-pine",
+          "verification": "partial",
+          "AB_XA": [
+            0.786,
+            0.786
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": null,
+          "AD_XA": [
+            1.27,
+            1.27
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "bat",
+      "name_tr": "Yarasa",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü (Carney)",
+          "verification": "unverified",
+          "AB_XA": [
+            0.382,
+            0.5
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            1.618,
+            2.618
+          ],
+          "AD_XA": [
+            0.886,
+            0.886
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "alt_bat",
+      "name_tr": "Alternatif Yarasa",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü (Carney)",
+          "verification": "unverified",
+          "AB_XA": [
+            0.382,
+            0.382
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            2.0,
+            3.618
+          ],
+          "AD_XA": [
+            1.13,
+            1.13
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "crab",
+      "name_tr": "Yengeç",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü (Carney)",
+          "verification": "unverified",
+          "AB_XA": [
+            0.382,
+            0.618
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            2.24,
+            3.618
+          ],
+          "AD_XA": [
+            1.618,
+            1.618
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "deep_crab",
+      "name_tr": "Derin Yengeç",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü (Carney)",
+          "verification": "unverified",
+          "AB_XA": [
+            0.886,
+            0.886
+          ],
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            2.0,
+            3.618
+          ],
+          "AD_XA": [
+            1.618,
+            1.618
+          ]
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "cypher",
+      "name_tr": "Cypher",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü",
+          "verification": "unverified",
+          "AB_XA": [
+            0.382,
+            0.618
+          ],
+          "XC_XA": [
+            1.272,
+            1.414
+          ],
+          "XD_XC": [
+            0.786,
+            0.786
+          ],
+          "note": "Cypher oranları XC ayağına göre tanımlanır (C, A'nın ötesine taşar)."
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "shark",
+      "name_tr": "Köpekbalığı",
+      "ratio_sets": [
+        {
+          "source": "henüz belirlenmedi",
+          "verification": "missing",
+          "note": "0-X-A-B-C yapısı kullanır. Oranlar güvenilir bir kaynaktan alınmadan uygulanmayacak."
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "BLOCKED_NEEDS_SOURCE"
+    },
+    {
+      "id": "ab_cd",
+      "name_tr": "AB=CD",
+      "ratio_sets": [
+        {
+          "source": "yaygın harmonik literatürü",
+          "verification": "unverified",
+          "BC_AB": [
+            0.382,
+            0.886
+          ],
+          "CD_BC": [
+            1.13,
+            2.618
+          ],
+          "CD_AB": [
+            1.0,
+            1.0
+          ],
+          "note": "Dört noktalı (A-B-C-D); CD uzunluğu yaklaşık AB uzunluğuna eşit."
+        }
+      ],
+      "version": "1.0.0",
+      "family": "harmonic",
+      "input": "confirmed_pivots (zigzag)",
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "pct_error": 0.05
+      },
+      "known_at": "D noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
+      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
+      "status": "TO_IMPLEMENT"
+    }
+  ]
+}

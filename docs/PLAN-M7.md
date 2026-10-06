@@ -36,5 +36,5 @@ TradingView'in hazır çizim araç çubuğu yalnızca lisanslı "Advanced Charts
 | 6 | Seçili çizim paneli: metin düzenleme, yeni türlerin bilgileri (fib seviyeleri, tarih aralığı mum sayısı) | Uygulama testi |
 | 7 | Belgeler: D41, sözlük (Fibonacci, ışın, kanal…), DEVIR | — |
 
-## Sonraya (M7.2+)
+## Sonraya (M10 — çizim araçları 2. aşama)
 Pitchfork, Gann, formasyonlar (XABCD, omuz-baş-omuz, Elliott), fırça / yol / çoklu çizgi, açıklama balonları, çizim stilleri (kalınlık, kesikli), favoriler. Anchored VWAP ve hacim profili indikatör çalışmasıyla birlikte.

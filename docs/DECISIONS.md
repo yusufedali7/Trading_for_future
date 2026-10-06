@@ -265,6 +265,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Sonraya (M7.2+):** pitchfork, Gann, formasyonlar, fırça/yol, balonlar, çizim stilleri, favoriler; anchored VWAP ve hacim profili indikatörlerle.
 ---
 
+## D42 — Proje paketi benimsendi; yeni sıra ve push kuralı
+- **Tarih:** 2026-10-06 · **Durum:** Kabul edildi (kullanıcı onayıyla)
+- **Ne:** Kullanıcının hazırladığı `PROJE-PAKETI.md` projeye yerleştirildi: yeni `CLAUDE.md` (Mutlak kural 9: tavsiye dili yok, paylaşımdan önce SPK kontrolü; kural 10: veri dışa aktarılabilir olmalı), `docs/AI-BOT-TASLAK.md`, `docs/AGENT-GOREV-M9-formasyonlar.md`, `catalog/` (61 mum, 21 grafik, 9 harmonik, 16 yapı/likidite tanımı; 6 strateji hipotezi; iddia defteri; kaynak/lisans kaydı; şemalar; şematik SVG'ler). Hiçbirinin kodu yazılmadı. Katalog veri olduğu için biçimlendiricinin dışında (`.prettierignore`).
+- **Sıra (kullanıcı kararı):** M7.2 yedek ve dışa aktarma → M8 indikatörler → M9 formasyon kataloğu → M10 çizim araçları 2. aşama → M11 AI/quant bot (açık sorular yanıtlanmadan kod yok).
+- **Push:** Bundan sonra her oturum `git push` ile kapanır (önceden yalnızca kullanıcı push'luyordu).
+- **M9'da sorulacak farklar (şimdi değiştirilmedi):** katalog swing'i 5/5, bizim v1 3/3 (eşit tepe kuralı da farklı); katalogda Asya seansı "00:00–09:00 Asia/Tokyo" (Tokyo yerel saatiyle doğrusu 09:00–18:00; muhtemelen UTC kastedildi) ve London sweep stratejisi buna dayanıyor, D36 ise ICT Asya aralığını öneriyor; katalog M4'te var olan tanımları `TO_IMPLEMENT` gösteriyor (adaptörle eşlenecek); sürüm biçimi `1.0.0` / `v1`; 13 kaynağın lisansı "KONTROL ET"; TA-Lib oracle testi Python + TA-Lib kurulumu gerektirir (ayrı onay).
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

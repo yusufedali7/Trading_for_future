@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Claim",
+  "type": "object",
+  "required": [
+    "claim_id",
+    "statement",
+    "pattern",
+    "source",
+    "market",
+    "evidence_level",
+    "our_replication"
+  ],
+  "properties": {
+    "evidence_level": {
+      "enum": [
+        "hakemli makale",
+        "çalışma raporu",
+        "yazar istatistiği",
+        "yazar görüşü",
+        "model kartı",
+        "veri sağlayıcı belgesi",
+        "ticari blog",
+        "forum",
+        "video",
+        "kendi deneyimiz (sentetik)",
+        "kendi deneyimiz (gerçek veri)"
+      ]
+    }
+  }
+}

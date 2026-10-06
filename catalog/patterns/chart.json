@@ -1,0 +1,1868 @@
+{
+  "family": "chart",
+  "version": "1.0.0",
+  "common": {
+    "known_at_rule": "Bir tespit yalnızca 'known_at' mumunun kapanışından itibaren var sayılır. Pivotlar sağdaki 'pivot_right' mum kapandıktan sonra bilinir.",
+    "display_rule": "Motorun tespitleri arayüzde 'aday' olarak gösterilir; kesinlik ifadesi kullanılmaz."
+  },
+  "expression_note": "rules alanları insan okunur ifadelerdir; ajan bunları motor koduna çevirir ve her kuralı ayrı test eder. ATR(Px) = Px mumundaki ATR(atr_period).",
+  "patterns": [
+    {
+      "id": "double_top",
+      "version": "1.0.0",
+      "name_tr": "İkili Tepe",
+      "name_en": "Double Top",
+      "family": "reversal",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "peak_tolerance_atr": 0.5,
+        "min_depth_atr": 2.0,
+        "min_bars_between": 10,
+        "max_bars_between": 120
+      },
+      "rules": [
+        "abs(P1.price - P3.price) <= peak_tolerance_atr * ATR(P3)",
+        "min(P1.price, P3.price) - P2.price >= min_depth_atr * ATR(P3)",
+        "min_bars_between <= P3.bar - P1.bar <= max_bars_between"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "P2.price",
+        "label": "neckline"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "max(P1.price, P3.price)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "neckline",
+        "height": "max(P1,P3) - P2"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.1
+        ],
+        [
+          0.25,
+          1.0
+        ],
+        [
+          0.5,
+          0.4
+        ],
+        [
+          0.75,
+          0.98
+        ],
+        [
+          1.0,
+          0.2
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Bulkowski'ye göre onaylanmamış ikili tepelerin yaklaşık yarısı hiç onaylanmıyor (ABD hisseleri, günlük). Onaysız işlem yok.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "double_bottom",
+      "version": "1.0.0",
+      "name_tr": "İkili Dip",
+      "name_en": "Double Bottom",
+      "family": "reversal",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "bottom_tolerance_atr": 0.5,
+        "min_depth_atr": 2.0,
+        "min_bars_between": 10,
+        "max_bars_between": 120
+      },
+      "rules": [
+        "abs(P1.price - P3.price) <= bottom_tolerance_atr * ATR(P3)",
+        "P2.price - max(P1.price, P3.price) >= min_depth_atr * ATR(P3)",
+        "min_bars_between <= P3.bar - P1.bar <= max_bars_between"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "P2.price",
+        "label": "neckline"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "min(P1.price, P3.price)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "neckline",
+        "height": "P2 - min(P1,P3)"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.9
+        ],
+        [
+          0.25,
+          0.0
+        ],
+        [
+          0.5,
+          0.6
+        ],
+        [
+          0.75,
+          0.02
+        ],
+        [
+          1.0,
+          0.8
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Adam/Eve varyantları (sivri ya da yuvarlak dip) ileride ayrı alt tanım olabilir.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "triple_top",
+      "version": "1.0.0",
+      "name_tr": "Üçlü Tepe",
+      "name_en": "Triple Top",
+      "family": "reversal",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "peak_tolerance_atr": 0.6,
+        "min_depth_atr": 1.5,
+        "max_bars_total": 200
+      },
+      "rules": [
+        "max(P1,P3,P5) - min(P1,P3,P5) <= peak_tolerance_atr * ATR(P5)",
+        "min(P1,P3,P5) - max(P2,P4) >= min_depth_atr * ATR(P5)",
+        "P5.bar - P1.bar <= max_bars_total"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "min(P2.price, P4.price)",
+        "label": "support"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "max(P1,P3,P5)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "support",
+        "height": "max(P1,P3,P5) - min(P2,P4)"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.1
+        ],
+        [
+          0.17,
+          1.0
+        ],
+        [
+          0.33,
+          0.45
+        ],
+        [
+          0.5,
+          0.98
+        ],
+        [
+          0.67,
+          0.42
+        ],
+        [
+          0.83,
+          0.99
+        ],
+        [
+          1.0,
+          0.2
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Head & Shoulders ile karışmaması için orta tepe diğerlerinden belirgin yüksek olmamalı.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "triple_bottom",
+      "version": "1.0.0",
+      "name_tr": "Üçlü Dip",
+      "name_en": "Triple Bottom",
+      "family": "reversal",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "bottom_tolerance_atr": 0.6,
+        "min_depth_atr": 1.5,
+        "max_bars_total": 200
+      },
+      "rules": [
+        "max(P1,P3,P5) - min(P1,P3,P5) <= bottom_tolerance_atr * ATR(P5)",
+        "min(P2,P4) - max(P1,P3,P5) >= min_depth_atr * ATR(P5)",
+        "P5.bar - P1.bar <= max_bars_total"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "max(P2.price, P4.price)",
+        "label": "resistance"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "min(P1,P3,P5)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "resistance",
+        "height": "max(P2,P4) - min(P1,P3,P5)"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.9
+        ],
+        [
+          0.17,
+          0.0
+        ],
+        [
+          0.33,
+          0.55
+        ],
+        [
+          0.5,
+          0.02
+        ],
+        [
+          0.67,
+          0.58
+        ],
+        [
+          0.83,
+          0.01
+        ],
+        [
+          1.0,
+          0.8
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "head_shoulders_top",
+      "version": "1.0.0",
+      "name_tr": "Omuz Baş Omuz",
+      "name_en": "Head and Shoulders Top",
+      "family": "reversal",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "head_margin_atr": 0.5,
+        "shoulder_tolerance_atr": 1.0,
+        "max_neckline_slope_atr_per_bar": 0.05,
+        "max_bars_total": 200
+      },
+      "rules": [
+        "P3.price >= max(P1.price, P5.price) + head_margin_atr * ATR(P5)",
+        "abs(P1.price - P5.price) <= shoulder_tolerance_atr * ATR(P5)",
+        "neckline = line(P2, P4); abs(slope(neckline)) <= max_neckline_slope_atr_per_bar * ATR(P5)",
+        "P5.bar - P1.bar <= max_bars_total"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "neckline(bar)",
+        "label": "neckline"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "P5.price",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "neckline(confirmation_bar)",
+        "height": "P3 - neckline(P3.bar)"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.1
+        ],
+        [
+          0.17,
+          0.7
+        ],
+        [
+          0.33,
+          0.4
+        ],
+        [
+          0.5,
+          1.0
+        ],
+        [
+          0.67,
+          0.42
+        ],
+        [
+          0.83,
+          0.68
+        ],
+        [
+          1.0,
+          0.15
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Simetri ve neckline eğimi Bulkowski'de performansla ilişkili; ikisi de test edilecek filtre adayları (yalnızca parametre, varsayılan filtre değil).",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "head_shoulders_bottom",
+      "version": "1.0.0",
+      "name_tr": "Ters Omuz Baş Omuz",
+      "name_en": "Inverse Head and Shoulders",
+      "family": "reversal",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "head_margin_atr": 0.5,
+        "shoulder_tolerance_atr": 1.0,
+        "max_neckline_slope_atr_per_bar": 0.05,
+        "max_bars_total": 200
+      },
+      "rules": [
+        "P3.price <= min(P1.price, P5.price) - head_margin_atr * ATR(P5)",
+        "abs(P1.price - P5.price) <= shoulder_tolerance_atr * ATR(P5)",
+        "neckline = line(P2, P4); abs(slope(neckline)) <= max_neckline_slope_atr_per_bar * ATR(P5)",
+        "P5.bar - P1.bar <= max_bars_total"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "neckline(bar)",
+        "label": "neckline"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "P5.price",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "neckline(confirmation_bar)",
+        "height": "neckline(P3.bar) - P3"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.9
+        ],
+        [
+          0.17,
+          0.3
+        ],
+        [
+          0.33,
+          0.6
+        ],
+        [
+          0.5,
+          0.0
+        ],
+        [
+          0.67,
+          0.58
+        ],
+        [
+          0.83,
+          0.32
+        ],
+        [
+          1.0,
+          0.85
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "ascending_triangle",
+      "version": "1.0.0",
+      "name_tr": "Yükselen Üçgen",
+      "name_en": "Ascending Triangle",
+      "family": "continuation",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "flat_tolerance_atr": 0.4,
+        "min_touches_each_side": 2,
+        "min_low_rise_atr": 0.5,
+        "max_bars_total": 150
+      },
+      "rules": [
+        "highs within flat_tolerance_atr * ATR (yatay direnç)",
+        "each subsequent low > previous low + min_low_rise_atr * ATR",
+        "touches(resistance) >= 2 and touches(rising_support) >= 2"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "resistance",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "rising_support(bar)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "resistance",
+        "height": "resistance - first_low"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.2,
+          1.0
+        ],
+        [
+          0.4,
+          0.35
+        ],
+        [
+          0.6,
+          1.0
+        ],
+        [
+          0.8,
+          0.65
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Kırılım yönü her zaman beklenen yönde olmayabilir; ters kırılım ayrı olay olarak kaydedilir.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "descending_triangle",
+      "version": "1.0.0",
+      "name_tr": "Alçalan Üçgen",
+      "name_en": "Descending Triangle",
+      "family": "continuation",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "flat_tolerance_atr": 0.4,
+        "min_touches_each_side": 2,
+        "min_high_drop_atr": 0.5,
+        "max_bars_total": 150
+      },
+      "rules": [
+        "lows within flat_tolerance_atr * ATR (yatay destek)",
+        "each subsequent high < previous high - min_high_drop_atr * ATR",
+        "touches(support) >= 2 and touches(falling_resistance) >= 2"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "support",
+        "label": "breakdown"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "falling_resistance(bar)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "support",
+        "height": "first_high - support"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.0
+        ],
+        [
+          0.2,
+          0.0
+        ],
+        [
+          0.4,
+          0.65
+        ],
+        [
+          0.6,
+          0.0
+        ],
+        [
+          0.8,
+          0.35
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "symmetrical_triangle",
+      "version": "1.0.0",
+      "name_tr": "Simetrik Üçgen",
+      "name_en": "Symmetrical Triangle",
+      "family": "bilateral",
+      "direction": "either",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_touches_each_side": 2,
+        "min_slope_atr_per_bar": 0.01,
+        "max_bars_total": 150
+      },
+      "rules": [
+        "upper line through highs slopes down, lower line through lows slopes up",
+        "lines converge (apex in the future)",
+        "touches >= 2 per side"
+      ],
+      "confirmation": {
+        "type": "CLOSE_OUTSIDE",
+        "ref": "upper_or_lower_line(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "APEX_REACHED",
+        "ref": "apex.bar",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakout_line",
+        "height": "first_high - first_low"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.2,
+          1.0
+        ],
+        [
+          0.4,
+          0.2
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.35
+        ],
+        [
+          1.0,
+          0.6
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Yön kırılımla belirlenir.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "rising_wedge",
+      "version": "1.0.0",
+      "name_tr": "Yükselen Kama",
+      "name_en": "Rising Wedge",
+      "family": "reversal",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_touches_each_side": 2,
+        "max_bars_total": 150
+      },
+      "rules": [
+        "both lines slope up",
+        "lower line steeper than upper line (converging)",
+        "touches >= 2 per side"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "lower_line(bar)",
+        "label": "breakdown"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "upper_line(bar)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "RETRACE_TO",
+        "ref": "first_low"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.2,
+          0.6
+        ],
+        [
+          0.4,
+          0.35
+        ],
+        [
+          0.6,
+          0.85
+        ],
+        [
+          0.8,
+          0.65
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "falling_wedge",
+      "version": "1.0.0",
+      "name_tr": "Alçalan Kama",
+      "name_en": "Falling Wedge",
+      "family": "reversal",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_touches_each_side": 2,
+        "max_bars_total": 150
+      },
+      "rules": [
+        "both lines slope down",
+        "upper line steeper than lower line (converging)",
+        "touches >= 2 per side"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "upper_line(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "lower_line(bar)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "RETRACE_TO",
+        "ref": "first_high"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.0
+        ],
+        [
+          0.2,
+          0.4
+        ],
+        [
+          0.4,
+          0.65
+        ],
+        [
+          0.6,
+          0.15
+        ],
+        [
+          0.8,
+          0.35
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "bull_flag",
+      "version": "1.0.0",
+      "name_tr": "Boğa Bayrağı",
+      "name_en": "Bull Flag",
+      "family": "continuation",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_pole_atr": 3.0,
+        "max_pole_bars": 15,
+        "max_flag_retrace": 0.5,
+        "max_flag_bars": 25,
+        "parallel_tolerance": 0.3
+      },
+      "rules": [
+        "pole: P1->P2 rise >= min_pole_atr * ATR within max_pole_bars",
+        "flag: down-sloping or flat parallel channel after P2, retrace <= max_flag_retrace of pole",
+        "flag duration <= max_flag_bars"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "flag_upper_line(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "flag_low",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakout",
+        "height": "pole_height"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.3,
+          1.0
+        ],
+        [
+          0.45,
+          0.8
+        ],
+        [
+          0.55,
+          0.92
+        ],
+        [
+          0.7,
+          0.72
+        ],
+        [
+          0.8,
+          0.85
+        ],
+        [
+          1.0,
+          1.3
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "bear_flag",
+      "version": "1.0.0",
+      "name_tr": "Ayı Bayrağı",
+      "name_en": "Bear Flag",
+      "family": "continuation",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_pole_atr": 3.0,
+        "max_pole_bars": 15,
+        "max_flag_retrace": 0.5,
+        "max_flag_bars": 25,
+        "parallel_tolerance": 0.3
+      },
+      "rules": [
+        "pole: P1->P2 drop >= min_pole_atr * ATR within max_pole_bars",
+        "flag: up-sloping or flat parallel channel after P2, retrace <= max_flag_retrace of pole",
+        "flag duration <= max_flag_bars"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "flag_lower_line(bar)",
+        "label": "breakdown"
+      },
+      "invalidation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "flag_high",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakdown",
+        "height": "pole_height"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.3
+        ],
+        [
+          0.3,
+          0.3
+        ],
+        [
+          0.45,
+          0.5
+        ],
+        [
+          0.55,
+          0.38
+        ],
+        [
+          0.7,
+          0.58
+        ],
+        [
+          0.8,
+          0.45
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        4
+      ]
+    },
+    {
+      "id": "pennant",
+      "version": "1.0.0",
+      "name_tr": "Flama",
+      "name_en": "Pennant",
+      "family": "continuation",
+      "direction": "pole_direction",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_pole_atr": 3.0,
+        "max_pole_bars": 15,
+        "max_pennant_bars": 20
+      },
+      "rules": [
+        "pole as in flag",
+        "small symmetrical triangle after pole",
+        "triangle height < 0.5 * pole"
+      ],
+      "confirmation": {
+        "type": "CLOSE_OUTSIDE_IN_POLE_DIRECTION",
+        "ref": "triangle_line(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "CLOSE_OUTSIDE_AGAINST_POLE",
+        "ref": "triangle_line(bar)",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakout",
+        "height": "pole_height"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.3,
+          1.0
+        ],
+        [
+          0.45,
+          0.75
+        ],
+        [
+          0.55,
+          0.92
+        ],
+        [
+          0.65,
+          0.8
+        ],
+        [
+          0.72,
+          0.88
+        ],
+        [
+          1.0,
+          1.3
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "rectangle",
+      "version": "1.0.0",
+      "name_tr": "Dikdörtgen (yatay bant)",
+      "name_en": "Rectangle",
+      "family": "bilateral",
+      "direction": "either",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "flat_tolerance_atr": 0.4,
+        "min_touches_each_side": 2,
+        "min_height_atr": 1.5,
+        "max_bars_total": 200
+      },
+      "rules": [
+        "highs within tolerance (flat top)",
+        "lows within tolerance (flat bottom)",
+        "height >= min_height_atr * ATR"
+      ],
+      "confirmation": {
+        "type": "CLOSE_OUTSIDE",
+        "ref": "top_or_bottom",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakout_side",
+        "height": "top - bottom"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.2,
+          1.0
+        ],
+        [
+          0.4,
+          0.02
+        ],
+        [
+          0.6,
+          0.98
+        ],
+        [
+          0.8,
+          0.0
+        ],
+        [
+          1.0,
+          1.3
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Bölge içi işlemler (alt banttan alış, üst banttan satış) ayrı bir strateji konusudur.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "id": "ascending_channel",
+      "version": "1.0.0",
+      "name_tr": "Yükselen Kanal",
+      "name_en": "Ascending Channel",
+      "family": "continuation",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "parallel_tolerance": 0.25,
+        "min_touches_each_side": 2
+      },
+      "rules": [
+        "upper and lower lines both slope up",
+        "slopes differ by <= parallel_tolerance"
+      ],
+      "confirmation": {
+        "type": "CLOSE_BELOW",
+        "ref": "lower_line(bar)",
+        "label": "channel_break"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "NONE"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.0
+        ],
+        [
+          0.2,
+          0.5
+        ],
+        [
+          0.4,
+          0.25
+        ],
+        [
+          0.6,
+          0.75
+        ],
+        [
+          0.8,
+          0.5
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "Kanal bir formasyondan çok bir bağlamdır; kırılımı olay olarak kaydedilir.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "descending_channel",
+      "version": "1.0.0",
+      "name_tr": "Alçalan Kanal",
+      "name_en": "Descending Channel",
+      "family": "continuation",
+      "direction": "bearish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "parallel_tolerance": 0.25,
+        "min_touches_each_side": 2
+      },
+      "rules": [
+        "upper and lower lines both slope down",
+        "slopes differ by <= parallel_tolerance"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "upper_line(bar)",
+        "label": "channel_break"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "NONE"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.0
+        ],
+        [
+          0.2,
+          0.5
+        ],
+        [
+          0.4,
+          0.75
+        ],
+        [
+          0.6,
+          0.25
+        ],
+        [
+          0.8,
+          0.5
+        ],
+        [
+          1.0,
+          0.0
+        ]
+      ],
+      "definition_confidence": "medium",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "id": "cup_and_handle",
+      "version": "1.0.0",
+      "name_tr": "Fincan Kulp",
+      "name_en": "Cup and Handle",
+      "family": "continuation",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "rim_tolerance_atr": 0.8,
+        "min_cup_bars": 30,
+        "max_handle_retrace": 0.5,
+        "roundness_min": 0.6
+      },
+      "rules": [
+        "P1 and P3 rims within rim_tolerance_atr * ATR",
+        "cup bottom P2 is rounded (roundness score >= roundness_min; tanım parametreli)",
+        "handle P3->P4 retrace <= max_handle_retrace of cup depth"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "max(P1.price, P3.price)",
+        "label": "rim_breakout"
+      },
+      "invalidation": {
+        "type": "CLOSE_BELOW",
+        "ref": "P4.price",
+        "before": "confirmation"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "rim",
+        "height": "rim - P2"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.0
+        ],
+        [
+          0.1,
+          0.6
+        ],
+        [
+          0.25,
+          0.2
+        ],
+        [
+          0.4,
+          0.0
+        ],
+        [
+          0.55,
+          0.2
+        ],
+        [
+          0.7,
+          0.6
+        ],
+        [
+          0.78,
+          1.0
+        ],
+        [
+          0.88,
+          0.8
+        ],
+        [
+          1.0,
+          1.15
+        ]
+      ],
+      "definition_confidence": "low",
+      "notes": "Yuvarlaklık ölçüsü öznel; ilk sürümde basit bir eğri uyumu skoru yeterli.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        3,
+        6,
+        7
+      ]
+    },
+    {
+      "id": "rounding_bottom",
+      "version": "1.0.0",
+      "name_tr": "Çanak Dip",
+      "name_en": "Rounding Bottom",
+      "family": "reversal",
+      "direction": "bullish",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_bars": 40,
+        "roundness_min": 0.7
+      },
+      "rules": [
+        "price path between P1 and P3 fits a U-shaped curve (roundness >= roundness_min)"
+      ],
+      "confirmation": {
+        "type": "CLOSE_ABOVE",
+        "ref": "P3.price",
+        "label": "rim"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "rim",
+        "height": "rim - P2"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          1.0
+        ],
+        [
+          0.15,
+          0.55
+        ],
+        [
+          0.3,
+          0.2
+        ],
+        [
+          0.5,
+          0.0
+        ],
+        [
+          0.7,
+          0.2
+        ],
+        [
+          0.85,
+          0.55
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "definition_confidence": "low",
+      "notes": "Tanımı en zor formasyonlardan; düşük öncelik.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        0,
+        3,
+        6
+      ]
+    },
+    {
+      "id": "broadening",
+      "version": "1.0.0",
+      "name_tr": "Genişleyen Formasyon (megafon)",
+      "name_en": "Broadening Formation",
+      "family": "bilateral",
+      "direction": "either",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L",
+        "H"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "min_touches_each_side": 2
+      },
+      "rules": [
+        "each high higher than previous high",
+        "each low lower than previous low (diverging lines)"
+      ],
+      "confirmation": {
+        "type": "CLOSE_OUTSIDE",
+        "ref": "upper_or_lower_line(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "NONE"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.5
+        ],
+        [
+          0.2,
+          0.65
+        ],
+        [
+          0.4,
+          0.35
+        ],
+        [
+          0.6,
+          0.8
+        ],
+        [
+          0.8,
+          0.2
+        ],
+        [
+          1.0,
+          0.95
+        ]
+      ],
+      "definition_confidence": "low",
+      "notes": "",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": "diamond",
+      "version": "1.0.0",
+      "name_tr": "Elmas",
+      "name_en": "Diamond",
+      "family": "reversal",
+      "direction": "either",
+      "input": "confirmed_pivots",
+      "pivot_sequence": [
+        "H",
+        "L",
+        "H",
+        "L",
+        "H",
+        "L"
+      ],
+      "params": {
+        "pivot_left": 5,
+        "pivot_right": 5,
+        "atr_period": 14,
+        "max_bars_total": 120
+      },
+      "rules": [
+        "first half broadening, second half contracting (symmetrical triangle)"
+      ],
+      "confirmation": {
+        "type": "CLOSE_OUTSIDE",
+        "ref": "contracting_lines(bar)",
+        "label": "breakout"
+      },
+      "invalidation": {
+        "type": "NONE"
+      },
+      "target": {
+        "type": "MEASURED_MOVE",
+        "from": "breakout",
+        "height": "max_width"
+      },
+      "known_at": "confirmation mumunun kapanışı (formasyon 'forming' durumunda onaysız gösterilebilir)",
+      "prototype": [
+        [
+          0,
+          0.5
+        ],
+        [
+          0.15,
+          0.7
+        ],
+        [
+          0.3,
+          0.3
+        ],
+        [
+          0.5,
+          0.9
+        ],
+        [
+          0.65,
+          0.25
+        ],
+        [
+          0.8,
+          0.65
+        ],
+        [
+          0.88,
+          0.42
+        ],
+        [
+          0.93,
+          0.52
+        ],
+        [
+          1.0,
+          0.1
+        ]
+      ],
+      "definition_confidence": "low",
+      "notes": "Nadir ve öznel; düşük öncelik.",
+      "sources": [
+        "bulkowski-ecp-3e"
+      ],
+      "oracles": [
+        "stock-pattern",
+        "zeta-zetra/chart_patterns",
+        "neurotrader888/TechnicalAnalysisAutomation"
+      ],
+      "status": "TO_IMPLEMENT",
+      "prototype_pivots": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    }
+  ]
+}

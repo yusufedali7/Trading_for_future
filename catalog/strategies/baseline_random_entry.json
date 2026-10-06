@@ -1,0 +1,28 @@
+{
+  "id": "baseline_random_entry",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Rastgele giriş (kontrol grubu)",
+  "source": "Araştırma yöntemi: her strateji bunu yenmeli",
+  "instrument": "test edilen stratejiyle aynı",
+  "timeframe": "aynı",
+  "direction": "aynı",
+  "sequence": [
+    {
+      "id": "entry",
+      "type": "RANDOM_ENTRY",
+      "params": {
+        "frequency": "test edilen stratejinin işlem sıklığı",
+        "seed": "kaydedilir"
+      }
+    }
+  ],
+  "stop": "test edilen stratejiyle aynı",
+  "target": "test edilen stratejiyle aynı",
+  "risk": "aynı",
+  "ambiguities": [
+    "Bu bir strateji değil, ölçüm aracıdır. 'En iyi strateji' seçiminde zorunlu karşılaştırma."
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

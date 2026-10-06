@@ -1,0 +1,81 @@
+{
+  "id": "london_asia_sweep",
+  "version": 1,
+  "status": "IDEA",
+  "name_tr": "Londra'da Asya dibi süpürmesi",
+  "source": "Kullanıcının GPT promptundaki örnek",
+  "instrument": [
+    "EURUSD"
+  ],
+  "timeframe": "15m",
+  "direction": "LONG",
+  "window": {
+    "session": "LONDON",
+    "startLocal": "08:00",
+    "endLocal": "11:00",
+    "tz": "Europe/London"
+  },
+  "sequence": [
+    {
+      "id": "sweep",
+      "type": "LIQUIDITY_SWEEP",
+      "params": {
+        "level": "session_levels.ASIA.low",
+        "confirm": "CLOSE_BACK_INSIDE"
+      }
+    },
+    {
+      "id": "mss",
+      "type": "MSS",
+      "params": {
+        "direction": "BULLISH"
+      },
+      "within": {
+        "after": "sweep",
+        "maxBars": 12
+      }
+    },
+    {
+      "id": "fvg",
+      "type": "FVG",
+      "params": {
+        "direction": "BULLISH"
+      },
+      "within": {
+        "after": "mss",
+        "maxBars": 6
+      }
+    },
+    {
+      "id": "entry",
+      "type": "LIMIT_AT",
+      "params": {
+        "ref": "fvg.top"
+      },
+      "expireBars": 8
+    }
+  ],
+  "stop": {
+    "type": "BELOW_REF",
+    "params": {
+      "ref": "sweep.low",
+      "bufferPips": 1
+    }
+  },
+  "target": {
+    "type": "R_MULTIPLE",
+    "params": {
+      "r": 2
+    }
+  },
+  "risk": {
+    "percentPerTrade": 0.5
+  },
+  "ambiguities": [
+    "Asya seansı aralığı hangi saat dilimiyle? (şimdilik Asia/Tokyo 00:00-09:00)",
+    "MSS için displacement zorunlu mu?",
+    "FVG yoksa setup iptal mi, yoksa OB girişi mi?"
+  ],
+  "claims": [],
+  "results": "YOK: gerçek veride test edilmedi"
+}

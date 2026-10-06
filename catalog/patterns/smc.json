@@ -1,0 +1,291 @@
+{
+  "family": "structure_liquidity",
+  "version": "1.0.0",
+  "common": {
+    "known_at_rule": "Bir tespit yalnızca 'known_at' mumunun kapanışından itibaren var sayılır. Pivotlar sağdaki 'pivot_right' mum kapandıktan sonra bilinir.",
+    "display_rule": "Motorun tespitleri arayüzde 'aday' olarak gösterilir; kesinlik ifadesi kullanılmaz."
+  },
+  "warning": "ICT/SMC kavramlarının tek resmi tanımı yok. Bunlar bizim parametreli v1 tanımlarımız; hakemli bir çalışmayla test edildiğine dair kaynak bulamadık.",
+  "implementation_order": [
+    "swing_pivot",
+    "prev_period_levels",
+    "session_levels",
+    "fvg",
+    "displacement",
+    "bos",
+    "choch",
+    "mss",
+    "equal_highs_lows",
+    "liquidity_sweep",
+    "order_block",
+    "ifvg",
+    "breaker",
+    "premium_discount",
+    "ote",
+    "candidate_sr"
+  ],
+  "concepts": [
+    {
+      "id": "swing_pivot",
+      "name_tr": "Swing tepe/dip (pivot)",
+      "params": {
+        "left": 5,
+        "right": 5
+      },
+      "definition": "Mum i, solundaki 'left' ve sağındaki 'right' mumun en yükseğinden yüksekse swing high (dipte simetriği).",
+      "known_at": "i + right mumunun kapanışı",
+      "depends_on": [],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "bos",
+      "name_tr": "Yapı kırılımı (BOS)",
+      "params": {
+        "break_by": "CLOSE",
+        "swing": "swing_pivot"
+      },
+      "definition": "Mevcut yapı yönünde, son onaylı swing seviyesinin kapanışla (ya da break_by=WICK ise fitille) geçilmesi.",
+      "known_at": "kırılım mumunun kapanışı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "choch",
+      "name_tr": "Karakter değişimi (CHoCH)",
+      "params": {
+        "break_by": "CLOSE",
+        "swing": "swing_pivot"
+      },
+      "definition": "Mevcut yapının tersine ilk kırılım: düşen yapıda son alçalan tepenin kapanışla geçilmesi (ve simetriği).",
+      "known_at": "kırılım mumunun kapanışı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "displacement",
+      "name_tr": "Displacement (güçlü hareket)",
+      "params": {
+        "min_body_atr": 1.5,
+        "atr_period": 14
+      },
+      "definition": "Gövdesi min_body_atr * ATR'den büyük mum (ya da ardışık mum dizisi).",
+      "known_at": "mumun kapanışı",
+      "depends_on": [],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "mss",
+      "name_tr": "Piyasa yapısı değişimi (MSS)",
+      "params": {
+        "require_displacement": true,
+        "max_bars_after_sweep": null
+      },
+      "definition": "CHoCH + kırılım mumunda (ya da kırılımı yaratan harekette) displacement. require_displacement=false ise CHoCH ile aynıdır.",
+      "known_at": "kırılım mumunun kapanışı",
+      "depends_on": [
+        "choch",
+        "displacement"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "fvg",
+      "name_tr": "Fair Value Gap (FVG)",
+      "params": {
+        "min_size_atr": 0.0,
+        "min_size_pips": 0
+      },
+      "definition": "Yükselen: low[i] > high[i-2]; boşluk (high[i-2], low[i]). Düşen: high[i] < low[i-2].",
+      "states": [
+        "open",
+        "partially_filled",
+        "filled"
+      ],
+      "known_at": "i mumunun kapanışı",
+      "depends_on": [],
+      "evidence_note": "Rastgele yürüyüş testimizde FVG üst kenarının 20 mum içinde ziyaret edilme oranı %83,1, aynı mesafedeki rastgele seviyeninki %83,5 çıktı. 'FVG dolar' tek başına avantaj değildir; strateji rastgele tabanı yenmeli.",
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "ifvg",
+      "name_tr": "Ters FVG (IFVG)",
+      "params": {
+        "invalidate_by": "CLOSE"
+      },
+      "definition": "Bir FVG'nin tamamen kapanışla geçilmesinden sonra ters yönlü bölge olarak izlenmesi.",
+      "known_at": "geçersizleşme mumunun kapanışı",
+      "depends_on": [
+        "fvg"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "order_block",
+      "name_tr": "Order block",
+      "params": {
+        "zone": "BODY",
+        "requires": "bos_or_mss",
+        "lookback_bars": 10
+      },
+      "definition": "BOS/MSS yaratan displacement'tan önceki son ters renkli mum; bölge gövde (zone=BODY) ya da tüm aralık (zone=RANGE).",
+      "known_at": "BOS/MSS mumunun kapanışı (geriye dönük işaretlenir ama bu andan önce var sayılmaz)",
+      "depends_on": [
+        "bos",
+        "displacement"
+      ],
+      "forex_note": "Bazı kütüphaneler order block gücünü hacimle hesaplıyor. Forex verisinde gerçek hacim olmadığı için hacim tabanlı güç kullanılmaz.",
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "breaker",
+      "name_tr": "Breaker block",
+      "params": {
+        "invalidate_by": "CLOSE"
+      },
+      "definition": "Kapanışla geçersiz kılınmış order block'un ters yönlü bölge olarak izlenmesi.",
+      "known_at": "geçersizleşme mumunun kapanışı",
+      "depends_on": [
+        "order_block"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "equal_highs_lows",
+      "name_tr": "Eşit tepeler/dipler (EQH/EQL)",
+      "params": {
+        "tolerance_atr": 0.1,
+        "min_count": 2
+      },
+      "definition": "Toleransı içinde iki veya daha fazla onaylı swing tepe (dip). Likidite havuzu adayı.",
+      "known_at": "ikinci swing'in onayı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "prev_period_levels",
+      "name_tr": "Önceki gün/hafta tepe-dip (PDH/PDL/PWH/PWL)",
+      "params": {
+        "day_boundary": "17:00 America/New_York"
+      },
+      "definition": "Bir önceki işlem gününün/haftasının en yüksek ve en düşük fiyatı. Forex'te gün sınırı genelde New York 17:00.",
+      "known_at": "periyodun kapanışı",
+      "depends_on": [],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "session_levels",
+      "name_tr": "Seans tepe/dip",
+      "params": {
+        "sessions": {
+          "ASIA": "00:00-09:00 Asia/Tokyo",
+          "LONDON": "08:00-17:00 Europe/London",
+          "NEW_YORK": "08:00-17:00 America/New_York"
+        }
+      },
+      "definition": "Seans penceresindeki en yüksek ve en düşük fiyat. Pencereler yerel saatle tanımlanır, DST kütüphaneyle çözülür.",
+      "known_at": "seansın kapanışı (seans içindeyken 'şimdiye kadarki' değer ayrı gösterilir)",
+      "depends_on": [],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "liquidity_sweep",
+      "name_tr": "Likidite süpürmesi",
+      "params": {
+        "confirm": "CLOSE_BACK_INSIDE",
+        "max_bars_to_confirm": 1
+      },
+      "definition": "Fitilin bir likidite seviyesini (EQH/EQL, PDH/PDL, seans tepe/dip, swing) geçmesi ve max_bars_to_confirm içinde kapanışın seviyenin içine dönmesi.",
+      "known_at": "geri dönüş kapanışı",
+      "depends_on": [
+        "equal_highs_lows",
+        "prev_period_levels",
+        "session_levels",
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "premium_discount",
+      "name_tr": "Premium / discount",
+      "params": {
+        "range": "last_confirmed_swing_high_low"
+      },
+      "definition": "Son onaylı swing aralığının %50'si denge (equilibrium); üstü premium, altı discount.",
+      "known_at": "aralığı oluşturan ikinci swing'in onayı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "ote",
+      "name_tr": "Optimal Trade Entry (OTE)",
+      "params": {
+        "zone": [
+          0.62,
+          0.79
+        ],
+        "sweet_spot": 0.705
+      },
+      "definition": "Bir impuls hareketin 0.62-0.79 geri çekilme bölgesi (yaygın ICT kullanımı; parametre).",
+      "known_at": "impulsun bitiş swing'inin onayı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    },
+    {
+      "id": "candidate_sr",
+      "name_tr": "Aday destek/direnç",
+      "params": {
+        "cluster_tolerance_atr": 0.3,
+        "min_touches": 3,
+        "lookback_bars": 500
+      },
+      "definition": "Toleransı içinde kümelenen onaylı pivotlardan türetilen yatay bölge. Kullanıcının elle çizdiği seviyelerden ayrı katmandadır.",
+      "known_at": "min_touches'ı tamamlayan pivotun onayı",
+      "depends_on": [
+        "swing_pivot"
+      ],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "TO_IMPLEMENT"
+    }
+  ]
+}
