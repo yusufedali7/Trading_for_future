@@ -273,6 +273,16 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **M9'da sorulacak farklar (şimdi değiştirilmedi):** katalog swing'i 5/5, bizim v1 3/3 (eşit tepe kuralı da farklı); katalogda Asya seansı "00:00–09:00 Asia/Tokyo" (Tokyo yerel saatiyle doğrusu 09:00–18:00; muhtemelen UTC kastedildi) ve London sweep stratejisi buna dayanıyor, D36 ise ICT Asya aralığını öneriyor; katalog M4'te var olan tanımları `TO_IMPLEMENT` gösteriyor (adaptörle eşlenecek); sürüm biçimi `1.0.0` / `v1`; 13 kaynağın lisansı "KONTROL ET"; TA-Lib oracle testi Python + TA-Lib kurulumu gerektirir (ayrı onay).
 ---
 
+## D43 — Yedek ve dışa aktarma (M7.2, Mutlak kural 10)
+- **Tarih:** 2026-10-06 · **Durum:** Kabul edildi (kullanıcı planı onayladı; ekran görüntüleri dahil)
+- **Yedek:** `apps/web/src/backup/backup.ts`. Tek JSON dosyası (`format: trw-backup`, `formatVersion: 1`, motor sürümü, tarih): kullanıcı, strateji ve araştırma alanlarının tamamı; ekran görüntüleri base64. Fiyat verisi dahil değil.
+- **Geri yükleme hiçbir şeyin üzerine yazmaz:** kimlik yoksa eklenir, aynıysa atlanır, farklıysa çakışma sayılır ve mevcut korunur; geçersiz kayıt (bozuk çizim, çizimi olmayan seviye, stratejisi olmayan versiyon) eklenmez. Önce özet, sonra kullanıcı onayıyla yazma. Strateji versiyonları olduğu gibi (durum geçmişiyle) eklenir; stratejinin son versiyon numarası yükseltilir ki sonraki yeni versiyon sırayı bozmasın. Tercihler yalnızca hiç değiştirilmemiş varsayılanların yerine konur; "son yedek zamanı" karşılaştırmaya girmez.
+- **CSV:** günlük ve backtest işlemleri; Türkçe Excel varsayımıyla `;` ayraç, ondalık virgül, UTF-8 BOM, CRLF. `= + - @` ile başlayan metin hücrelerinin başına `'` konur (CSV formül enjeksiyonuna karşı).
+- **Hatırlatıcı:** strateji, günlük, çizim ya da paper oturumu varsa ve hiç yedek yoksa ya da son yedek 7+ gün önceyse başlıktaki "Yedek" düğmesinde uyarı.
+- **Kalıcılık:** `navigator.storage.persisted()` / `persist()` (MDN: Promise<boolean>, tarayıcı reddedebilir, güvenli bağlam). Gömülü önizleme tarayıcısı isteği reddetti (2026-10-06 denendi); arayüz bunu ve "kendi tarayıcında aç" notunu gösteriyor.
+- **Test sırasında bulunan:** hatırlatıcı metni iç `<span>` yüzünden ekran okuyucuya "Yedek· Yedek alınmadı" diye okunuyordu; tek metin yapıldı.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

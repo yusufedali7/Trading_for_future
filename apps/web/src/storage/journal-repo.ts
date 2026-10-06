@@ -10,6 +10,8 @@ export interface Screenshot {
 /** Replay trades, journal entries and their screenshots ("trw-user" domain). */
 export interface JournalRepo {
   listTrades(instrument: string): Promise<ReplayTrade[]>;
+  /** Every instrument (backup). */
+  listAllTrades(): Promise<ReplayTrade[]>;
   saveTrade(t: ReplayTrade): Promise<void>;
   deleteTrade(id: string): Promise<void>;
   /** All entries, newest decision first. */
@@ -33,6 +35,7 @@ export function createMemoryJournalRepo(): JournalRepo {
       [...trades.values()]
         .filter((t) => t.instrument === instrument)
         .sort((a, b) => a.createdAt - b.createdAt),
+    listAllTrades: async () => [...trades.values()].sort((a, b) => a.createdAt - b.createdAt),
     saveTrade: async (t) => {
       trades.set(t.id, t);
     },

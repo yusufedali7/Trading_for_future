@@ -713,6 +713,10 @@ input[type='number'] {
   gap: 6px;
 }
 
+.btn-warn {
+  border-color: var(--warn);
+}
+
 .btn-danger {
   border-color: var(--down);
   color: var(--down);

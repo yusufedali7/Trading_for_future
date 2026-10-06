@@ -22,6 +22,8 @@ export interface Prefs {
   features: FeatureLayer[];
   /** MT5 feed (M6.3): kept here so auto-update survives tab switches and reloads. */
   paperFeed: PaperFeedPrefs;
+  /** When the last backup file was made (M7.2); drives the reminder. */
+  lastBackupAt: number | null;
 }
 
 export interface PaperFeedPrefs {
@@ -37,6 +39,7 @@ export const DEFAULT_PREFS: Prefs = {
   sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
   features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
   paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
+  lastBackupAt: null,
 };
 
 export interface PrefsRepo {
@@ -113,6 +116,10 @@ function drawingsRepo(db: UserDb): DrawingsRepo {
       ]);
       return { drawings: drawings.sort(byCreated), levels: levels.sort(byCreated) };
     },
+    async listAll() {
+      const [drawings, levels] = await Promise.all([db.drawings.toArray(), db.levels.toArray()]);
+      return { drawings: drawings.sort(byCreated), levels: levels.sort(byCreated) };
+    },
     async saveDrawing(d) {
       assertValidDrawing(d);
       await db.drawings.put(d);
@@ -137,6 +144,9 @@ function journalRepo(db: UserDb): JournalRepo {
     async listTrades(instrument) {
       const all = await db.trades.where('instrument').equals(instrument).toArray();
       return all.sort((a, b) => a.createdAt - b.createdAt);
+    },
+    async listAllTrades() {
+      return (await db.trades.toArray()).sort((a, b) => a.createdAt - b.createdAt);
     },
     async saveTrade(t) {
       await db.trades.put(t);

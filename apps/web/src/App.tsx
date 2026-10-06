@@ -45,6 +45,7 @@ import {
 } from './storage/strategy-repo';
 import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
+import { BackupDialog } from './features/backup/BackupDialog';
 import { ConceptsPage, type ShowTarget } from './features/concepts/ConceptsPage';
 import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
@@ -117,6 +118,28 @@ export function App({
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
   const [researchRepo] = useState(() => givenResearch ?? createMemoryResearchRepo());
   const [sessionsRepo] = useState(() => givenSessions ?? createMemorySessionsRepo());
+  const backupRepos = useMemo(
+    () => ({
+      prefs,
+      drawings: drawingsRepo,
+      journal: journalRepo,
+      sessions: sessionsRepo,
+      strategies: strategyRepo,
+      research: researchRepo,
+    }),
+    [prefs, drawingsRepo, journalRepo, sessionsRepo, strategyRepo, researchRepo],
+  );
+  const [backupOpen, setBackupOpen] = useState(false);
+  // Whether anything worth backing up exists (drives the reminder, rule 10).
+  const [hasWork, setHasWork] = useState(false);
+  useEffect(() => {
+    void Promise.all([
+      strategyRepo.listStrategies(),
+      journalRepo.listEntries(),
+      drawingsRepo.listAll(),
+      researchRepo.listPaperSessions(),
+    ]).then(([s, j, d, ps]) => setHasWork(s.length + j.length + d.drawings.length + ps.length > 0));
+  }, [strategyRepo, journalRepo, drawingsRepo, researchRepo, backupOpen, view]);
   const [mt5Client] = useState(() => givenMt5 ?? createMt5Client());
   const [userSessions, setUserSessions] = useState<UserSession[]>([]);
   const [managingSessions, setManagingSessions] = useState(false);
@@ -390,6 +413,14 @@ export function App({
             ))}
           </div>
         )}
+        {settings && (
+          <BackupButton
+            lastBackupAt={settings.lastBackupAt}
+            hasWork={hasWork}
+            now={now()}
+            onOpen={() => setBackupOpen(true)}
+          />
+        )}
         {feed?.config.auto && (
           <span
             className={`feed-indicator ${feed.problem ? 'warn-text' : ''}`}
@@ -661,6 +692,16 @@ export function App({
         </div>
       )}
 
+      {backupOpen && settings && (
+        <BackupDialog
+          repos={backupRepos}
+          now={now}
+          displayTz={settings.displayTz}
+          lastBackupAt={settings.lastBackupAt}
+          onBackedUp={(at) => update({ lastBackupAt: at })}
+          onClose={() => setBackupOpen(false)}
+        />
+      )}
       {managingSessions && (
         <div className="overlay">
           <SessionManager
@@ -695,5 +736,27 @@ export function App({
         </div>
       )}
     </div>
+  );
+}
+
+const DAY = 86_400_000;
+const REMIND_AFTER_DAYS = 7;
+
+/** Header entry to the backup dialog; also the reminder when work exists and no recent backup. */
+function BackupButton(p: {
+  lastBackupAt: number | null;
+  hasWork: boolean;
+  now: number;
+  onOpen: () => void;
+}) {
+  const days = p.lastBackupAt === null ? null : Math.floor((p.now - p.lastBackupAt) / DAY);
+  const remind = p.hasWork && (days === null || days >= REMIND_AFTER_DAYS);
+  const label = !remind
+    ? tr.backup.button
+    : `${tr.backup.button} · ${days === null ? tr.backup.reminder : tr.backup.reminderOld(days)}`;
+  return (
+    <button type="button" className={`btn ${remind ? 'btn-warn' : ''}`} onClick={p.onOpen}>
+      {label}
+    </button>
   );
 }

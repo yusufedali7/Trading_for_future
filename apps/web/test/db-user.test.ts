@@ -18,6 +18,7 @@ describe('user preferences repo', () => {
       sessions: ['ASIA', 'LONDON', 'NEW_YORK'],
       features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
       paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
+      lastBackupAt: null,
     });
   });
 

@@ -1,4 +1,6 @@
 import { SKIP_REASONS, type BreakdownRow, type IanaTz, type StoredBacktest } from '@trw/engine';
+import { backtestTradesCsv } from '../../backup/csv';
+import { saveFile } from '../../backup/download';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
 import { formatR } from '../trade/TradePanel';
@@ -182,6 +184,19 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
           <summary>
             {t.tradeList} ({result.trades.length})
           </summary>
+          <button
+            type="button"
+            className="btn"
+            onClick={() =>
+              saveFile(
+                `trw-backtest-${run.strategy.id}-v${run.strategy.version}-${run.id}.csv`,
+                backtestTradesCsv(result.trades, displayTz),
+                'text/csv;charset=utf-8',
+              )
+            }
+          >
+            {tr.backup.tradesCsv}
+          </button>
           <div className="table-scroll">
             <table className="data-table">
               <thead>

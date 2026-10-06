@@ -458,3 +458,19 @@ Açıkken tıkladığın nokta, en yakın mumun açılış, en yüksek, en düş
 
 ### Geri al / yinele
 Ctrl+Z son çizim değişikliğini geri alır, Ctrl+Y yineler. Silinen bir çizim geri gelince bağlı destek/direnç seviyesi de geri gelir.
+
+---
+
+## M7.2'de eklenenler: yedek
+
+### Yedek dosyası
+Başlıktaki "Yedek" düğmesi tek bir JSON dosyası indirir: çizimler, seviyeler, günlük (ekran görüntüleriyle), seanslar, stratejiler ve versiyonları, backtest sonuçları, hipotezler, paper oturumları, tercihler. Fiyat verisi girmez. Kayıtlı çalışman varken 7 günden uzun süre yedek almazsan düğmede uyarı çıkar.
+
+### Geri yükleme
+Yedek dosyasını seçince önce bir özet görürsün: eklenecek, aynı, çakışan, geçersiz kayıtlar. Hiçbir şeyin üzerine yazılmaz; aynı kimlikte farklı bir kayıt varsa mevcut olan korunur.
+
+### Kalıcı depolama
+Tarayıcılar yer azalınca site verisini silebilir. Uygulama tarayıcıdan "silme" ricasında bulunabilir; tarayıcı kabul etmeyebilir. En güvenlisi uygulamayı kendi tarayıcında açmak ve düzenli yedek almaktır.
+
+### CSV
+Excel'de açılabilen tablo dosyası. Günlük ve backtest işlemleri CSV olarak indirilebilir; Türkçe Excel için noktalı virgül ve ondalık virgül kullanılır.

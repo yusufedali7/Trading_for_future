@@ -3,6 +3,8 @@ import { validateDrawing, type Drawing, type SupportResistanceLevel } from '@trw
 /** User drawings and support/resistance levels ("trw-user" domain), keyed by instrument. */
 export interface DrawingsRepo {
   list(instrument: string): Promise<{ drawings: Drawing[]; levels: SupportResistanceLevel[] }>;
+  /** Every instrument (backup). */
+  listAll(): Promise<{ drawings: Drawing[]; levels: SupportResistanceLevel[] }>;
   /** Insert or replace by id. Rejects drawings that fail validation. */
   saveDrawing(d: Drawing): Promise<void>;
   /** Deletes the drawing and every level linked to it. */
@@ -26,6 +28,10 @@ export function createMemoryDrawingsRepo(): DrawingsRepo {
     list: async (instrument) => ({
       drawings: [...drawings.values()].filter((d) => d.instrument === instrument).sort(byCreated),
       levels: [...levels.values()].filter((l) => l.instrument === instrument).sort(byCreated),
+    }),
+    listAll: async () => ({
+      drawings: [...drawings.values()].sort(byCreated),
+      levels: [...levels.values()].sort(byCreated),
     }),
     saveDrawing: async (d) => {
       assertValidDrawing(d);

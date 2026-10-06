@@ -20,6 +20,13 @@ export interface StrategyRepo {
   /** Adds the next version; an existing version number is never overwritten. */
   addVersion(v: StrategyVersion, at: number): Promise<Strategy>;
   rename(id: string, name: string, description: string, at: number): Promise<void>;
+  /** Backup restore: adds the strategy as stored; an existing id is left untouched. */
+  importStrategy(s: Strategy): Promise<void>;
+  /**
+   * Backup restore: adds the version as stored (status history included) unless that number
+   * exists; raises the strategy's latest version so the next new version follows it.
+   */
+  importVersion(v: StrategyVersion): Promise<void>;
   /** The only change allowed on a saved version. */
   setStatus(
     strategyId: string,
@@ -138,6 +145,22 @@ export function createDexieStrategyRepo(dbName = 'trw-strategy'): StrategyRepo {
     async rename(id, name, description, at) {
       await db.strategies.update(id, { name, description, updatedAt: at });
     },
+    async importStrategy(s) {
+      await db.transaction('rw', db.strategies, async () => {
+        if (!(await db.strategies.get(s.id))) await db.strategies.add(s);
+      });
+    },
+    async importVersion(v) {
+      await db.transaction('rw', db.strategies, db.versions, async () => {
+        const key = versionKey(v.strategyId, v.version);
+        if (await db.versions.get(key)) return;
+        await db.versions.add({ ...v, key });
+        const s = await db.strategies.get(v.strategyId);
+        if (s && s.latestVersion < v.version) {
+          await db.strategies.update(s.id, { latestVersion: v.version });
+        }
+      });
+    },
     async setStatus(strategyId, version, status, at, note) {
       return db.transaction('rw', db.versions, async () => {
         const row = await db.versions.get(versionKey(strategyId, version));
@@ -235,6 +258,17 @@ export function createMemoryStrategyRepo(): StrategyRepo {
     async rename(id, name, description, at) {
       const s = strategies.get(id);
       if (s) strategies.set(id, { ...s, name, description, updatedAt: at });
+    },
+    async importStrategy(s) {
+      if (!strategies.has(s.id)) strategies.set(s.id, s);
+    },
+    async importVersion(v) {
+      const key = versionKey(v.strategyId, v.version);
+      if (versions.has(key)) return;
+      versions.set(key, v);
+      const s = strategies.get(v.strategyId);
+      if (s && s.latestVersion < v.version)
+        strategies.set(s.id, { ...s, latestVersion: v.version });
     },
     async setStatus(strategyId, version, status, at, note) {
       const key = versionKey(strategyId, version);
