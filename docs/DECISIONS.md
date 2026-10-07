@@ -283,6 +283,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Test sırasında bulunan:** hatırlatıcı metni iç `<span>` yüzünden ekran okuyucuya "Yedek· Yedek alınmadı" diye okunuyordu; tek metin yapıldı.
 ---
 
+## D44 — İndikatörler, 1. parça: SMA, EMA, RSI, ATR (M8)
+- **Tarih:** 2026-10-07 · **Durum:** Kabul edildi
+- `packages/engine/src/features/indicators.ts`: saf, deterministik fonksiyonlar; yalnızca kapanmış mumlardan (`Bars`), period dolmadan `null`.
+- RSI ve ATR Wilder'ın standart yöntemiyle: ilk `period` değerin basit ortalamasıyla başlar, sonra üstel düzeltme uygulanır. EMA, ilk `period` kapanışın SMA'sıyla başlar (yaygın kural).
+- Testler: elle hesaplanmış küçük örnekler, period dolmadan `null`, kesme değişmezliği (rastgele yürüyüş, çoklu kesim noktası).
+- Bu adımda grafiğe ya da strateji adımlarına bağlanmadı; yalnızca motor + testler. MACD, Bollinger, VWAP ve diğerleri ayrı adımlar.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

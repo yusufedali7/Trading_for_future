@@ -115,11 +115,10 @@ Strateji durumu: `IDEA → RESEARCH → TESTING → VALIDATED_ON_SAMPLE → PAPE
 
 ## Kilometre taşları
 
-**Tamamlandı:** M0 (plan), M1 (veri + grafik), M2 (seanslar + elle analiz), M3 (replay + günlük), M4 (swing/FVG/BOS-CHoCH/süpürme/önceki periyot seviyeleri — hepsi aday durumunda), M5 (strateji oluşturucu + maliyetli backtest), M6.1 (kullanıcı tanımlı seanslar), M6.2 (araştırma laboratuvarı, in-sample/out-of-sample ayrımı, deneme sayacı), M6.3 (MT5 köprüsü + paper trading), M6.4 (kavram kütüphanesi + "beklendiği gibi gitmedi" ölçümü), M7.1 (çizim araçları: 23 araç, geri al/yinele).
+**Tamamlandı:** M0 (plan), M1 (veri + grafik), M2 (seanslar + elle analiz), M3 (replay + günlük), M4 (swing/FVG/BOS-CHoCH/süpürme/önceki periyot seviyeleri — hepsi aday durumunda), M5 (strateji oluşturucu + maliyetli backtest), M6.1 (kullanıcı tanımlı seanslar), M6.2 (araştırma laboratuvarı, in-sample/out-of-sample ayrımı, deneme sayacı), M6.3 (MT5 köprüsü + paper trading), M6.4 (kavram kütüphanesi + "beklendiği gibi gitmedi" ölçümü), M7.1 (çizim araçları: 23 araç, geri al/yinele), M7.2 (yedek/dışa aktarma).
 
 **Sırada (öncelik sırasıyla):**
-- **M7.2 Yedek ve dışa aktarma:** Mutlak kural 10'u karşılamak için M8'den önce (kullanıcı kararı, 6 Ekim 2026).
-- **M8 İndikatörler:** SMA, EMA, RSI, ATR ile başla; sonra MACD, Bollinger, VWAP (bkz. "Ortak hesaplamalar").
+- **M8 İndikatörler:** SMA, EMA, RSI, ATR tamamlandı (motor + test, D44, 7 Ekim 2026); henüz grafiğe/strateji adımlarına bağlı değil. Sırada: MACD, Bollinger, VWAP (bkz. "Ortak hesaplamalar").
 - **M9 Formasyon kataloğu:** `catalog/` içindeki formasyon ve strateji tanımlarının mevcut motora bağlanması; görev `docs/AGENT-GOREV-M9-formasyonlar.md`. Mevcut v1 tanımları (swing, BOS/CHoCH, FVG, süpürme, seans ve periyot seviyeleri) yeniden yazılmaz, adaptörle eşlenir; katalogla farkları önce kullanıcıya sorulur.
 - **M10 Çizim araçları 2. aşama:** pitchfork, Gann araçları, fırça, çizim stilleri, formasyon çizim şablonları. Bkz. "Kavram tanımları" bölümündeki manuel/otomatik ayrımı.
 - **M11 AI/quant bot:** ayrı bir taslak belgesinde tartışılır (`docs/AI-BOT-TASLAK.md`), açık sorular yanıtlanıp onaylanmadan kod yazılmaz. Hedef: stratejiyi canlı/paper veride izlemek, koşulları ve önerilen giriş/stop/hedef/lot'u göstermek; emri her zaman kullanıcı verir (Mutlak kural 7).

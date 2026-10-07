@@ -125,6 +125,7 @@ export {
 export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
 export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
+export { atr, ema, rsi, sma } from './features/indicators';
 export {
   OUTCOME_DEFAULTS,
   OUTCOME_VERSION,
