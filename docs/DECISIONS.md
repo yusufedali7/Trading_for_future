@@ -291,6 +291,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - Bu adımda grafiğe ya da strateji adımlarına bağlanmadı; yalnızca motor + testler. MACD, Bollinger, VWAP ve diğerleri ayrı adımlar.
 ---
 
+## D45 — İndikatörler, 2. parça: MACD, Bollinger, VWAP (M8)
+- **Tarih:** 2026-10-07 · **Durum:** Kabul edildi
+- `Bars` tipine `v` (hacim) alanı eklendi: kaynak mumda hacim yoksa 0. Yalnızca VWAP kullanıyor; geri uyumlu (eklenen alan).
+- MACD: hızlı/yavaş EMA farkı (çizgi), çizginin kendi EMA'sı (sinyal), farkları (histogram). Bollinger: SMA orta bant ± k × popülasyon standart sapması (aynı pencere). VWAP: veri başından **sabitlenmiş** (anchored), kümülatif (tipik fiyat × hacim) / kümülatif hacim; hacim hiç görülmediyse `null` (0 değil — dürüstlük).
+- VWAP'ın seans bazlı sıfırlanması (ör. her gün yeniden başlaması) v1'de yok; gerekirse ayrı bir adım.
+- Testler: elle hesaplanmış örnekler, period dolmadan `null`, kesme değişmezliği.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

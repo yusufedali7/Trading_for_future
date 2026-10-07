@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { sliceBars } from '../src/features/bars';
-import { atr, ema, rsi, sma } from '../src/features/indicators';
+import { sliceBars, type Bars } from '../src/features/bars';
+import { atr, bollinger, ema, macd, rsi, sma, vwap } from '../src/features/indicators';
 import { bars, randomWalk } from './helpers/synthetic-bars';
 
 // SYNTHETIC: closes only (open/high/low mirror close unless noted).
@@ -58,13 +58,66 @@ describe('atr (Wilder)', () => {
   });
 });
 
+describe('macd', () => {
+  it('matches a hand-computed line, signal and histogram', () => {
+    // Straight +1-per-bar closes make the fast/slow EMA gap settle at a constant 1 (i >= 4).
+    const b = closes([1, 2, 3, 4, 5, 6, 7]);
+    const { line, signal, histogram } = macd(b, 3, 5, 2);
+    expect(line).toEqual([null, null, null, null, 1, 1, 1]);
+    expect(signal).toEqual([null, null, null, null, null, 1, 1]);
+    expect(histogram).toEqual([null, null, null, null, null, 0, 0]);
+  });
+});
+
+describe('bollinger', () => {
+  it('matches a hand-computed mean and population standard deviation', () => {
+    const b = closes([1, 1, 3, 3, 5]);
+    const r = bollinger(b, 4, 2);
+    // window [1,1,3,3]: mean 2, deviations ±1 -> variance 1 -> sd 1.
+    expect(r.middle[3]).toBe(2);
+    expect(r.upper[3]).toBe(4);
+    expect(r.lower[3]).toBe(0);
+    // window [1,3,3,5]: mean 3, variance 2 -> sd sqrt(2).
+    expect(r.middle[4]).toBe(3);
+    expect(r.upper[4]!).toBeCloseTo(3 + 2 * Math.sqrt(2));
+    expect(r.lower[4]!).toBeCloseTo(3 - 2 * Math.sqrt(2));
+  });
+});
+
+describe('vwap', () => {
+  it('matches a hand-computed cumulative typical-price average', () => {
+    const b = bars(
+      [
+        [9, 10, 8, 9],
+        [10, 12, 10, 11],
+        [9, 11, 9, 10],
+      ],
+      [2, 3, 5],
+    );
+    // typical prices 9, 11, 10; pv 18, 33, 50; cumvol 2, 5, 10.
+    const v = vwap(b);
+    expect(v[0]).toBe(9);
+    expect(v[1]).toBe(10.2);
+    expect(v[2]).toBe(10.1);
+  });
+
+  it('is null while no volume has been seen (honest "no data", never 0)', () => {
+    const b = closes([1, 2, 3]); // the helper defaults volume to 0
+    expect(vwap(b)).toEqual([null, null, null]);
+  });
+});
+
 describe('no lookahead', () => {
   const b = randomWalk(300, 11);
-  const cases: [string, (b: typeof b) => (number | null)[]][] = [
+  const cases: [string, (b: Bars) => (number | null)[]][] = [
     ['sma', (x) => sma(x, 10)],
     ['ema', (x) => ema(x, 10)],
     ['rsi', (x) => rsi(x, 14)],
     ['atr', (x) => atr(x, 14)],
+    ['macd.line', (x) => macd(x).line],
+    ['macd.signal', (x) => macd(x).signal],
+    ['bollinger.upper', (x) => bollinger(x).upper],
+    ['vwap', (x) => vwap(x)],
   ];
 
   for (const [name, fn] of cases) {

@@ -5,7 +5,10 @@ export const BAR_MS = 15 * 60_000;
 export const T0 = Date.parse('2026-01-06T08:00:00Z');
 
 /** Bars from [open, high, low, close] tuples, 15 minutes apart from T0. */
-export function bars(ohlc: readonly (readonly [number, number, number, number])[]): Bars {
+export function bars(
+  ohlc: readonly (readonly [number, number, number, number])[],
+  volumes?: readonly number[],
+): Bars {
   const t = ohlc.map((_, i) => T0 + i * BAR_MS);
   return {
     length: ohlc.length,
@@ -15,6 +18,7 @@ export function bars(ohlc: readonly (readonly [number, number, number, number])[
     l: ohlc.map((x) => x[2]),
     c: ohlc.map((x) => x[3]),
     end: t.map((x) => x + BAR_MS),
+    v: volumes ?? ohlc.map(() => 0),
   };
 }
 
@@ -32,6 +36,7 @@ export function randomWalk(n: number, seed = 42, start = 1.1, stepPips = 3): Bar
   };
   const r5 = (x: number) => Math.round(x * 1e5) / 1e5;
   const rows: [number, number, number, number][] = [];
+  const volumes: number[] = [];
   let price = start;
   for (let i = 0; i < n; i++) {
     const o = price;
@@ -39,7 +44,8 @@ export function randomWalk(n: number, seed = 42, start = 1.1, stepPips = 3): Bar
     const h = r5(Math.max(o, c) + rnd() * stepPips * 1e-4);
     const l = r5(Math.min(o, c) - rnd() * stepPips * 1e-4);
     rows.push([o, h, l, c]);
+    volumes.push(Math.round(rnd() * 1000) + 1); // never 0, so cumulative volume always grows
     price = c;
   }
-  return bars(rows);
+  return bars(rows, volumes);
 }

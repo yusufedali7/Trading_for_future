@@ -15,6 +15,8 @@ export interface Bars {
   readonly l: readonly number[];
   readonly c: readonly number[];
   readonly end: readonly UtcMs[];
+  /** Tick/trade volume; 0 where the source candle had none (M8 VWAP). */
+  readonly v: readonly number[];
 }
 
 export function toBars(candles: readonly ResampledCandle[], inst: Instrument, tf: Timeframe): Bars {
@@ -30,6 +32,7 @@ export function toBars(candles: readonly ResampledCandle[], inst: Instrument, tf
     l: closed.map((c) => c.l),
     c: closed.map((c) => c.c),
     end: bucketEnds(inst, tf, t),
+    v: closed.map((c) => c.v ?? 0),
   };
 }
 
@@ -43,5 +46,6 @@ export function sliceBars(b: Bars, n: number): Bars {
     l: b.l.slice(0, n),
     c: b.c.slice(0, n),
     end: b.end.slice(0, n),
+    v: b.v.slice(0, n),
   };
 }
