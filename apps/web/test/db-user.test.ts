@@ -19,6 +19,15 @@ describe('user preferences repo', () => {
       features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
       paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
       lastBackupAt: null,
+      indicators: {
+        sma: { on: false, period: 20 },
+        ema: { on: false, period: 20 },
+        bollinger: { on: false, period: 20, k: 2 },
+        vwap: { on: false },
+        oscillator: 'NONE',
+        rsi: { period: 14 },
+        macd: { fast: 12, slow: 26, signal: 9 },
+      },
     });
   });
 

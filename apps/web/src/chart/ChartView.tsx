@@ -23,6 +23,7 @@ import { SessionBoxesPrimitive } from './primitives/session-boxes';
 import { THEME } from './theme';
 import type { ChartViewProps } from './types';
 import { useDrawingLayer } from './use-drawing-layer';
+import { useIndicatorSeries } from './use-indicator-series';
 
 const COLORS = { up: THEME.up, down: THEME.down, incomplete: THEME.incomplete };
 const VOLUME_PANE_HEIGHT = 80;
@@ -265,6 +266,7 @@ export function ChartView(props: ChartViewProps) {
 
   // User drawings (create, select, drag handles).
   useDrawingLayer(chartRef, candleSeriesRef, containerRef, { ...props, times });
+  useIndicatorSeries(chartRef, candles, instrument, timeframe, props.indicators);
 
   // Legend follows the crosshair; falls back to the last candle.
   useEffect(() => {

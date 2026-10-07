@@ -459,6 +459,8 @@ export function App({
                   : [...settings.features, layer],
               })
             }
+            indicators={settings.indicators}
+            onIndicators={(indicators) => update({ indicators })}
             onImport={() => setImporting(true)}
           />
         )}
@@ -604,6 +606,7 @@ export function App({
                   followLatest={inReplay}
                   features={chartData.features}
                   featureLayers={settings.features}
+                  indicators={settings.indicators}
                   setups={setupMarks}
                   tradeLines={tradeLines}
                   screenshotRef={screenshotRef}

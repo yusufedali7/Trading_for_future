@@ -299,6 +299,16 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - Testler: elle hesaplanmış örnekler, period dolmadan `null`, kesme değişmezliği.
 ---
 
+## D46 — İndikatörler grafiğe bağlandı (M8, görsel katman)
+- **Tarih:** 2026-10-07 · **Durum:** Kabul edildi; grafikte görünümü kullanıcının kendi verisiyle doğrulanacak
+- **Kapsam:** Yalnızca görsel overlay. Strateji adımlarına bağlama (ör. "RSI > 70 olunca gir") bu adıma dahil değil, ayrı bir iş.
+- SMA/EMA/Bollinger/VWAP fiyat panelinde çizgi; RSI ya da MACD (ikisinden biri, aynı anda değil) ayrı bir alt panelde. ATR çizilmiyor (sizing için kullanılacak, görsel çizgi olarak eklenmedi).
+- Ayarlar (`apps/web/src/chart/indicator-settings.ts`) tercihlere (`trw-user`) kaydedilir, sayfa yenilenince kalır. Araç çubuğunda "İndikatörler" açılır paneli: her biri aç/kapat + period/k/hızlı/yavaş/sinyal sayı girişleri.
+- Renkler çizim araçlarıyla aynı paletten (mavi/amber/mor/bakır), yön/kâr-zarar anlamı taşımaz; MACD histogramı da nötr gri (CLAUDE.md tasarım kuralı: yeşil/kırmızı yalnızca yön/PNL).
+- Hesaplama grafiğin taban serisinden (`toBars`), kapanmamış mumdan değil — ileriye bakma yok.
+- **Doğrulanmadı:** Gerçek grafikte (lightweight-charts render) nasıl göründüğü bu oturumda test edilemedi; ortamda ne MT5 köprüsü ne de içe aktarılmış CSV vardı, sahte veri kurala aykırı olduğu için grafiğe yüklenmedi. Motor hesapları (D44–D45) ve araç çubuğu→tercih bağlantısı testlerle doğrulandı.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

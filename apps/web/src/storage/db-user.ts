@@ -8,6 +8,7 @@ import type {
   Timeframe,
 } from '@trw/engine';
 import type { FeatureLayer } from '../chart/primitives/feature-layout';
+import { DEFAULT_INDICATORS, type IndicatorSettings } from '../chart/indicator-settings';
 import { assertValidDrawing, byCreated, type DrawingsRepo } from './drawings-repo';
 import { newestDecisionFirst, type JournalRepo, type Screenshot } from './journal-repo';
 import { byCreatedSession, type SessionsRepo, type UserSession } from './sessions-repo';
@@ -24,6 +25,8 @@ export interface Prefs {
   paperFeed: PaperFeedPrefs;
   /** When the last backup file was made (M7.2); drives the reminder. */
   lastBackupAt: number | null;
+  /** Chart overlays and oscillator (M8). */
+  indicators: IndicatorSettings;
 }
 
 export interface PaperFeedPrefs {
@@ -40,6 +43,7 @@ export const DEFAULT_PREFS: Prefs = {
   features: ['SWING', 'STRUCTURE', 'PREV_DAY'],
   paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
   lastBackupAt: null,
+  indicators: DEFAULT_INDICATORS,
 };
 
 export interface PrefsRepo {

@@ -28,7 +28,7 @@ export interface CandleColors {
  * The chart is always fed UTC seconds (DECISIONS D9). Shifting timestamps into a display zone
  * would duplicate times on DST fall-back nights; instead only the labels are localised.
  */
-const toChartTime = (t: UtcMs) => (t / 1000) as UTCTimestamp;
+export const toChartTime = (t: UtcMs) => (t / 1000) as UTCTimestamp;
 
 export function fromChartTime(time: Time): UtcMs {
   if (typeof time !== 'number') throw new Error('Expected a UTC timestamp');

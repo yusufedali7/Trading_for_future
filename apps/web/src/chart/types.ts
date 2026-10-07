@@ -7,6 +7,7 @@ import type {
   Timeframe,
   UtcMs,
 } from '@trw/engine';
+import type { IndicatorSettings } from './indicator-settings';
 import type { FeatureLayer } from './primitives/feature-layout';
 import type { MutableRefObject } from 'react';
 import type { DrawingLayerProps } from './use-drawing-layer';
@@ -36,6 +37,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   screenshotRef?: MutableRefObject<ChartScreenshot | null>;
   /** Bring this time into view; a new `seq` repeats the jump (concept library examples). */
   focus?: { at: UtcMs; seq: number } | null;
+  /** Overlays and oscillator (M8); omitted means none drawn. */
+  indicators?: IndicatorSettings;
 }
 
 export type ChartScreenshot = () => Promise<{ mime: string; data: ArrayBuffer } | null>;

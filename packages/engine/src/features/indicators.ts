@@ -87,7 +87,7 @@ function emaOfSeries(values: readonly (number | null)[], period: number): (numbe
   let sum = 0;
   let count = 0;
   for (let i = 0; i < values.length; i++) {
-    const v = values[i];
+    const v = values[i]!;
     if (v === null) continue;
     count++;
     if (count <= period) sum += v;
