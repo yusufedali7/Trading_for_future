@@ -318,6 +318,16 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **M8 tamamlandı:** SMA, EMA, RSI, ATR, MACD, Bollinger, VWAP, moving min/maks/toplam, lag, yüzde değişim, fark, z-score — hepsi motorda (D44–D45, D47); ilk 7'si grafiğe bağlı ve gerçek veriyle doğrulandı (D46). Bu son 5'i (moving min/maks/toplam, lag, diff, %değişim, z-score) henüz grafiğe bağlı değil — şimdilik iç yapı taşları; ileride indikatör panelinde ya da strateji adımlarında kullanılabilir.
 ---
 
+## D48 — M9 başladı: mum formasyonları, 1. dilim (Doji, Engulfing, Marubozu)
+- **Tarih:** 2026-10-07 · **Durum:** Kabul edildi
+- **Kapsam kararı:** 107 katalog tanımının hepsi yerine, dar ve dürüst bir ilk dilim: TA-Lib'in trend bağlamı gerektirmeyen 3 formasyonu. Swing parametresi 3/3 korunuyor; katalog SMC kavramları mevcut M4 motoruna bağlanacak (kod üretmiyor, referans kalıyor).
+- **Ayrı sistem:** `packages/engine/src/patterns/` — M4'ün `features/`inden ayrı (manuel çizim ≠ otomatik katalog, CLAUDE.md).
+- **TA-Lib kuruldu** (`py -m pip install TA-Lib`, kullanıcı onayıyla) ve **oracle olarak** kullanıldı: `tools/oracle/talib_candles.py` sentetik veri + TA-Lib çıktısını `packages/engine/test/fixtures/SYNTHETIC_candlestick_oracle.json`'a yazıyor; `npm test` Python'a bağımlı değil, yalnızca kaydedilmiş sonuçla karşılaştırıyor.
+- **Doğrulama:** 85 sentetik bar + **20.000 gerçek EURUSD 1m bar** (MT5 köprüsünden) üzerinde TS dedektörleri TA-Lib'le birebir eşleşti (8.585 gerçek tespit). Süreçte 3 gerçek hata bulunup düzeltildi (direction alanı eksikti; engulfing'in renk kuralı düz mumu yanlış sayıyordu; engulfing'in ±80/±100 güç ayrımı modellenmedi, yalnızca varlık+yön tutuluyor — diğer tüm dedektörlerle aynı sözleşme).
+- **Sıklık (gerçek veri, 2026-09-24→10-07):** Doji %15,3, Engulfing %20,8, Marubozu %6,8 / 1000 mum — 1 dakikalık forex'te nadir değiller.
+- **Bilerek kapsam dışı:** Hammer/Hanging Man/Shooting Star ailesi (TA-Lib'de trend-tespiti alt yordamına bağlı, ezbere hatasız yeniden üretimi garanti edemedim — kural 8). Katalogdaki diğer 58 mum formasyonu, 21 grafik formasyonu, 9 harmonik hâlâ `TO_IMPLEMENT`.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

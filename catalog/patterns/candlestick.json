@@ -149,7 +149,8 @@
       "name_tr": "Doji",
       "candles": 1,
       "gap_sensitivity": "no",
-      "status": "TO_IMPLEMENT"
+      "status": "VERIFIED",
+      "verification": "oracle: TA-Lib 0.8.1, exact match on 85 synthetic + 20,000 real EURUSD 1m bars (2026-10-07)"
     },
     {
       "id": "cdldojistar",
@@ -176,7 +177,8 @@
       "name_tr": "Yutan Mum",
       "candles": 2,
       "gap_sensitivity": "no",
-      "status": "TO_IMPLEMENT"
+      "status": "VERIFIED",
+      "verification": "oracle: TA-Lib 0.8.1, exact match on 85 synthetic + 20,000 real EURUSD 1m bars (2026-10-07); TA-Lib's own ±80/±100 confidence split is not modelled, only presence + direction"
     },
     {
       "id": "cdleveningdojistar",
@@ -365,7 +367,8 @@
       "name_tr": "Marubozu",
       "candles": 1,
       "gap_sensitivity": "no",
-      "status": "TO_IMPLEMENT"
+      "status": "VERIFIED",
+      "verification": "oracle: TA-Lib 0.8.1, exact match on 85 synthetic + 20,000 real EURUSD 1m bars (2026-10-07)"
     },
     {
       "id": "cdlmatchinglow",

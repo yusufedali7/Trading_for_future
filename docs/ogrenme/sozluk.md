@@ -474,3 +474,19 @@ Tarayıcılar yer azalınca site verisini silebilir. Uygulama tarayıcıdan "sil
 
 ### CSV
 Excel'de açılabilen tablo dosyası. Günlük ve backtest işlemleri CSV olarak indirilebilir; Türkçe Excel için noktalı virgül ve ondalık virgül kullanılır.
+
+---
+
+## M9'da eklenenler: mum formasyonları
+
+### Doji
+Açılış ve kapanış fiyatı neredeyse aynı olan mum — kararsızlığın işareti sayılır. Ortalama mum aralığının %10'undan küçük gövde, TA-Lib'in tanımı.
+
+### Engulfing (yutan mum)
+Bir mumun gövdesinin, bir öncekinin gövdesini tamamen kapsaması ve ters renkte olması. Küçük bir mumdan sonra gelen büyük, ters yönlü mum.
+
+### Marubozu
+Neredeyse hiç fitili olmayan, uzun gövdeli mum — açılıştan kapanışa kadar kesintisiz bir yönde gittiğinin işareti.
+
+### Oracle (referans) testi
+Kendi kodumuzun doğruluğunu, aynı veri üzerinde bağımsız bir kaynakla (burada: TA-Lib kütüphanesi) karşılaştırarak kanıtlama yöntemi. Bizim motorumuz hâlâ TypeScript'te çalışıyor; TA-Lib yalnızca geliştirme sırasında "doğru cevap bu mu?" diye sormak için kullanıldı, uygulamanın çalışması için gerekli değil.

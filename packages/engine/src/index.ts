@@ -125,6 +125,8 @@ export {
 export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
 export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
+export { detectDoji, detectEngulfing, detectMarubozu } from './patterns/candlestick';
+export type { CandlePattern } from './patterns/types';
 export {
   atr,
   bollinger,
