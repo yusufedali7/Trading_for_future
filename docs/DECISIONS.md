@@ -309,6 +309,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulandı (2026-10-07, aynı oturumda devam):** Kullanıcı MT5'i açtı, köprü çalıştı; gerçek EURUSD verisiyle tarayıcıda denendi. SMA/Bollinger/VWAP fiyat panelinde, RSI ve MACD ayrı panelde (biri seçilince öbürü kalkıyor) doğru çizildi; sayfa yenilenince seçimler ve çizgiler korundu.
 ---
 
+## D47 — İndikatörler, son parça: genel seri dönüşümleri (M8 tamamlandı)
+- **Tarih:** 2026-10-07 · **Durum:** Kabul edildi
+- `movingMin/Max/Sum`, `lag`, `diff`, `percentChange`, `zscore`: `Bars`'a değil, herhangi bir sayı dizisine çalışır (kapanış fiyatı olabilir, başka bir indikatörün çıktısı da olabilir). Pencere dolmadan ya da içinde `null` varsa sonuç `null`.
+- `percentChange`: önceki değer 0 ise `Infinity` değil `null` döner (dürüstlük).
+- `zscore`: pencerenin standart sapması 0 ise `null` döner (sıfıra bölme yok).
+- Testler: elle hesaplanmış örnekler, `null` yayılımı, kesme değişmezliği.
+- **M8 tamamlandı:** SMA, EMA, RSI, ATR, MACD, Bollinger, VWAP, moving min/maks/toplam, lag, yüzde değişim, fark, z-score — hepsi motorda (D44–D45, D47); ilk 7'si grafiğe bağlı ve gerçek veriyle doğrulandı (D46). Bu son 5'i (moving min/maks/toplam, lag, diff, %değişim, z-score) henüz grafiğe bağlı değil — şimdilik iç yapı taşları; ileride indikatör panelinde ya da strateji adımlarında kullanılabilir.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

@@ -1,6 +1,6 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-07 (M8: indikatörler grafiğe bağlandı — doğrulama bekliyor)_
+_Son güncelleme: 2026-10-07 (M8 tamamlandı: indikatörler motor + grafik + doğrulama)_
 
 ## Durum özeti
 - **M1–M5, M6.1, M6.2:** tamamlandı. Planlar `docs/PLAN-M2..M6-2.md`, kararlar D23–D38.
@@ -16,13 +16,13 @@ _Son güncelleme: 2026-10-07 (M8: indikatörler grafiğe bağlandı — doğrula
 - **M6.4 iyileştirme listesi:** (1) gösterilen örneği grafikte vurgulamak (şu an yalnızca o ana gidiyor); (2) önceki gün/hafta ve seanslar için ölçüt; (3) kavramdan doğrudan strateji adımı oluşturma.
 - **2026-10-06 — Proje paketi (D42):** Kullanıcının `PROJE-PAKETI.md` dosyası projeye yerleştirildi (yeni CLAUDE.md, AI bot taslağı, M9 görev dosyası, `catalog/`). Onaylanan sıra: **M7.2 yedek/dışa aktarma → M8 indikatörler → M9 formasyon kataloğu → M10 çizim 2. aşama → M11 AI/quant bot.** Push artık oturum sonunda Claude tarafından yapılıyor. Kullanıcı her adımın önce birlikte onaylanmasını istiyor.
 - **M8 (İndikatörler):** SMA, EMA, RSI, ATR, MACD, Bollinger, VWAP tamamlandı (karar D44–D46). `packages/engine/src/features/indicators.ts`; `Bars` tipine hacim (`v`) eklendi. **Grafiğe bağlandı (D46):** araç çubuğunda "İndikatörler" paneli (aç/kapat + period), fiyat panelinde SMA/EMA/Bollinger/VWAP, ayrı alt panelde RSI ya da MACD; tercihe kayıtlı. **Doğrulandı (2026-10-07):** Kullanıcı MT5'i açtı, gerçek EURUSD verisiyle tarayıcıda denendi — SMA/Bollinger/VWAP fiyat panelinde, RSI/MACD ayrı panelde doğru çizildi, sayfa yenilenince korundu. Strateji adımlarına bağlama henüz yok.
-**Sıradaki M8 parçası (onay bekliyor):** moving min/maks/toplam, lag, yüzde değişim, fark, z-score.
+**M8 tamamlandı (D47):** moving min/maks/toplam, lag, diff, yüzde değişim, z-score de motorda — genel seri dönüşümleri (`Bars` değil, herhangi bir sayı dizisi alır), henüz grafiğe/stratejiye bağlı değil.
 - **M7.2 (Yedek ve dışa aktarma):** tamamlandı (plan `docs/PLAN-M7-2.md`, karar D43). Başlıkta "Yedek": JSON yedek indir, yedekten geri yükle (özet → onay, hiçbir şeyin üzerine yazmaz), günlük CSV, kalıcı depolama durumu ve isteği, 7 günlük hatırlatıcı; backtest raporunda "İşlemleri CSV indir". **Sırada: M8 indikatörler** (plan → kullanıcı onayı).
 - **M7.1 (TradingView tarzı çizim araç takımı):** tamamlandı (plan `docs/PLAN-M7.md`, karar D41). Sol şeritte 6 grup, 23 araç; mıknatıs, çizimde kal, tümünü kilitle/gizle/sil, geri al/yinele (Ctrl+Z/Y). Dar ekranda şerit yatay satıra döner. Çizim 2. aşama artık M10.
 - **Kullanıcının ürün hedefi (2026-10-05):** Strateji seçilince uygulama canlı veride koşulları kontrol edip grafikte/tabloda gösterecek, kuralların verdiği yönü, giriş/stop/hedefi ve lot miktarını söyleyecek; alım-satımı **kullanıcı kendisi** yapacak, uygulama asla işlem açmayacak. Arkasındaki AI/quant botu kullanıcı kesinleştiriyor.
 - **Yol haritasında kalan:** AI araştırma asistanı. Kullanıcının sırası: yol haritasını bitir → eklemelere karar ver → sistemi toparla → başkalarıyla kullanıcı testi. Ürün hedefi "eğitim ve tavsiye botu": "tavsiye" kural 6 ile çelişir; başkalarına yatırım tavsiyesi Türkiye'de SPK lisansı gerektirebilir (doğrulanmadı) — kullanıcı testinden önce tekrar konuşulmalı.
 - **Sonra:** AI araştırma asistanı (n8n / Langflow + YouTube); küçük işler (backtest işlemlerini grafikte göstermek, kurulumdan replay, strateji/hipotez arşivleme).
-- Testler: **468 test yeşil** (71 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
+- Testler: **478 test yeşil** (71 dosya) + **7 köprü testi** (`npm run test:bridge`, Python 3.13.2). Tip kontrolü ve ESLint temiz. `prettier --check` yalnızca kullanıcının takip dışı `AGENTS.md` dosyasında uyarı veriyor.
 - Git: `main` dalı; 2026-10-06'dan itibaren oturum sonunda Claude `git push` yapar (D42).
 
 ## M6.3'te yapılanlar

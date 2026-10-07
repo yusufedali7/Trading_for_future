@@ -1,6 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { sliceBars, type Bars } from '../src/features/bars';
-import { atr, bollinger, ema, macd, rsi, sma, vwap } from '../src/features/indicators';
+import {
+  atr,
+  bollinger,
+  diff,
+  ema,
+  lag,
+  macd,
+  movingMax,
+  movingMin,
+  movingSum,
+  percentChange,
+  rsi,
+  sma,
+  vwap,
+  zscore,
+} from '../src/features/indicators';
 import { bars, randomWalk } from './helpers/synthetic-bars';
 
 // SYNTHETIC: closes only (open/high/low mirror close unless noted).
@@ -107,6 +122,44 @@ describe('vwap', () => {
   });
 });
 
+describe('moving min/max/sum', () => {
+  it('matches hand values and is null until the window is full or has a null in it', () => {
+    const v = [3, 1, 4, 1, 5, 9];
+    expect(movingMin(v, 3)).toEqual([null, null, 1, 1, 1, 1]);
+    expect(movingMax(v, 3)).toEqual([null, null, 4, 4, 5, 9]);
+    expect(movingSum(v, 3)).toEqual([null, null, 8, 6, 10, 15]);
+
+    const withGap = [1, null, 3, 4, 5];
+    expect(movingSum(withGap, 2)).toEqual([null, null, null, 7, 9]);
+  });
+});
+
+describe('lag', () => {
+  it('shifts the series and carries a null forward', () => {
+    expect(lag([10, 20, 30, 40], 2)).toEqual([null, null, 10, 20]);
+    expect(lag([10, null, 30], 1)).toEqual([null, 10, null]);
+  });
+});
+
+describe('diff and percentChange', () => {
+  it('matches hand values and refuses to divide by zero', () => {
+    expect(diff([10, 12, 9], 1)).toEqual([null, 2, -3]);
+    expect(percentChange([10, 12, 9], 1)).toEqual([null, 20, -25]);
+    expect(percentChange([0, 5], 1)).toEqual([null, null]); // was 0: null, not Infinity
+  });
+});
+
+describe('zscore', () => {
+  it('matches a hand-computed value and is null when the window has no spread', () => {
+    // window [2,4,6]: mean 4, population sd 2*sqrt(2/3)... use round numbers instead:
+    const v = [1, 1, 1, 4]; // window [1,1,4] at i=3: mean=2, variance=2, sd=sqrt(2)
+    const z = zscore(v, 3);
+    expect(z[2]).toBeNull(); // window [1,1,1]: sd 0
+    expect(z[3]).toBeCloseTo((4 - 2) / Math.sqrt(2));
+    expect(zscore([5, 5, 5], 3)[2]).toBeNull();
+  });
+});
+
 describe('no lookahead', () => {
   const b = randomWalk(300, 11);
   const cases: [string, (b: Bars) => (number | null)[]][] = [
@@ -118,6 +171,12 @@ describe('no lookahead', () => {
     ['macd.signal', (x) => macd(x).signal],
     ['bollinger.upper', (x) => bollinger(x).upper],
     ['vwap', (x) => vwap(x)],
+    ['movingMin', (x) => movingMin(x.c, 10)],
+    ['movingSum', (x) => movingSum(x.c, 10)],
+    ['lag', (x) => lag(x.c, 5)],
+    ['diff', (x) => diff(x.c, 3)],
+    ['percentChange', (x) => percentChange(x.c, 3)],
+    ['zscore', (x) => zscore(x.c, 10)],
   ];
 
   for (const [name, fn] of cases) {

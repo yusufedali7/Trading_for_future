@@ -125,7 +125,22 @@ export {
 export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
 export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
-export { atr, bollinger, ema, macd, rsi, sma, vwap } from './features/indicators';
+export {
+  atr,
+  bollinger,
+  diff,
+  ema,
+  lag,
+  macd,
+  movingMax,
+  movingMin,
+  movingSum,
+  percentChange,
+  rsi,
+  sma,
+  vwap,
+  zscore,
+} from './features/indicators';
 export type { Bollinger, Macd } from './features/indicators';
 export {
   OUTCOME_DEFAULTS,

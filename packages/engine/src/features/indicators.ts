@@ -152,3 +152,90 @@ export function vwap(b: Bars): (number | null)[] {
   }
   return out;
 }
+
+/**
+ * Generic series transforms (M8): work on any numeric series (closes, or another indicator's
+ * output), not just `Bars`. A window with a null in it, or not yet full, produces null.
+ */
+
+/** The `period` values ending at `i`, or null if the window is incomplete or has a null in it. */
+function fullWindow(
+  values: readonly (number | null)[],
+  period: number,
+  i: number,
+): number[] | null {
+  if (i < period - 1) return null;
+  const w: number[] = [];
+  for (let j = i - period + 1; j <= i; j++) {
+    const v = values[j]!;
+    if (v === null) return null;
+    w.push(v);
+  }
+  return w;
+}
+
+function windowOp(
+  values: readonly (number | null)[],
+  period: number,
+  reduce: (window: number[]) => number,
+): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  for (let i = 0; i < values.length; i++) {
+    const w = fullWindow(values, period, i);
+    if (w) out[i] = reduce(w);
+  }
+  return out;
+}
+
+export function movingMin(values: readonly (number | null)[], period: number): (number | null)[] {
+  return windowOp(values, period, (w) => Math.min(...w));
+}
+
+export function movingMax(values: readonly (number | null)[], period: number): (number | null)[] {
+  return windowOp(values, period, (w) => Math.max(...w));
+}
+
+export function movingSum(values: readonly (number | null)[], period: number): (number | null)[] {
+  return windowOp(values, period, (w) => w.reduce((a, b) => a + b, 0));
+}
+
+/** Value from `n` steps back; null for the first `n` and wherever that past value was null. */
+export function lag(values: readonly (number | null)[], n: number): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  for (let i = n; i < values.length; i++) out[i] = values[i - n]!;
+  return out;
+}
+
+export function diff(values: readonly (number | null)[], period = 1): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  for (let i = period; i < values.length; i++) {
+    const a = values[i]!;
+    const b = values[i - period]!;
+    if (a !== null && b !== null) out[i] = a - b;
+  }
+  return out;
+}
+
+/** Percent change over `period` steps; null (not Infinity) when the earlier value was 0. */
+export function percentChange(values: readonly (number | null)[], period = 1): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  for (let i = period; i < values.length; i++) {
+    const a = values[i]!;
+    const b = values[i - period]!;
+    if (a !== null && b !== null && b !== 0) out[i] = ((a - b) / b) * 100;
+  }
+  return out;
+}
+
+/** (value − rolling mean) / rolling population standard deviation; null when that sd is 0. */
+export function zscore(values: readonly (number | null)[], period: number): (number | null)[] {
+  const out: (number | null)[] = new Array(values.length).fill(null);
+  for (let i = 0; i < values.length; i++) {
+    const w = fullWindow(values, period, i);
+    if (!w) continue;
+    const mean = w.reduce((a, b) => a + b, 0) / period;
+    const sd = Math.sqrt(w.reduce((a, b) => a + (b - mean) ** 2, 0) / period);
+    if (sd !== 0) out[i] = (values[i]! - mean) / sd;
+  }
+  return out;
+}
