@@ -328,6 +328,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Bilerek kapsam dışı:** Hammer/Hanging Man/Shooting Star ailesi (TA-Lib'de trend-tespiti alt yordamına bağlı, ezbere hatasız yeniden üretimi garanti edemedim — kural 8). Katalogdaki diğer 58 mum formasyonu, 21 grafik formasyonu, 9 harmonik hâlâ `TO_IMPLEMENT`.
 ---
 
+## D49 — M9 devam: SMC'nin eksik alt kavramlarından ilk ikisi (Displacement, Order block)
+- **Tarih:** 2026-10-08 · **Durum:** Kabul edildi
+- **Kapsam kararı:** `catalog/patterns/smc.json`'un `implementation_order` listesine göre, zaten yapılmış olanlardan (swing/periods/sessions/fvg/bos/choch/sweep) sonraki ilk iki eksik kavram. Katalogdaki 1.5/14 ve BODY/10 varsayılanları birebir kullanıldı. Durumları `TO_IMPLEMENT` → `IMPLEMENTED` (oracle yok, çünkü resmi bir ICT/SMC tanımı yok — `VERIFIED` değil).
+- **Displacement** (`packages/engine/src/features/displacement.ts`): bir mumun gövdesi, kendisinden **önceki** `atrPeriod` (14) mumun ortalama true range'inin `minBodyAtr` (1.5) katından büyükse. `patterns/candle-classify.ts`'nin "strictly before" eşik kuralıyla aynı yöntem (kendi büyüklüğü kendi eşiğini şişirmesin). **`Detection` birleşimine dahil değil** — bir seviye/bölge adayı değil, tek mumluk bir sınıflandırma (mum formasyonlarına daha yakın); doğal bir geçersizleşme fiyatı yok, `features/outcomes.ts`'e bağlanmadı.
+- **Order block** (`packages/engine/src/features/order-block.ts`): bir yapı kırılımının (BOS/CHoCH) kırılım mumu aynı yönde bir displacement mumuysa (katalogun "bos_or_mss" şartının karşılığı — ayrı bir MSS tipi henüz yok), kırılım mumundan geriye en fazla `lookbackBars` (10) mum içindeki ilk ters renkli mum order block'tur; bölgesi gövde (`BODY`, varsayılan) ya da tam aralık (`RANGE`). **`Detection` birleşimine dahil** — FVG'yle aynı mantıkla bir seviye adayı, `features/outcomes.ts`'e `ORDER_BLOCK` başarısızlık çizgisi eklendi (BULLISH → alt sınır altı, BEARISH → üst sınır üstü kapanış).
+- **Henüz yapılmayan:** İkisi de `features/compute.ts`'in `FeatureSet`'ine bağlanmadı (M8'deki indikatörlerle aynı sıralama: önce motor, sonra ayrı bir adımda grafiğe/pipeline'a bağlama). Strateji şemasına (`EventStep`) henüz eklenmedi.
+- Testler: `displacement.test.ts`, `order-block.test.ts` — pozitif/negatif sentetik, yön kuralı, kesme değişmezliği; order block için ayrıca gerçek swing/yapı-kırılımı/displacement motoruyla uçtan uca bir senaryo.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

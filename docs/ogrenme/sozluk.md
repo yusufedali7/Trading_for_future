@@ -490,3 +490,14 @@ Neredeyse hiç fitili olmayan, uzun gövdeli mum — açılıştan kapanışa ka
 
 ### Oracle (referans) testi
 Kendi kodumuzun doğruluğunu, aynı veri üzerinde bağımsız bir kaynakla (burada: TA-Lib kütüphanesi) karşılaştırarak kanıtlama yöntemi. Bizim motorumuz hâlâ TypeScript'te çalışıyor; TA-Lib yalnızca geliştirme sırasında "doğru cevap bu mu?" diye sormak için kullanıldı, uygulamanın çalışması için gerekli değil.
+
+## M9 2. dilimde eklenenler: SMC (Smart Money Concepts)
+
+### Displacement (güçlü hareket)
+Normalden çok daha büyük gövdeli bir mum — piyasada ani, kararlı bir hareket olduğunun işareti sayılır. "Normal" ölçüsü, önceki mumların ortalama fiyat aralığıdır (ATR).
+
+### Order block
+Güçlü bir harekete (displacement) hemen önce gelen, o hareketin tersi renkteki son mum. ICT/SMC fikrine göre bu bölge, fiyat geri geldiğinde destek ya da direnç gibi davranabilir — "aday" bir bölge, kesin değil.
+
+### Aday (candidate)
+Motorun bulduğu her şeyin (swing, FVG, order block, ...) önündeki sıfat. "Kesin destek" değil, "aday destek" denir — çünkü bu tanımların resmi, tek bir karşılığı yok (bkz. CLAUDE.md "Kavram tanımları").

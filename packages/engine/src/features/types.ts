@@ -113,4 +113,42 @@ export interface LiquiditySweep extends DetectionTiming {
   extreme: number;
 }
 
-export type Detection = Swing | Fvg | StructureBreak | LiquiditySweep;
+export interface DisplacementParams {
+  /** Real body must exceed this multiple of the trailing average true range. */
+  minBodyAtr: number;
+  /** Bars used for the trailing average (strictly before the candidate bar). */
+  atrPeriod: number;
+}
+
+/**
+ * A single unusually strong bar (catalog/patterns/smc.json "displacement"). Not part of
+ * `Detection`: unlike a swing/FVG/break/sweep it is not a level or zone that later "holds" or
+ * "fails", so it has no natural outcome-tracking failure line (features/outcomes.ts) - it is a
+ * per-bar classification, closer to a candlestick pattern than to a level candidate.
+ */
+export interface Displacement extends DetectionTiming {
+  type: 'DISPLACEMENT';
+  direction: FeatureDirection;
+  body: number;
+  /** The trailing average true range it was compared against. */
+  atr: number;
+}
+
+export interface OrderBlockParams {
+  /** BODY: the candle's open-close range; RANGE: its full high-low range. */
+  zone: 'BODY' | 'RANGE';
+  /** How many bars back from the breaking bar to search for the opposite-coloured candle. */
+  lookbackBars: number;
+}
+
+export interface OrderBlock extends DetectionTiming {
+  type: 'ORDER_BLOCK';
+  /** Matches the structure break's direction: BULLISH = support/demand zone, BEARISH = resistance/supply. */
+  direction: FeatureDirection;
+  top: number;
+  bottom: number;
+  /** The structure break whose displacement bar this order block supports. */
+  breakId: string;
+}
+
+export type Detection = Swing | Fvg | StructureBreak | LiquiditySweep | OrderBlock;

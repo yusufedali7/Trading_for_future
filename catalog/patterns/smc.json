@@ -83,7 +83,8 @@
       "depends_on": [],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/displacement.ts, docs/definitions/displacement-v1.md (2026-10-08). Tek mum, oracle doğrulaması yok (resmi tanım yok); ardışık mum dizisi alternatifi v1'de yok."
     },
     {
       "id": "mss",
@@ -154,7 +155,8 @@
       "forex_note": "Bazı kütüphaneler order block gücünü hacimle hesaplıyor. Forex verisinde gerçek hacim olmadığı için hacim tabanlı güç kullanılmaz.",
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/order-block.ts, docs/definitions/order-block-v1.md (2026-10-08). 'requires: bos_or_mss' burada 'eşlik eden displacement'lı her BOS/CHoCH' olarak uygulandı - ayrı bir MSS tipi henüz yok. Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "breaker",

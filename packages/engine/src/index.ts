@@ -127,6 +127,8 @@ export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
 export { detectDoji, detectEngulfing, detectMarubozu } from './patterns/candlestick';
 export type { CandlePattern } from './patterns/types';
+export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
+export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export {
   atr,
   bollinger,
@@ -166,12 +168,16 @@ export type {
   BreakBy,
   Detection,
   DetectionTiming,
+  Displacement,
+  DisplacementParams,
   FeatureDirection,
   Fvg,
   FvgParams,
   LiquidityKind,
   LiquidityLevel,
   LiquiditySweep,
+  OrderBlock,
+  OrderBlockParams,
   PeriodKind,
   PeriodLevel,
   StructureBreak,

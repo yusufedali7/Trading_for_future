@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **1. dilim tamamlandı (2026-10-07)** — 3 mum formasyonu (Doji, Engulfing, Marubozu), TA-Lib ile doğrulandı. Kataloğun geri kalanı (58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + SMC'nin eksik 8 alt kavramı) sonraki dilimlerde. Karar `docs/DECISIONS.md` D48.
+> Durum: **2. dilim tamamlandı (2026-10-08)** — SMC'nin eksik 8 alt kavramından ilk ikisi (Displacement, Order block), mevcut M4 swing/yapı-kırılımı motoruna bağlı. Karar `docs/DECISIONS.md` D49. (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + SMC'nin eksik 6 alt kavramı (equal_highs_lows, ifvg, breaker, premium_discount, ote, candidate_sr) sonraki dilimlerde.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -22,9 +22,15 @@
 - **Gerçek veride sıklık** (20.000 EURUSD 1m bar, 2026-09-24 → 2026-10-07): Doji %15,3, Engulfing %20,8, Marubozu %6,8 (1000 mumda). Bu üçü 1 dakikalık forex verisinde **nadir değil** — "özel" bir sinyal olarak değil, sık görülen bir mum şekli olarak okunmalı.
 - Katalogda `cdldoji`/`cdlengulfing`/`cdlmarubozu` durumu `VERIFIED` yapıldı, doğrulama notu eklendi. Diğer 58 mum formasyonu hâlâ `TO_IMPLEMENT`.
 
+## 2. dilimde ne yapıldı (2026-10-08, D49)
+- `packages/engine/src/features/displacement.ts`: `detectDisplacement` — gövdesi, önceki `atrPeriod` mumun ortalama true range'inin `minBodyAtr` katından büyük mum. `Detection` birleşimine dahil değil (bkz. gerekçe D49/`docs/definitions/displacement-v1.md`).
+- `packages/engine/src/features/order-block.ts`: `detectOrderBlocks` — bir BOS/CHoCH'un kırılım mumu aynı yönde bir displacement'sa, geriye `lookbackBars` içindeki ilk ters renkli mum order block. `Detection` birleşimine dahil, `features/outcomes.ts`'e başarısızlık çizgisi eklendi.
+- İkisi de `features/compute.ts`'in `FeatureSet`'ine ya da grafiğe henüz bağlı değil (M8'deki gibi: önce motor, sonra ayrı adımda bağlama).
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
 1. Kalan mum formasyonları (ikili/üçlü, trend bağlamı gerektirmeyenlerden devam).
-2. SMC'nin eksik 8 alt kavramı (displacement, order_block, ifvg, breaker, equal_highs_lows, premium_discount, ote, candidate_sr) — mevcut swing/FVG/süpürme motoruna eklenir.
+2. SMC'nin eksik 6 alt kavramı (equal_highs_lows, ifvg, breaker, premium_discount, ote, candidate_sr) — mevcut swing/FVG/süpürme/order-block motoruna eklenir.
 3. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
 4. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-5. Olay deposu, canlı mod, grafik entegrasyonu, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+5. Displacement/Order block'u `FeatureSet`'e ve grafiğe bağlama (M8'deki indikatör-grafik bağlama adımıyla aynı iş türü).
+6. Olay deposu, canlı mod, grafik entegrasyonu, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
