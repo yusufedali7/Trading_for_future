@@ -3,8 +3,8 @@
 Builds a small SYNTHETIC OHLC fixture with hand-placed candlestick patterns, runs the real
 TA-Lib (BSD licence) over it, and writes both the bars and TA-Lib's own output as one JSON file.
 Our TypeScript detectors are then checked against this recorded output in
-packages/engine/test/candlestick-patterns.test.ts, so `npm test` never needs Python/TA-Lib
-installed - only re-running this script to refresh the fixture does.
+packages/engine/test/patterns/candlestick.test.ts and candlestick-more.test.ts, so `npm test`
+never needs Python/TA-Lib installed - only re-running this script to refresh the fixture does.
 
 Run: py tools/oracle/talib_candles.py
 Requires: py -m pip install TA-Lib numpy
@@ -16,7 +16,15 @@ from pathlib import Path
 import numpy as np
 import talib
 
-FUNCS = ["CDLDOJI", "CDLENGULFING", "CDLMARUBOZU"]
+FUNCS = [
+    "CDLDOJI", "CDLENGULFING", "CDLMARUBOZU",
+    "CDLBELTHOLD", "CDLCLOSINGMARUBOZU", "CDLSPINNINGTOP", "CDLHIGHWAVE",
+    "CDLSHORTLINE", "CDLLONGLINE", "CDLGRAVESTONEDOJI", "CDLDRAGONFLYDOJI",
+    "CDLLONGLEGGEDDOJI", "CDLRICKSHAWMAN", "CDLHARAMI", "CDLHARAMICROSS",
+    "CDLDOJISTAR", "CDLMATCHINGLOW", "CDLCOUNTERATTACK", "CDLSEPARATINGLINES",
+    "CDLKICKING", "CDLKICKINGBYLENGTH", "CDLPIERCING", "CDLDARKCLOUDCOVER",
+    "CDLHOMINGPIGEON", "CDLSTICKSANDWICH", "CDLUPSIDEGAP2CROWS", "CDL2CROWS",
+]
 
 PIP = 0.0001
 

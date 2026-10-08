@@ -125,7 +125,35 @@ export {
 export type { FeatureInput, FeatureParams, FeatureSet } from './features/compute';
 export { FVG_DEFAULTS, detectFvgs } from './features/fvg';
 export { periodLevels } from './features/periods';
-export { detectDoji, detectEngulfing, detectMarubozu } from './patterns/candlestick';
+export {
+  detect2Crows,
+  detectBeltHold,
+  detectClosingMarubozu,
+  detectCounterattack,
+  detectDarkCloudCover,
+  detectDoji,
+  detectDojiStar,
+  detectDragonflyDoji,
+  detectEngulfing,
+  detectGravestoneDoji,
+  detectHarami,
+  detectHaramiCross,
+  detectHighWave,
+  detectHomingPigeon,
+  detectKicking,
+  detectKickingByLength,
+  detectLongLeggedDoji,
+  detectLongLine,
+  detectMarubozu,
+  detectMatchingLow,
+  detectPiercing,
+  detectRickshawMan,
+  detectSeparatingLines,
+  detectShortLine,
+  detectSpinningTop,
+  detectStickSandwich,
+  detectUpsideGap2Crows,
+} from './patterns/candlestick';
 export type { CandlePattern } from './patterns/types';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';

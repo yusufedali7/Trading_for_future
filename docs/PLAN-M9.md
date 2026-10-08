@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **4. dilim tamamlandı (2026-10-08)** — SMC'nin 8 alt kavramı grafiğe bağlandı (D51), gerçek veriyle doğrulandı. Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block), D50 (3. dilim: kalan 6), D51 (4. dilim: grafik). (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + bu 8 SMC kavramının strateji şemasına bağlanması.
+> Durum: **5. dilim tamamlandı (2026-10-08)** — 24 yeni mum formasyonu daha (trend bağlamı gerektirmeyenler), toplam 27/61 `VERIFIED` (D52). Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block), D50 (3. dilim: kalan 6 SMC), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu). (1. dilim: 2026-10-07, 3 mum formasyonu — D48.) Kalan: 34 mum formasyonu (trend bağlamı gerektiren aile) + 21 grafik formasyonu + 9 harmonik + SMC'nin strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -40,8 +40,14 @@
 - `apps/web/src/compute/candle-source.ts`, `App.tsx`, `ChartView.tsx`, `chart/types.ts`: `ChartData`/`ChartViewProps`'a `smc` alanı eklendi, replay'de `smcAsOf` ile kesiliyor.
 - Gerçek Dukascopy EURUSD 1h verisiyle (gömülü tarayıcı) doğrulandı: 7 katman tek tek ve birlikte, konsol hatasız.
 
+## 5. dilimde ne yapıldı (2026-10-08, D52) — 24 yeni mum formasyonu
+- `candle-classify.ts`: TA-Lib'in resmi C kaynağından (github.com/TA-Lib/ta-lib) eksik eşik ayarları eklendi (`shadowLong`/`shadowVeryLong` — `avgPeriod:0`, kendi gövdesiyle kıyas; `shadowShort` — `SHADOWS` aralık tipi, /2; `near`/`far`/`equal`); `belowOrEqual`/`aboveOrEqual` eklendi (TA-Lib `<`/`<=` ayarına değil formasyona göre karışık kullanıyor).
+- `candlestick.ts`: 24 yeni formasyon — Belt-hold, Closing Marubozu, Spinning Top, High Wave, Short/Long Line, Gravestone/Dragonfly/Long-Legged Doji, Rickshaw Man, Harami(+Cross), Doji Star, Matching Low, Counterattack, Separating Lines, Kicking(+by Length), Piercing, Dark Cloud Cover, Homing Pigeon, Stick Sandwich, Upside Gap Two Crows, Two Crows — hepsi trend bağlamı gerektirmiyor.
+- Doğrulama: committed oracle fixture'a 24 fonksiyon eklendi (13'ü tetikleniyor, test ediliyor) + gerçek 736.706 barlık EURUSD 1m cross-check (commit edilmedi) — 21/24 tam eşleşme, 3'ünde ("equal" toleransı kullananlar) ~%0,3 kayan-nokta farkı, belgelendi (D52).
+- Katalogda 24'ünün durumu `VERIFIED`. **Kalan 34 mum formasyonu hepsi trend bağlamı gerektiriyor** (Hammer/Hanging Man/Shooting Star/Morning-Evening Star ailesi vb.) — ayrı, dikkatli bir sonraki dilim.
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Kalan mum formasyonları (ikili/üçlü, trend bağlamı gerektirmeyenlerden devam).
+1. Kalan 34 mum formasyonu — trend bağlamı gerektiren aile; TA-Lib'in iç trend-tespit yordamını kaynaktan okuyup aynı titizlikle doğrulamak gerekiyor.
 2. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
 3. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
 4. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.

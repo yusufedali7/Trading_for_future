@@ -516,3 +516,26 @@ Bir fiyat hareketinin (impuls) %62-%79'luk geri çekilme bölgesi — ICT'ye gö
 
 ### Aday destek/direnç (candidate S/R)
 Birbirine yakın fiyatlarda tekrar tekrar (en az 3 kez) dönülen bir seviye — yatay bir "duvar" adayı. Tepe ya da dip olması önemli değil, aynı seviye hem destek hem direnç gibi davranabilir.
+
+## M9 5. dilimde eklenenler: 24 mum formasyonu daha
+
+### Belt-hold / Kapanış Marubozu
+Marubozu'nun "yarısı" gibi düşün: uzun gövdeli bir mum, ama yalnızca **bir** tarafında fitil yok (Belt-hold: açılış tarafında; Kapanış Marubozu: kapanış tarafında). Marubozu'dan daha sık görülür çünkü şart daha gevşek.
+
+### Üst gölge, alt gölge (shadow)
+Bir mumun gövdesinin üstünde kalan ince çizgi "üst gölge" (fitil), altında kalan "alt gölge". Topuz (Spinning Top) ve Yüksek Dalga (High Wave) gibi formasyonlar, küçük gövde + uzun gölgelerle tanınır — piyasanın kararsız olduğunun işareti.
+
+### Harami ("gebe" mumu)
+Büyük bir mumun içine tamamen sığan küçük bir mum. İkinci mum bir doji ise "Harami Cross" denir — kararsızlığın daha güçlü işareti.
+
+### Yıldız (star) formasyonları
+Büyük bir mumdan sonra, ondan **boşluklu** (gap) ayrılan küçük bir mum ya da doji — "Doji Star" gibi. Forex'te gün içi boşluk nadirdir, bu yüzden bu formasyonlar forex'te seyrek görülür.
+
+### Piercing / Dark Cloud Cover
+İki mumluk dönüş formasyonları: biri önceki mumun gövdesinin ortasından öteye geçerek kapanır. Piercing yükseliş yönünde, Dark Cloud Cover düşüş yönünde.
+
+### Kicking (tekmeleme)
+İki zıt yönlü marubozu arasında **boşluk** olması — çok güçlü, ani bir yön değişimi adayı. Forex'te gün içi nadir görülür (24/5 işlem, boşluk azdır).
+
+### Eşit kapanış/açılış toleransı (Equal)
+Bazı formasyonlar (Matching Low, Counterattack, Separating Lines, Stick Sandwich) iki fiyatın "neredeyse aynı" sayılması gerekir — bunun için küçük bir tolerans payı kullanılır (TA-Lib'in kendi varsayılanı, motorumuzda da aynen kullanılıyor).
