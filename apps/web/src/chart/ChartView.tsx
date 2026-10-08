@@ -17,7 +17,7 @@ import { tr } from '../i18n/tr';
 import { positionToTime, timeToPosition } from './coords';
 import { indexAtOrAfter, startOfLocalDay } from './goto';
 import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from './lwc-adapter';
-import { layoutFeatures } from './primitives/feature-layout';
+import { layoutFeatures, layoutSmc } from './primitives/feature-layout';
 import { FeaturesPrimitive } from './primitives/features';
 import { SessionBoxesPrimitive } from './primitives/session-boxes';
 import { THEME } from './theme';
@@ -193,11 +193,21 @@ export function ChartView(props: ChartViewProps) {
     );
   }, [sessions, times, timeframe, sessionStyles]);
 
-  // Engine candidates (M4) and strategy setups (M5), laid out once per data / layer change.
-  const { features, featureLayers, setups } = props;
+  // Engine candidates (M4 + M9 SMC) and strategy setups (M5), laid out once per data / layer change.
+  const { features, smc, featureLayers, setups } = props;
   useEffect(() => {
     const layers = new Set(featureLayers ?? []);
     const empty = { swings: [], fvgs: [], breaks: [], sweeps: [], periods: [] };
+    const emptySmc = {
+      displacements: [],
+      orderBlocks: [],
+      ifvgs: [],
+      breakers: [],
+      equalLevels: [],
+      premiumDiscount: [],
+      ote: [],
+      candidateSr: [],
+    };
     // A setup mark sits beside the chart bar that contains the signal bar.
     const barAt = (t: number) => {
       let lo = 0;
@@ -215,19 +225,22 @@ export function ChartView(props: ChartViewProps) {
         const c = candles[barAt(t)];
         return c ? [{ t, price: setups.long ? c.l : c.h }] : [];
       }) ?? [];
+    const tfMs = timeframeMs(timeframe);
     const items =
       (features && layers.size > 0) || marks.length > 0
         ? layoutFeatures(
             features && layers.size > 0 ? features : empty,
             layers,
             times,
-            timeframeMs(timeframe),
+            tfMs,
             tr.features.labels,
             setups ? { marks, long: setups.long, label: setups.label } : null,
           )
         : [];
-    featuresRef.current?.setData(items, times.length);
-  }, [features, featureLayers, setups, times, timeframe]);
+    const smcItems =
+      layers.size > 0 ? layoutSmc(smc ?? emptySmc, layers, times, tfMs, tr.features.smcLabels) : [];
+    featuresRef.current?.setData([...items, ...smcItems], times.length);
+  }, [features, smc, featureLayers, setups, times, timeframe]);
 
   // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
   const screenshotRef = props.screenshotRef;

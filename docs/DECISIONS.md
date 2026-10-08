@@ -349,6 +349,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - Testler: her kavram için ayrı dosya (`ifvg.test.ts`, `breaker.test.ts`, `equal-levels.test.ts`, `premium-discount.test.ts`, `ote.test.ts`, `candidate-sr.test.ts`) — pozitif/negatif sentetik + kesme değişmezliği.
 ---
 
+## D51 — M9: SMC'nin 8 kavramı grafiğe bağlandı
+- **Tarih:** 2026-10-08 · **Durum:** Kabul edildi ("m9'a da başla, projeyi bitirip çalışmaya başlayalım")
+- **Mimari karar: `FeatureSet`'e dokunulmadı.** 8 kavram, `packages/engine/src/features/smc.ts`'deki yeni `computeSmc(bars, inst, params)` ile **ayrı, kendi kendine yeten** bir fonksiyonda birleştirildi — kendi swing/yapı-kırılımı/FVG'sini motorun M4 borusundan bağımsız yeniden hesaplar. Gerekçe: `FeatureSet` tipini genişletmek, onu elle inşa eden ~5-6 dosyayı (ChartView'un boş varsayılanı, test fixture'ları, matcher/backtest) da değiştirmeyi gerektirecekti; M8'deki indikatörlerin de aynı şekilde `FeatureSet`'ten ayrı, `Bars`'tan doğrudan hesaplanması emsal alındı. `smcAsOf(set, cutoff)` ile `featuresAsOf`'un aynısı — replay imlecinde doğru kesiliyor (`candle-source.ts`'nin `composeReplay`'i).
+- **Grafik:** `FEATURE_LAYERS`e 7 yeni katman eklendi (ORDER_BLOCK, IFVG, BREAKER, EQUAL_LEVELS, PREMIUM_DISCOUNT, OTE, CANDIDATE_SR) — mevcut "Katmanlar" panelinin aç/kapat mekanizması veri-güdümlü olduğu için (FEATURE_LAYERS dizisi üzerinde `.map`) Toolbar/prefs tarafında hiçbir değişiklik gerekmedi. Yeni `layoutSmc()` fonksiyonu (`feature-layout.ts`) `SmcSet`'i aynı `FeatureItem`/`FeaturesPrimitive` çizim sistemine (BOX/LINE/MARK) dönüştürür; `ChartView` iki listeyi (`layoutFeatures` + `layoutSmc`) birleştirip tek primitive'e veriyor. Displacement'in görsel katmanı yok (bilinçli — tek mum sınıflandırması, "bölge" değil).
+- **Parametreler henüz grafikte ayarlanamıyor:** `computeSmc` hep kendi `SMC_DEFAULTS`'ıyla çalışıyor (indikatörlerdeki gibi period/k gibi arayüz alanları yok) — kapsam dışı bırakıldı, bu dilimi küçük tutmak için.
+- **Gerçek veriyle doğrulandı (gömülü tarayıcı):** kullanıcının kendi Dukascopy EURUSD 1h CSV'si (`data/eurusd_h1_bid_...csv`, 12.451 mum, 2024-10-01→2026-09-30) içe aktarıldı; 7 yeni katman tek tek ve birlikte açılıp konsol hatasız, kutular/çizgiler beklenen şekilde çizildi. Geçici içe aktarma dosyası commit edilmedi.
+- **Kalan (M9'un geri kalanı, hâlâ onay bekliyor):** 58 mum formasyonu, 21 grafik formasyonu, 9 harmonik; bu 8 SMC kavramının strateji şemasına (`EventStep`) bağlanması; M6.4 kavram kütüphanesine eklenmeleri (`content/concepts.ts`) ayrı, küçük bir iş olarak bırakıldı.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

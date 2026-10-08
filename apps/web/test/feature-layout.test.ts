@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import type { FeatureSet } from '@trw/engine';
-import { layoutFeatures, visibleItems } from '../src/chart/primitives/feature-layout';
+import type { FeatureSet, SmcSet } from '@trw/engine';
+import {
+  FEATURE_LAYERS,
+  layoutFeatures,
+  layoutSmc,
+  visibleItems,
+} from '../src/chart/primitives/feature-layout';
 import { tr } from '../src/i18n/tr';
 
 // SYNTHETIC: ten 15m bars and one candidate of each kind.
@@ -196,5 +201,164 @@ describe('layoutFeatures', () => {
       'CHoCH ↑',
       'Süpürme PDH',
     ]);
+  });
+});
+
+describe('layoutSmc', () => {
+  // SYNTHETIC: one candidate of each SMC kind (M9 2.–3. dilim).
+  const smcSet: SmcSet = {
+    displacements: [],
+    orderBlocks: [
+      {
+        ...timing(2, 3),
+        type: 'ORDER_BLOCK',
+        direction: 'BULLISH',
+        top: 1.2,
+        bottom: 1.1,
+        breakId: 'b1',
+      },
+    ],
+    ifvgs: [
+      {
+        ...timing(4, 5),
+        type: 'IFVG',
+        direction: 'BEARISH',
+        top: 1.3,
+        bottom: 1.25,
+        sourceFvgId: 'f1',
+      },
+    ],
+    breakers: [
+      {
+        ...timing(1, 2),
+        type: 'BREAKER',
+        direction: 'BULLISH',
+        top: 1.05,
+        bottom: 1.0,
+        sourceOrderBlockId: 'ob1',
+      },
+    ],
+    equalLevels: [
+      { ...timing(0, 3), type: 'EQUAL_LEVELS', side: 'HIGH', price: 1.21, swingIds: ['s1', 's2'] },
+    ],
+    premiumDiscount: [
+      { ...timing(1, 1), type: 'PREMIUM_DISCOUNT', top: 1.3, bottom: 1.1, equilibrium: 1.2 },
+      { ...timing(5, 5), type: 'PREMIUM_DISCOUNT', top: 1.35, bottom: 1.15, equilibrium: 1.25 },
+    ],
+    ote: [
+      {
+        ...timing(3, 4),
+        type: 'OTE',
+        direction: 'BEARISH',
+        top: 1.5,
+        bottom: 1.4,
+        sweetSpot: 1.45,
+        startSwingId: 's3',
+        endSwingId: 's4',
+      },
+    ],
+    candidateSr: [
+      {
+        ...timing(0, 2),
+        type: 'CANDIDATE_SR',
+        top: 1.22,
+        bottom: 1.18,
+        price: 1.2,
+        touches: 3,
+        swingIds: ['s5', 's6', 's7'],
+      },
+    ],
+  };
+  const SMC_LAYERS = new Set(FEATURE_LAYERS.filter((l) => l !== 'SWING'));
+
+  it('lays out every SMC candidate kind, open boxes/lines to the newest bar', () => {
+    const smcItems = layoutSmc(smcSet, SMC_LAYERS, times, TF, tr.features.smcLabels);
+    expect(smcItems).toEqual([
+      {
+        shape: 'BOX',
+        layer: 'ORDER_BLOCK',
+        p1: 1.5,
+        p2: null,
+        top: 1.2,
+        bottom: 1.1,
+        tone: 'UP',
+        label: 'Order block ↑',
+      },
+      {
+        shape: 'BOX',
+        layer: 'IFVG',
+        p1: 3.5,
+        p2: null,
+        top: 1.3,
+        bottom: 1.25,
+        tone: 'DOWN',
+        label: 'Ters FVG ↓',
+      },
+      {
+        shape: 'BOX',
+        layer: 'BREAKER',
+        p1: 0.5,
+        p2: null,
+        top: 1.05,
+        bottom: 1.0,
+        tone: 'UP',
+        label: 'Breaker ↑',
+      },
+      {
+        shape: 'BOX',
+        layer: 'OTE',
+        p1: 2.5,
+        p2: null,
+        top: 1.5,
+        bottom: 1.4,
+        tone: 'DOWN',
+        label: 'OTE ↓',
+      },
+      {
+        shape: 'BOX',
+        layer: 'CANDIDATE_SR',
+        p1: -0.5,
+        p2: null,
+        top: 1.22,
+        bottom: 1.18,
+        tone: 'NEUTRAL',
+        label: 'Aday S/D',
+      },
+      {
+        shape: 'LINE',
+        layer: 'EQUAL_LEVELS',
+        p1: 0,
+        p2: 3.5,
+        price: 1.21,
+        tone: 'NEUTRAL',
+        label: 'EQH',
+        dashed: true,
+      },
+      {
+        shape: 'LINE',
+        layer: 'PREMIUM_DISCOUNT',
+        p1: 1.5,
+        p2: 5.5,
+        price: 1.2,
+        tone: 'NEUTRAL',
+        label: 'Denge (P/D)',
+        dashed: true,
+      },
+      {
+        shape: 'LINE',
+        layer: 'PREMIUM_DISCOUNT',
+        p1: 5.5,
+        p2: null,
+        price: 1.25,
+        tone: 'NEUTRAL',
+        label: 'Denge (P/D)',
+        dashed: true,
+      },
+    ]);
+  });
+
+  it('draws only the enabled SMC layers', () => {
+    const only = layoutSmc(smcSet, new Set(['BREAKER'] as const), times, TF, tr.features.smcLabels);
+    expect(only.map((i) => i.layer)).toEqual(['BREAKER']);
   });
 });

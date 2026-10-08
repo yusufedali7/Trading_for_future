@@ -251,6 +251,13 @@ export const tr = {
       SWEEP: 'Süpürme',
       PREV_DAY: 'Önceki gün',
       PREV_WEEK: 'Önceki hafta',
+      ORDER_BLOCK: 'Order block',
+      IFVG: 'Ters FVG',
+      BREAKER: 'Breaker',
+      EQUAL_LEVELS: 'Eşit seviyeler',
+      PREMIUM_DISCOUNT: 'Premium/Discount',
+      OTE: 'OTE',
+      CANDIDATE_SR: 'Aday S/D',
     },
     layerHints: {
       SWING: 'Aday tepe ve dipler (sağda 3 mum oluşunca onaylanır)',
@@ -259,6 +266,13 @@ export const tr = {
       SWEEP: 'Aday likidite süpürmesi: seviyenin fitille aşılıp içeride kapanması',
       PREV_DAY: 'Önceki işlem gününün en yüksek / en düşük fiyatı (PDH / PDL)',
       PREV_WEEK: 'Önceki haftanın en yüksek / en düşük fiyatı (PWH / PWL)',
+      ORDER_BLOCK: 'Aday order block: güçlü bir hareketten önceki son ters renkli mum',
+      IFVG: 'Ters FVG: kapanışla tamamen geçilmiş bir FVG, artık ters yönde aday',
+      BREAKER: 'Breaker: kapanışla geçersizleşmiş bir order block, artık ters yönde aday',
+      EQUAL_LEVELS: 'Birbirine yakın iki swing — olası likidite havuzu',
+      PREMIUM_DISCOUNT: 'Son swing aralığının ortası (denge); üstü premium, altı discount',
+      OTE: 'Bir hareketin %62-79 geri çekilme bölgesi (Optimal Trade Entry)',
+      CANDIDATE_SR: 'En az 3 kez dönülen seviyelerden türetilen aday destek/direnç',
     },
     candidateNote: 'Motor adayları kesin sinyal değildir; tanımlar docs/definitions içinde.',
     labels: {
@@ -269,6 +283,15 @@ export const tr = {
       sweep: (levelKinds: readonly string[]) =>
         `Süpürme ${levelKinds.map((k) => LEVEL_SHORT[k] ?? k).join(', ')}`,
       period: (kind: 'PDH' | 'PDL' | 'PWH' | 'PWL') => kind,
+    },
+    smcLabels: {
+      orderBlock: (up: boolean) => `Order block ${up ? '↑' : '↓'}`,
+      ifvg: (up: boolean) => `Ters FVG ${up ? '↑' : '↓'}`,
+      breaker: (up: boolean) => `Breaker ${up ? '↑' : '↓'}`,
+      equalLevels: (high: boolean) => (high ? 'EQH' : 'EQL'),
+      premiumDiscount: 'Denge (P/D)',
+      ote: (up: boolean) => `OTE ${up ? '↑' : '↓'}`,
+      candidateSr: 'Aday S/D',
     },
   },
   replay: {

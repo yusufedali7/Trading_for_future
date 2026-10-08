@@ -3,6 +3,7 @@ import {
   backtestStats,
   bucketStart,
   canonicalJson,
+  computeSmc,
   findSetups,
   runBacktest,
   toBars,
@@ -15,6 +16,7 @@ import {
   sessionInstances,
   sessionLevels,
   simulateTrade,
+  smcAsOf,
   timeframeMs,
   type BacktestConfig,
   type BacktestResult,
@@ -27,6 +29,7 @@ import {
   type SessionDefinition,
   type SessionLevels,
   type Setup,
+  type SmcSet,
   type StrategySpec,
   type SimOptions,
   type SimResult,
@@ -44,6 +47,8 @@ export interface ChartData {
   sessions: SessionLevels[];
   /** Engine candidates (M4) on this timeframe, as of the last stored bar. */
   features: FeatureSet;
+  /** SMC candidates (M9 2.–3. dilim), as of the last stored bar; decoupled from `features`. */
+  smc: SmcSet;
 }
 
 /**
@@ -92,6 +97,7 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
     candles: [...head, ...tail.tail],
     sessions,
     features: featuresAsOf(full.features, cursor),
+    smc: smcAsOf(full.smc, cursor),
   };
 }
 
@@ -189,15 +195,17 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       const defs = allSessionDefs(userSessions);
       const sessions = sessionsFor(meta, c, defs);
       const candles = await candlesFor(meta, c.series, tf);
+      const inst = getInstrument(meta.instrument);
       const features = computeFeatures({
         candles,
-        inst: getInstrument(meta.instrument),
+        inst,
         tf,
         periods: c.periods,
         sessions,
         sessionDefs: defs,
       });
-      return { candles, sessions, features };
+      const smc = computeSmc(toBars(candles, inst, tf), inst);
+      return { candles, sessions, features, smc };
     },
     async replay(meta, tf, cursor, userSessions = []) {
       const c = await get(meta);

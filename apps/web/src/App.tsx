@@ -605,6 +605,7 @@ export function App({
                   displayTz={settings.displayTz}
                   followLatest={inReplay}
                   features={chartData.features}
+                  smc={chartData.smc}
                   featureLayers={settings.features}
                   indicators={settings.indicators}
                   setups={setupMarks}

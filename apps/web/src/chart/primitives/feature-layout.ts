@@ -1,4 +1,4 @@
-import type { FeatureSet } from '@trw/engine';
+import type { FeatureSet, SmcSet } from '@trw/engine';
 import { timeToPosition } from '../coords';
 
 /** Toggleable candidate layers (stored in prefs). */
@@ -9,6 +9,13 @@ export const FEATURE_LAYERS = [
   'SWEEP',
   'PREV_DAY',
   'PREV_WEEK',
+  'ORDER_BLOCK',
+  'IFVG',
+  'BREAKER',
+  'EQUAL_LEVELS',
+  'PREMIUM_DISCOUNT',
+  'OTE',
+  'CANDIDATE_SR',
 ] as const;
 export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 
@@ -212,6 +219,151 @@ export function layoutFeatures(
     it.stack = seen.get(key) ?? 0;
     seen.set(key, it.stack + 1);
   }
+  return out;
+}
+
+export interface SmcLabels {
+  orderBlock: (up: boolean) => string;
+  ifvg: (up: boolean) => string;
+  breaker: (up: boolean) => string;
+  equalLevels: (high: boolean) => string;
+  premiumDiscount: string;
+  ote: (up: boolean) => string;
+  candidateSr: string;
+}
+
+/**
+ * M9 2.–3. dilim's SMC candidates (order block, IFVG, breaker, equal highs/lows, premium/
+ * discount, OTE, candidate S/R), separately from `layoutFeatures` because they come from
+ * `computeSmc`'s own `SmcSet`, not `FeatureSet` (D49/D50 - decoupled from the M4 pipeline for
+ * now). Boxes that have no engine-tracked end (order block, IFVG, breaker, OTE, candidate S/R)
+ * reuse the same "cap at `FVG_BOX_MAX_BARS`, open to the newest bar otherwise" display-only rule
+ * as FVG boxes.
+ */
+export function layoutSmc(
+  s: SmcSet,
+  layers: ReadonlySet<FeatureLayer>,
+  times: ArrayLike<number>,
+  tfMs: number,
+  labels: SmcLabels,
+): FeatureItem[] {
+  const pos = (t: number) => timeToPosition(times, tfMs, t);
+  const bar = (t: number) => pos(t) + 0.5;
+  const openEnd = (p1: number) => {
+    const cap = p1 + FVG_BOX_MAX_BARS;
+    return cap < times.length - 0.5 ? cap : null;
+  };
+  const out: FeatureItem[] = [];
+
+  if (layers.has('ORDER_BLOCK'))
+    for (const ob of s.orderBlocks) {
+      const up = ob.direction === 'BULLISH';
+      const p1 = pos(ob.formedAt);
+      out.push({
+        shape: 'BOX',
+        layer: 'ORDER_BLOCK',
+        p1,
+        p2: openEnd(p1),
+        top: ob.top,
+        bottom: ob.bottom,
+        tone: up ? 'UP' : 'DOWN',
+        label: labels.orderBlock(up),
+      });
+    }
+
+  if (layers.has('IFVG'))
+    for (const g of s.ifvgs) {
+      const up = g.direction === 'BULLISH';
+      const p1 = pos(g.formedAt);
+      out.push({
+        shape: 'BOX',
+        layer: 'IFVG',
+        p1,
+        p2: openEnd(p1),
+        top: g.top,
+        bottom: g.bottom,
+        tone: up ? 'UP' : 'DOWN',
+        label: labels.ifvg(up),
+      });
+    }
+
+  if (layers.has('BREAKER'))
+    for (const bk of s.breakers) {
+      const up = bk.direction === 'BULLISH';
+      const p1 = pos(bk.formedAt);
+      out.push({
+        shape: 'BOX',
+        layer: 'BREAKER',
+        p1,
+        p2: openEnd(p1),
+        top: bk.top,
+        bottom: bk.bottom,
+        tone: up ? 'UP' : 'DOWN',
+        label: labels.breaker(up),
+      });
+    }
+
+  if (layers.has('OTE'))
+    for (const z of s.ote) {
+      const up = z.direction === 'BULLISH';
+      const p1 = pos(z.formedAt);
+      out.push({
+        shape: 'BOX',
+        layer: 'OTE',
+        p1,
+        p2: openEnd(p1),
+        top: z.top,
+        bottom: z.bottom,
+        tone: up ? 'UP' : 'DOWN',
+        label: labels.ote(up),
+      });
+    }
+
+  if (layers.has('CANDIDATE_SR'))
+    for (const z of s.candidateSr) {
+      const p1 = pos(z.formedAt);
+      out.push({
+        shape: 'BOX',
+        layer: 'CANDIDATE_SR',
+        p1,
+        p2: openEnd(p1),
+        top: z.top,
+        bottom: z.bottom,
+        tone: 'NEUTRAL',
+        label: labels.candidateSr,
+      });
+    }
+
+  if (layers.has('EQUAL_LEVELS'))
+    for (const e of s.equalLevels) {
+      out.push({
+        shape: 'LINE',
+        layer: 'EQUAL_LEVELS',
+        p1: bar(e.formedAt),
+        p2: pos(e.confirmedAt),
+        price: e.price,
+        tone: 'NEUTRAL',
+        label: labels.equalLevels(e.side === 'HIGH'),
+        dashed: true,
+      });
+    }
+
+  if (layers.has('PREMIUM_DISCOUNT'))
+    for (let i = 0; i < s.premiumDiscount.length; i++) {
+      const z = s.premiumDiscount[i]!;
+      const next = s.premiumDiscount[i + 1];
+      out.push({
+        shape: 'LINE',
+        layer: 'PREMIUM_DISCOUNT',
+        p1: pos(z.confirmedAt),
+        p2: next ? pos(next.confirmedAt) : null,
+        price: z.equilibrium,
+        tone: 'NEUTRAL',
+        label: labels.premiumDiscount,
+        dashed: true,
+      });
+    }
+
   return out;
 }
 

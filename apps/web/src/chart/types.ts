@@ -4,6 +4,7 @@ import type {
   Instrument,
   ResampledCandle,
   SessionLevels,
+  SmcSet,
   Timeframe,
   UtcMs,
 } from '@trw/engine';
@@ -29,6 +30,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   tradeLines?: readonly TradeLine[];
   /** Engine candidates on this timeframe (already cut at the cursor in replay). */
   features?: FeatureSet;
+  /** SMC candidates on this timeframe (already cut at the cursor in replay). */
+  smc?: SmcSet;
   /** Setups of the strategy version shown on the chart (M5). */
   setups?: { signalBarsAt: readonly number[]; long: boolean; label: string } | null;
   /** Which candidate layers to draw. */

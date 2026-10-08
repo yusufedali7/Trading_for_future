@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **3. dilim tamamlandı (2026-10-08)** — SMC'nin eksik 8 alt kavramının **hepsi** artık motorda (displacement, order_block, ifvg, breaker, equal_highs_lows, premium_discount, ote, candidate_sr). Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block) ve D50 (3. dilim: kalan 6). (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + bu 8 SMC kavramının `FeatureSet`'e/grafiğe/strateji şemasına bağlanması.
+> Durum: **4. dilim tamamlandı (2026-10-08)** — SMC'nin 8 alt kavramı grafiğe bağlandı (D51), gerçek veriyle doğrulandı. Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block), D50 (3. dilim: kalan 6), D51 (4. dilim: grafik). (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + bu 8 SMC kavramının strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -32,11 +32,18 @@
 - `premium-discount.ts`: en son onaylı swing tepe/dip aralığının %50'si; düz, `validUntil`'siz kayıt listesi (basitleştirme). `Detection`'a dahil değil.
 - `ote.ts`: ardışık ters yönlü swing çiftleri arasındaki impuls'un 0.62-0.79 geri çekilme bölgesi. `Detection`'a dahil.
 - `candidate-sr.ts`: tepe+dip birlikte ATR toleranslı kümeleniyor, `min_touches`'a ilk eriştiğinde bir kez kayıt. `Detection`'a dahil değil.
-- **SMC'nin eksik 8 alt kavramının hepsi artık motorda.** Hiçbiri `features/compute.ts`'in `FeatureSet`'ine ya da grafiğe henüz bağlı değil (M8'deki gibi: önce motor, sonra ayrı adımda bağlama).
+- **SMC'nin eksik 8 alt kavramının hepsi artık motorda.** Hiçbiri `features/compute.ts`'in `FeatureSet`'ine henüz bağlı değil (bilinçli — bkz. D51); hepsi grafiğe bağlandı.
+
+## 4. dilimde ne yapıldı (2026-10-08, D51) — grafiğe bağlama
+- `packages/engine/src/features/smc.ts`: `computeSmc(bars, inst, params)` — 8 kavramı tek çağrıda, kendi swing/break/fvg'sini bağımsız hesaplayarak üretir (`FeatureSet`'ten ayrı, D51'de gerekçeli); `smcAsOf(set, cutoff)` replay kesmesi için.
+- `apps/web/src/chart/primitives/feature-layout.ts`: `FEATURE_LAYERS`e 7 yeni katman + `layoutSmc()` (aynı BOX/LINE/MARK çizim sistemi, mevcut "Katmanlar" panelinde otomatik göründü).
+- `apps/web/src/compute/candle-source.ts`, `App.tsx`, `ChartView.tsx`, `chart/types.ts`: `ChartData`/`ChartViewProps`'a `smc` alanı eklendi, replay'de `smcAsOf` ile kesiliyor.
+- Gerçek Dukascopy EURUSD 1h verisiyle (gömülü tarayıcı) doğrulandı: 7 katman tek tek ve birlikte, konsol hatasız.
 
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
 1. Kalan mum formasyonları (ikili/üçlü, trend bağlamı gerektirmeyenlerden devam).
 2. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
 3. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-4. SMC'nin 8 kavramının (displacement, order_block, ifvg, breaker, equal_highs_lows, premium_discount, ote, candidate_sr) `FeatureSet`'e ve grafiğe bağlanması (M8'deki indikatör-grafik bağlama adımıyla aynı iş türü); strateji şemasına (`EventStep`) bağlanması ayrı bir iş.
-5. Olay deposu, canlı mod, grafik entegrasyonu, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+4. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
+5. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
+6. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).

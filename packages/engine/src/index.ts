@@ -135,6 +135,8 @@ export { EQUAL_LEVELS_DEFAULTS, detectEqualLevels } from './features/equal-level
 export { detectPremiumDiscount } from './features/premium-discount';
 export { OTE_DEFAULTS, detectOte } from './features/ote';
 export { CANDIDATE_SR_DEFAULTS, detectCandidateSr } from './features/candidate-sr';
+export { SMC_DEFAULTS, computeSmc, smcAsOf } from './features/smc';
+export type { SmcParams, SmcSet } from './features/smc';
 export {
   atr,
   bollinger,
