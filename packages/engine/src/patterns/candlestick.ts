@@ -11,6 +11,7 @@ import {
   realBody,
   upperShadow,
 } from './candle-classify';
+import { multi, single } from './pattern-builder';
 import type { CandlePattern } from './types';
 
 /**
@@ -18,36 +19,12 @@ import type { CandlePattern } from './types';
  * (github.com/TA-Lib/ta-lib, `src/ta_func/ta_CDL*.c`, checked 2026-10-08) and checked against a
  * recorded TA-Lib run (`tools/oracle/talib_candles.py`,
  * `packages/engine/test/fixtures/SYNTHETIC_candlestick_oracle.json`) plus a real-data cross-check
- * (see `docs/PLAN-M9.md`). Only patterns with **no trend-context dependency** are implemented -
- * TA-Lib's Hammer/Hanging-Man/Morning-Star/... family uses an internal uptrend/downtrend lookback
- * whose exact reproduction was not attempted (CLAUDE.md rule 8); `catalog/patterns/candlestick.json`
- * still marks those `TO_IMPLEMENT`.
+ * (see `docs/PLAN-M9.md`). This file covers the patterns with no trend-context dependency; the
+ * "Hammer family" and other patterns that TA-Lib's own docs say are "significant in a trend,
+ * while this function does not consider it" live in `candlestick-trend.ts` instead (same source,
+ * same no-lookahead rigor - "trend-context" turned out to mean the *caller* must judge
+ * significance, not that TA-Lib runs real trend detection; see that file's module doc).
  */
-
-const single = (
-  b: Bars,
-  i: number,
-  patternId: string,
-  direction: CandlePattern['direction'],
-): CandlePattern => multi(b, i, i, patternId, direction);
-
-/** `formedIndex` = the pattern's first bar, `confirmedIndex` = its last (triggering) bar. */
-const multi = (
-  b: Bars,
-  formedIndex: number,
-  confirmedIndex: number,
-  patternId: string,
-  direction: CandlePattern['direction'],
-): CandlePattern => ({
-  id: `${patternId}:v1:${b.t[confirmedIndex]}`,
-  patternId,
-  defVersion: 'v1',
-  direction,
-  formedAt: b.t[formedIndex]!,
-  formedIndex,
-  confirmedAt: b.end[confirmedIndex]!,
-  confirmedIndex,
-});
 
 /** Real body at or under 10% of the average high-low range of the 10 prior bars. */
 export function detectDoji(b: Bars): CandlePattern[] {

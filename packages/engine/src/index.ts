@@ -155,6 +155,42 @@ export {
   detectUpsideGap2Crows,
 } from './patterns/candlestick';
 export type { CandlePattern } from './patterns/types';
+export {
+  detect3BlackCrows,
+  detect3Inside,
+  detect3LineStrike,
+  detect3Outside,
+  detect3StarsInSouth,
+  detect3WhiteSoldiers,
+  detectAbandonedBaby,
+  detectAdvanceBlock,
+  detectBreakaway,
+  detectConcealingBabySwallow,
+  detectEveningDojiStar,
+  detectEveningStar,
+  detectGapSideSideWhite,
+  detectHammer,
+  detectHangingMan,
+  detectHikkake,
+  detectHikkakeMod,
+  detectIdentical3Crows,
+  detectInNeck,
+  detectInvertedHammer,
+  detectLadderBottom,
+  detectMatHold,
+  detectMorningDojiStar,
+  detectMorningStar,
+  detectOnNeck,
+  detectRiseFall3Methods,
+  detectShootingStar,
+  detectStalledPattern,
+  detectTakuri,
+  detectTasukiGap,
+  detectThrusting,
+  detectTriStar,
+  detectUnique3River,
+  detectXSideGap3Methods,
+} from './patterns/candlestick-trend';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export { detectIfvg } from './features/ifvg';

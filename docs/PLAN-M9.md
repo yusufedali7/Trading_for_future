@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **5. dilim tamamlandı (2026-10-08)** — 24 yeni mum formasyonu daha (trend bağlamı gerektirmeyenler), toplam 27/61 `VERIFIED` (D52). Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block), D50 (3. dilim: kalan 6 SMC), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu). (1. dilim: 2026-10-07, 3 mum formasyonu — D48.) Kalan: 34 mum formasyonu (trend bağlamı gerektiren aile) + 21 grafik formasyonu + 9 harmonik + SMC'nin strateji şemasına bağlanması.
+> Durum: **6. dilim tamamlandı (2026-10-08)** — kalan 34 mum formasyonu da bitti, **61/61 mum formasyonu `VERIFIED`.** Mum formasyonu kataloğu tamamen bitti. Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş, bkz. D53). Kalan: 21 grafik formasyonu + 9 harmonik + SMC'nin strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -46,10 +46,15 @@
 - Doğrulama: committed oracle fixture'a 24 fonksiyon eklendi (13'ü tetikleniyor, test ediliyor) + gerçek 736.706 barlık EURUSD 1m cross-check (commit edilmedi) — 21/24 tam eşleşme, 3'ünde ("equal" toleransı kullananlar) ~%0,3 kayan-nokta farkı, belgelendi (D52).
 - Katalogda 24'ünün durumu `VERIFIED`. **Kalan 34 mum formasyonu hepsi trend bağlamı gerektiriyor** (Hammer/Hanging Man/Shooting Star/Morning-Evening Star ailesi vb.) — ayrı, dikkatli bir sonraki dilim.
 
+## 6. dilimde ne yapıldı (2026-10-08, D53) — kalan 34 mum formasyonu, katalog tamam
+- **Keşif:** "Trend bağlamı gerektiren" sanılan aile, TA-Lib'in resmi kaynağında (tag v0.8.1, kurulu pakete birebir denk) **hiç gerçek trend tespiti yapmıyor** — her biri "this function does not consider the trend" yorumuyla geliyor, yalnızca mum geometrisine (ör. "önceki mumun dibine/tepesine yakınlık") bakıyor. Önceki temkinlilik (kural 8) kaynağı okumadan hafızadan uygulamamaktı; kaynağı okuyunca engel kalmadı.
+- `packages/engine/src/patterns/candlestick-trend.ts` (yeni dosya): 34 formasyon — Hammer, Hanging Man, Shooting Star, Inverted Hammer, Takuri, 3 Black Crows, 3 White Soldiers, 3 Inside, 3 Outside, 3-Line Strike, 3 Stars in South, Advance Block, Stalled Pattern, Identical 3 Crows, Abandoned Baby, Evening/Morning Star(+Doji), Breakaway, Concealing Baby Swallow, Gap Side-by-Side White, In-Neck, On-Neck, Thrusting, Ladder Bottom, Mat Hold, Rise/Fall 3 Methods, Tasuki Gap, Tri-Star, Unique 3 River, X-Side Gap 3 Methods, Hikkake(+Mod).
+- Doğrulama: gerçek 736.706 barlık veride 33/34 tam eşleşme; 1 gerçek hata bulunup düzeltildi (Hanging Man: `min`/`max` karışıklığı); Hikkake'nin TA-Lib'in sonraki-mum "onay" sinyali bilerek modellenmedi (yalnızca varlık+yön), fark %100 izole edilip doğrulandı.
+- **Katalog: 61/61 mum formasyonu `VERIFIED`. Mum formasyonu kataloğu tamamen bitti.**
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Kalan 34 mum formasyonu — trend bağlamı gerektiren aile; TA-Lib'in iç trend-tespit yordamını kaynaktan okuyup aynı titizlikle doğrulamak gerekiyor.
-2. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
-3. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-4. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
-5. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
-6. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+1. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
+2. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
+3. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
+4. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
+5. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).

@@ -539,3 +539,14 @@ Büyük bir mumdan sonra, ondan **boşluklu** (gap) ayrılan küçük bir mum ya
 
 ### Eşit kapanış/açılış toleransı (Equal)
 Bazı formasyonlar (Matching Low, Counterattack, Separating Lines, Stick Sandwich) iki fiyatın "neredeyse aynı" sayılması gerekir — bunun için küçük bir tolerans payı kullanılır (TA-Lib'in kendi varsayılanı, motorumuzda da aynen kullanılıyor).
+
+## M9 6. dilimde eklenenler: kalan 34 mum formasyonu (katalog tamam)
+
+### Çekiç (Hammer) / Asılı Adam (Hanging Man)
+**Aynı mum şekli** — küçük gövde, uzun alt fitil, neredeyse hiç üst fitil yok, önceki mumun dibine (Çekiç) ya da tepesine (Asılı Adam) yakın. Aradaki fark **tamamen bağlama** dayanıyor: düşüş sonrası görülürse Çekiç (dönüş umudu), yükseliş sonrası görülürse Asılı Adam (dönüş uyarısı) deniyor — motor bu bağlamı kontrol etmiyor, ikisini de "aday" olarak işaretliyor, yorumu sana bırakıyor.
+
+### Yıldız (Morning/Evening Star) ailesi
+Üç mumluk dönüş formasyonları: büyük bir mum, ondan boşluklu ayrılan küçük bir "yıldız" mumu, sonra ilk mumun içine giren üçüncü bir mum. Morning Star yükseliş (düşüşten sonra), Evening Star düşüş (yükselişten sonra) yönünde.
+
+### Hikkake
+İçeride kalan bir mumdan (bir önceki mumun tepe-dip aralığının içinde kalan) sonra o aralığın dışına çıkılması — kısa vadeli bir tuzak/yön değişimi adayı. TA-Lib'in "sonraki 3 mumda onay" özelliği motorumuzda yok, yalnızca ilk sinyal tutuluyor.
