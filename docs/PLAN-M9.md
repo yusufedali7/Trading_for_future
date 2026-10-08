@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **2. dilim tamamlandı (2026-10-08)** — SMC'nin eksik 8 alt kavramından ilk ikisi (Displacement, Order block), mevcut M4 swing/yapı-kırılımı motoruna bağlı. Karar `docs/DECISIONS.md` D49. (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + SMC'nin eksik 6 alt kavramı (equal_highs_lows, ifvg, breaker, premium_discount, ote, candidate_sr) sonraki dilimlerde.
+> Durum: **3. dilim tamamlandı (2026-10-08)** — SMC'nin eksik 8 alt kavramının **hepsi** artık motorda (displacement, order_block, ifvg, breaker, equal_highs_lows, premium_discount, ote, candidate_sr). Kararlar `docs/DECISIONS.md` D49 (2. dilim: displacement+order_block) ve D50 (3. dilim: kalan 6). (1. dilim: 2026-10-07, 3 mum formasyonu, TA-Lib ile doğrulandı — D48.) Kalan: 58 mum formasyonu + 21 grafik formasyonu + 9 harmonik + bu 8 SMC kavramının `FeatureSet`'e/grafiğe/strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -25,12 +25,18 @@
 ## 2. dilimde ne yapıldı (2026-10-08, D49)
 - `packages/engine/src/features/displacement.ts`: `detectDisplacement` — gövdesi, önceki `atrPeriod` mumun ortalama true range'inin `minBodyAtr` katından büyük mum. `Detection` birleşimine dahil değil (bkz. gerekçe D49/`docs/definitions/displacement-v1.md`).
 - `packages/engine/src/features/order-block.ts`: `detectOrderBlocks` — bir BOS/CHoCH'un kırılım mumu aynı yönde bir displacement'sa, geriye `lookbackBars` içindeki ilk ters renkli mum order block. `Detection` birleşimine dahil, `features/outcomes.ts`'e başarısızlık çizgisi eklendi.
-- İkisi de `features/compute.ts`'in `FeatureSet`'ine ya da grafiğe henüz bağlı değil (M8'deki gibi: önce motor, sonra ayrı adımda bağlama).
+
+## 3. dilimde ne yapıldı (2026-10-08, D50) — SMC'nin kalanı
+- `ifvg.ts`/`breaker.ts`: kaynak FVG/order block kapanışla tamamen geçersizleşince ters yönde zon. `Detection`'a dahil.
+- `equal-levels.ts`: her swing, aynı türden en yakın önceki swing ile ATR toleransı içinde ikili eşleşme. `Detection`'a dahil değil.
+- `premium-discount.ts`: en son onaylı swing tepe/dip aralığının %50'si; düz, `validUntil`'siz kayıt listesi (basitleştirme). `Detection`'a dahil değil.
+- `ote.ts`: ardışık ters yönlü swing çiftleri arasındaki impuls'un 0.62-0.79 geri çekilme bölgesi. `Detection`'a dahil.
+- `candidate-sr.ts`: tepe+dip birlikte ATR toleranslı kümeleniyor, `min_touches`'a ilk eriştiğinde bir kez kayıt. `Detection`'a dahil değil.
+- **SMC'nin eksik 8 alt kavramının hepsi artık motorda.** Hiçbiri `features/compute.ts`'in `FeatureSet`'ine ya da grafiğe henüz bağlı değil (M8'deki gibi: önce motor, sonra ayrı adımda bağlama).
 
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
 1. Kalan mum formasyonları (ikili/üçlü, trend bağlamı gerektirmeyenlerden devam).
-2. SMC'nin eksik 6 alt kavramı (equal_highs_lows, ifvg, breaker, premium_discount, ote, candidate_sr) — mevcut swing/FVG/süpürme/order-block motoruna eklenir.
-3. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
-4. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-5. Displacement/Order block'u `FeatureSet`'e ve grafiğe bağlama (M8'deki indikatör-grafik bağlama adımıyla aynı iş türü).
-6. Olay deposu, canlı mod, grafik entegrasyonu, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+2. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
+3. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
+4. SMC'nin 8 kavramının (displacement, order_block, ifvg, breaker, equal_highs_lows, premium_discount, ote, candidate_sr) `FeatureSet`'e ve grafiğe bağlanması (M8'deki indikatör-grafik bağlama adımıyla aynı iş türü); strateji şemasına (`EventStep`) bağlanması ayrı bir iş.
+5. Olay deposu, canlı mod, grafik entegrasyonu, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).

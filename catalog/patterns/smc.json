@@ -136,7 +136,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/ifvg.ts, docs/definitions/ifvg-v1.md (2026-10-08). Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "order_block",
@@ -171,7 +172,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/breaker.ts, docs/definitions/breaker-v1.md (2026-10-08). Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "equal_highs_lows",
@@ -187,7 +189,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/equal-levels.ts, docs/definitions/equal-levels-v1.md (2026-10-08). v1 yalnızca ikili (pairwise) eşleştirme yapıyor - min_count>2 (kümeleme) desteklenmiyor, bu katalogun varsayılan min_count:2 değeriyle örtüşüyor. atr_period katalogda yok, bizim seçimimiz (14). Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "prev_period_levels",
@@ -251,7 +254,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/premium-discount.ts, docs/definitions/premium-discount-v1.md (2026-10-08). Her referans değişiminde yeni kayıt; geriye dönük doldurulan bir validUntil alanı yok (basitleştirme, bkz. doküman). Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "ote",
@@ -270,7 +274,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/ote.ts, docs/definitions/ote-v1.md (2026-10-08). Her ardışık, ters yönlü swing çifti bir impuls sayılır - büyüklüğe göre süzme yok. Oracle doğrulaması yok (resmi tanım yok)."
     },
     {
       "id": "candidate_sr",
@@ -287,7 +292,8 @@
       ],
       "version": "1.0.0",
       "family": "structure_liquidity",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED",
+      "implementation_note": "packages/engine/src/features/candidate-sr.ts, docs/definitions/candidate-sr-v1.md (2026-10-08). Tepe+dip birlikte kümelenir; her swing en yakın tek kümeye katılır (küme birleştirme yok); bir küme min_touches'a ilk eriştiğinde bir kez kayıt üretir. atr_period katalogda yok, bizim seçimimiz (14). Oracle doğrulaması yok (resmi tanım yok)."
     }
   ]
 }

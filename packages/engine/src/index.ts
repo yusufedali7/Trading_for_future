@@ -129,6 +129,12 @@ export { detectDoji, detectEngulfing, detectMarubozu } from './patterns/candlest
 export type { CandlePattern } from './patterns/types';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
+export { detectIfvg } from './features/ifvg';
+export { detectBreakers } from './features/breaker';
+export { EQUAL_LEVELS_DEFAULTS, detectEqualLevels } from './features/equal-levels';
+export { detectPremiumDiscount } from './features/premium-discount';
+export { OTE_DEFAULTS, detectOte } from './features/ote';
+export { CANDIDATE_SR_DEFAULTS, detectCandidateSr } from './features/candidate-sr';
 export {
   atr,
   bollinger,
@@ -165,21 +171,30 @@ export { SWEEP_DEFAULTS, detectSweeps, liquidityLevels } from './features/sweep'
 export type { LiquiditySources } from './features/sweep';
 export { SWING_DEFAULTS, detectSwings } from './features/swing';
 export type {
+  Breaker,
   BreakBy,
+  CandidateSr,
+  CandidateSrParams,
   Detection,
   DetectionTiming,
   Displacement,
   DisplacementParams,
+  EqualLevels,
+  EqualLevelsParams,
   FeatureDirection,
   Fvg,
   FvgParams,
+  Ifvg,
   LiquidityKind,
   LiquidityLevel,
   LiquiditySweep,
   OrderBlock,
   OrderBlockParams,
+  OteParams,
+  OteZone,
   PeriodKind,
   PeriodLevel,
+  PremiumDiscountZone,
   StructureBreak,
   StructureBreakParams,
   SweepParams,

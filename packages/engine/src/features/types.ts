@@ -151,4 +151,115 @@ export interface OrderBlock extends DetectionTiming {
   breakId: string;
 }
 
-export type Detection = Swing | Fvg | StructureBreak | LiquiditySweep | OrderBlock;
+/**
+ * An FVG fully invalidated by a close through its far edge, then tracked as a zone in the
+ * opposite direction (catalog "ifvg"). No params: v1 only models invalidation by close (the
+ * catalog's `invalidate_by` has no other value defined yet).
+ */
+export interface Ifvg extends DetectionTiming {
+  type: 'IFVG';
+  /** The new expected direction (opposite of the source FVG's). */
+  direction: FeatureDirection;
+  top: number;
+  bottom: number;
+  sourceFvgId: string;
+}
+
+/**
+ * An order block fully invalidated by a close through its far edge, then tracked as a zone in
+ * the opposite direction (catalog "breaker"). No params, same reason as `Ifvg`.
+ */
+export interface Breaker extends DetectionTiming {
+  type: 'BREAKER';
+  /** The new expected direction (opposite of the source order block's). */
+  direction: FeatureDirection;
+  top: number;
+  bottom: number;
+  sourceOrderBlockId: string;
+}
+
+export interface EqualLevelsParams {
+  /** Price tolerance, as a multiple of the ATR at the newer swing's bar. */
+  toleranceAtr: number;
+  atrPeriod: number;
+}
+
+/**
+ * Two confirmed swings of the same kind within price tolerance of each other - a liquidity pool
+ * candidate (catalog "equal_highs_lows"). v1 only pairs a new swing with the *nearest preceding*
+ * same-kind swing (the catalog's default `min_count` of 2); clustering three or more into one
+ * group is not modelled. Not part of `Detection` - it annotates a pair of swings rather than
+ * being its own tradeable zone.
+ */
+export interface EqualLevels extends DetectionTiming {
+  type: 'EQUAL_LEVELS';
+  side: 'HIGH' | 'LOW';
+  /** Average of the two swing prices. */
+  price: number;
+  swingIds: [string, string];
+}
+
+/**
+ * The midpoint (and bounds) of the most recently confirmed swing-high/swing-low range (catalog
+ * "premium_discount"). Above `equilibrium` is premium, below is discount. A new entry appears
+ * every time the reference high or low changes; it is understood to stay active until the next
+ * entry's `confirmedAt` (no explicit `validUntil` field - unlike `PeriodLevel`/`LiquidityLevel`,
+ * nothing ever retroactively closes it, so a plain, order-dependent list is enough and keeps
+ * truncation invariance trivial). Not part of `Detection` - it has no single failure direction.
+ */
+export interface PremiumDiscountZone extends DetectionTiming {
+  type: 'PREMIUM_DISCOUNT';
+  top: number;
+  bottom: number;
+  equilibrium: number;
+}
+
+export interface OteParams {
+  /** Retracement fraction bounds of the impulse, e.g. [0.62, 0.79]. */
+  zone: readonly [number, number];
+  sweetSpot: number;
+}
+
+/**
+ * The Optimal Trade Entry retracement zone of an impulse leg between two consecutive,
+ * alternating confirmed swings (catalog "ote"). A bullish impulse (LOW then HIGH) expects a
+ * retracement down into the zone before continuing up, and symmetrically for bearish.
+ */
+export interface OteZone extends DetectionTiming {
+  type: 'OTE';
+  direction: FeatureDirection;
+  top: number;
+  bottom: number;
+  sweetSpot: number;
+  startSwingId: string;
+  endSwingId: string;
+}
+
+export interface CandidateSrParams {
+  /** Price tolerance, as a multiple of the ATR at the time a pivot joins a cluster. */
+  clusterToleranceAtr: number;
+  /** Pivots needed before a cluster becomes a candidate level. */
+  minTouches: number;
+  /** Pivots older than this many bars (vs. the newest member) drop out of a cluster. */
+  lookbackBars: number;
+  atrPeriod: number;
+}
+
+/**
+ * A horizontal zone from `minTouches` or more confirmed swing highs/lows (either kind - a level
+ * can act as both support and resistance) clustered within price tolerance (catalog
+ * "candidate_sr"). v1 emits one entry per cluster, the moment it first reaches `minTouches`; it
+ * is not updated or re-emitted as more pivots join afterwards. Not part of `Detection` - it has
+ * no single direction/failure line (support and resistance both apply).
+ */
+export interface CandidateSr extends DetectionTiming {
+  type: 'CANDIDATE_SR';
+  top: number;
+  bottom: number;
+  price: number;
+  touches: number;
+  swingIds: string[];
+}
+
+export type Detection =
+  Swing | Fvg | StructureBreak | LiquiditySweep | OrderBlock | Ifvg | Breaker | OteZone;

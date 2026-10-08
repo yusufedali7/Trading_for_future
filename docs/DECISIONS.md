@@ -337,6 +337,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - Testler: `displacement.test.ts`, `order-block.test.ts` — pozitif/negatif sentetik, yön kuralı, kesme değişmezliği; order block için ayrıca gerçek swing/yapı-kırılımı/displacement motoruyla uçtan uca bir senaryo.
 ---
 
+## D50 — M9 devam: SMC'nin kalan 6 alt kavramı (IFVG, Breaker, EQH/EQL, Premium/Discount, OTE, Aday S/R)
+- **Tarih:** 2026-10-08 · **Durum:** Kabul edildi ("kalanları da yap")
+- **Kapsam kararı:** Kullanıcı M9'un SMC bölümünü tamamen bitirmeyi istedi. Katalogun `implementation_order` listesindeki kalan 6 kavram, aynı disiplinle (parametreli v1 tanım, no-lookahead, kesme değişmezliği testi, Türkçe tanım belgesi) tek oturumda yapıldı. Durumları `TO_IMPLEMENT` → `IMPLEMENTED` (oracle yok).
+- **IFVG** (`ifvg.ts`) ve **Breaker** (`breaker.ts`): aynı mekanik — kaynak FVG/order block'un kapanışla tamamen geçersizleşmesi, zonun ters yönde izlenmeye başlaması. `Detection` birleşimine dahil, `outcomes.ts`'e eklendi (FVG/order block'la aynı başarısızlık mantığı).
+- **Equal highs/lows** (`equal-levels.ts`): her swing, aynı türden **en yakın önceki** swing ile (kümeleme değil, ikili) ATR toleransı içinde karşılaştırılır — katalogun varsayılan `min_count:2`'siyle örtüşüyor, 2'den büyük desteklenmiyor. `Detection`'a dahil değil (çift üzerine not, tek yön/bölge değil).
+- **Premium/discount** (`premium-discount.ts`): en son onaylı swing tepe/dip aralığının %50'si. Bilinçli basitleştirme: geriye dönük doldurulan bir `validUntil` alanı **yok** — her referans değişiminde düz bir kayıt eklenir, geçerliliği "bir sonrakine kadar" olarak anlaşılır. Bu, `Fvg.filledAt` tarzı özel kesme mantığından kaçınıp basit kesme-değişmezliği testini korudu.
+- **OTE** (`ote.ts`): ardışık, ters yönlü swing çiftleri arasındaki impuls'un 0.62-0.79 geri çekilme bölgesi. `Detection`'a dahil (net yön + geçersizleşme fiyatı var).
+- **Aday S/R** (`candidate-sr.ts`): tepe+dip birlikte, ATR toleranslı tek-en-yakın-kümeye-katıl mantığıyla kümelenir; `min_touches`'a ilk eriştiğinde bir kez kayıt üretilir (büyümesi yeniden üretmez, küme birleştirme yok). `Detection`'a dahil değil (tek yön yok, destek+direnç ikisi de olabilir).
+- **SMC'nin 8 eksik alt kavramının hepsi artık motorda** (önceki dilimle birlikte: Displacement, Order block + bu dilim: IFVG, Breaker, EQH/EQL, Premium/Discount, OTE, Aday S/R). Hiçbiri henüz `FeatureSet`'e/grafiğe/strateji şemasına bağlı değil — ayrı, onay bekleyen bir sonraki iş.
+- Testler: her kavram için ayrı dosya (`ifvg.test.ts`, `breaker.test.ts`, `equal-levels.test.ts`, `premium-discount.test.ts`, `ote.test.ts`, `candidate-sr.test.ts`) — pozitif/negatif sentetik + kesme değişmezliği.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

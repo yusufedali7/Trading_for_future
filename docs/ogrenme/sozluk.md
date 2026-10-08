@@ -501,3 +501,18 @@ Güçlü bir harekete (displacement) hemen önce gelen, o hareketin tersi renkte
 
 ### Aday (candidate)
 Motorun bulduğu her şeyin (swing, FVG, order block, ...) önündeki sıfat. "Kesin destek" değil, "aday destek" denir — çünkü bu tanımların resmi, tek bir karşılığı yok (bkz. CLAUDE.md "Kavram tanımları").
+
+### Inversion FVG / Breaker block
+Bir FVG'nin (ya da order block'un) fiyatın kapanışla tamamen içinden geçmesiyle "geçersiz" sayılması, ve aynı bölgenin bundan sonra **ters yönde** bir aday olarak izlenmesi — önce destek sayılan bir yer, kırılınca direnç adayı olabilir (ya da tersi).
+
+### Eşit tepeler/dipler (EQH/EQL)
+Birbirine çok yakın fiyatta oluşan iki tepe (ya da iki dip). ICT/SMC fikrine göre bu seviyenin altında/üstünde bekleyen emirler birikmiş olabilir — bir "likidite havuzu" adayı.
+
+### Premium / discount
+Son önemli tepe-dip aralığının tam ortası (denge çizgisi). Üstü "premium" (pahalı bölge), altı "discount" (ucuz bölge) olarak yorumlanır — kesin bir kural değil, bir çerçeve.
+
+### OTE (Optimal Trade Entry)
+Bir fiyat hareketinin (impuls) %62-%79'luk geri çekilme bölgesi — ICT'ye göre girişin "en iyi" olduğu aralık. Bizim için de bir **aday** bölge, garanti değil.
+
+### Aday destek/direnç (candidate S/R)
+Birbirine yakın fiyatlarda tekrar tekrar (en az 3 kez) dönülen bir seviye — yatay bir "duvar" adayı. Tepe ya da dip olması önemli değil, aynı seviye hem destek hem direnç gibi davranabilir.

@@ -28,9 +28,10 @@ export interface CandidateOutcome {
 }
 
 /**
- * Concepts wired into `featureOutcomes` (bound to `FeatureSet`). ORDER_BLOCK is not included yet
- * - order blocks are not part of `FeatureSet` in this slice (see features/order-block.ts) - but
- * `candidateOutcome` below already handles it for direct, ad-hoc calls.
+ * Concepts wired into `featureOutcomes` (bound to `FeatureSet`). ORDER_BLOCK/IFVG/BREAKER/OTE are
+ * not included yet - none of them are part of `FeatureSet` in this slice (see
+ * features/order-block.ts, ifvg.ts, breaker.ts, ote.ts) - but `candidateOutcome` below already
+ * handles each of them for direct, ad-hoc calls.
  */
 export type OutcomeConcept = 'SWING' | 'FVG' | 'STRUCTURE_BREAK' | 'LIQUIDITY_SWEEP';
 
@@ -48,6 +49,9 @@ function failureLine(d: Detection): { price: number; below: boolean } {
     case 'LIQUIDITY_SWEEP':
       return { price: d.extreme, below: d.direction === 'BULLISH' };
     case 'ORDER_BLOCK':
+    case 'IFVG':
+    case 'BREAKER':
+    case 'OTE':
       return d.direction === 'BULLISH'
         ? { price: d.bottom, below: true }
         : { price: d.top, below: false };
