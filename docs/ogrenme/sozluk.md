@@ -569,3 +569,22 @@ Aynı seviyeye iki kez ulaşıp geri çekilme (tepe) ya da aynı seviyeye iki ke
 
 ### Bu ailede "VERIFIED" değil "IMPLEMENTED" denmesinin sebebi
 Mum formasyonlarında TA-Lib gibi resmi, kurulu bir karşılaştırma kütüphanesi (oracle) vardı. Grafik formasyonlarında öyle bir kütüphane yok — kurallar doğrudan kataloğun kendi tanımından (Bulkowski'nin kitabından) koda çevrildi ve sentetik testlerle + ileriye-bakmama testiyle doğrulandı, ama bağımsız bir kütüphaneyle karşılaştırılmadı. Bu yüzden katalogda "doğrulandı" (VERIFIED) değil "uygulandı" (IMPLEMENTED) yazıyor — SMC kavramlarıyla aynı durum.
+
+## M9 8. dilimde eklenenler: doğru-çizgi ailesi (üçgen, kama, kanal, dikdörtgen, genişleyen)
+
+Bu grup, iki pivot çiftinden geçen **iki doğru** (direnç/destek ya da üst/alt sınır) uydurup bu doğruların eğimine ve birbirine göre durumuna (yakınsıyor mu, paralel mi, ıraksıyor mu) bakıyor.
+
+### Üçgen (Triangle) — yükselen, alçalan, simetrik
+Yükselen Üçgen: yatay bir direnç + yükselen bir destek (düşük dipler yükseliyor). Alçalan Üçgen: tam tersi. Simetrik Üçgen: direnç aşağı, destek yukarı eğimli — ikisi bir noktada ("apex") buluşmaya gidiyor. Kırılım apex'e ulaşmadan olmalı; aksi halde formasyon geçersizleşiyor (artık sıkışacak yer kalmıyor).
+
+### Kama (Wedge) — yükselen, alçalan
+İki doğru da AYNI yöne eğimli ama biri diğerinden daha dik — aralarındaki mesafe daralıyor. Yükselen Kama (iki çizgi de yukarı, alt çizgi daha dik) genelde düşüşle bitiyor (dönüş sinyali); Alçalan Kama (iki çizgi de aşağı, üst çizgi daha dik) genelde yükselişle.
+
+### Kanal (Channel) — yükselen, alçalan
+Üçgen/kama gibi yakınsamıyor — iki doğru birbirine **paralel**, aynı yöne kayıyor. Kırılım, trendin bittiğinin ilk işareti olarak okunuyor.
+
+### Dikdörtgen (Rectangle)
+Hem direnç hem destek **yatay** — fiyat bir bant içinde gidip geliyor. Yukarı ya da aşağı kırılabilir; hangisi olursa o yöne "aday" oluyor.
+
+### Genişleyen Formasyon / Megafon (Broadening)
+Tepeler gittikçe yükseliyor, dipler gittikçe düşüyor — iki doğru birbirinden **uzaklaşıyor** (ıraksıyor). Diğerlerinin aksine bir "sıkışma" yok, piyasanın gittikçe daha kararsız/oynak hale geldiğinin işareti.

@@ -27,6 +27,36 @@ export function hl(pairs: readonly (readonly [number, number])[]): Bars {
   return bars(pairs.map(([h, l]) => [l, h, l, h] as const));
 }
 
+/**
+ * A smooth piecewise-linear price path through `points` ([barIndex, price], sorted by index),
+ * with a tiny constant wick on every bar - gentle and slow enough that each bar's own true range
+ * stays far below the deliberately large (multi-ATR) tolerances used in chart-pattern tests, so
+ * the exact ATR value never has to be computed by hand. Used for the multi-pivot chart pattern
+ * family (`patterns/chart.ts`, `patterns/chart-lines.ts`), whose pivots are 10-100+ bars apart.
+ */
+export function pathBars(points: readonly (readonly [number, number])[]): Bars {
+  const last = points[points.length - 1]!;
+  const n = last[0] + 1;
+  const priceAt = (i: number) => {
+    let k = 0;
+    while (k < points.length - 2 && points[k + 1]![0] <= i) k++;
+    const [i0, p0] = points[k]!;
+    const [i1, p1] = points[k + 1]!;
+    const t = i1 === i0 ? 0 : (i - i0) / (i1 - i0);
+    return p0 + (p1 - p0) * t;
+  };
+  const eps = 0.0001;
+  const rows: [number, number, number, number][] = [];
+  let prevClose = priceAt(0);
+  for (let i = 0; i < n; i++) {
+    const c = priceAt(i);
+    const o = i === 0 ? c : prevClose;
+    rows.push([o, Math.max(o, c) + eps, Math.min(o, c) - eps, c]);
+    prevClose = c;
+  }
+  return bars(rows);
+}
+
 /** Deterministic random walk (LCG, fixed seed), prices rounded to 1e-5. */
 export function randomWalk(n: number, seed = 42, start = 1.1, stepPips = 3): Bars {
   let s = seed >>> 0;

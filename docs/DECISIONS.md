@@ -388,6 +388,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (grafik formasyonları):** üçgen/kama/kanal/dikdörtgen ailesi (9, doğru-çizgi tabanlı), bayrak/flama (3, direk+konsolidasyon), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence` — "yuvarlaklık" öznel bir ölçü gerektiriyor). Ayrıca 9 harmonik ve SMC'nin strateji şemasına bağlanması hâlâ bekliyor.
 ---
 
+## D55 — M9: grafik formasyonları devam — doğru-çizgi ailesi (üçgen × 3, kama × 2, kanal × 2, dikdörtgen, genişleyen)
+- **Tarih:** 2026-10-08 · **Durum:** Kabul edildi (D54'ün devamı, aynı "devam et, grafik formasyonlarına geç" onayı)
+- **Yeni yardımcılar** (`packages/engine/src/patterns/chart-shared.ts`): `pt(swing)` (pivotu `{index,price}`'a çevirir), `slopeOf(p1,p2)` (bar başına fiyat değişimi), `lineIntersection(a1,a2,b1,b2)` (iki doğrunun kesiştiği — kesirli — bar indeksi; Simetrik Üçgen'in "apex"i için), `scanDirectionalBreakout` (`scanBreakout`'un yöne göre dallanan hâli — Rectangle/Broadening/Simetrik Üçgen gibi iki yönden de kırılabilen formasyonlar için, hangi yönün kırdığını da döndürüyor).
+- **9 formasyon** (`packages/engine/src/patterns/chart-lines.ts`): Yükselen/Alçalan/Simetrik Üçgen, Yükselen/Alçalan Kama, Yükselen/Alçalan Kanal, Dikdörtgen, Genişleyen Formasyon (megafon). Her biri 4 pivot üzerinden iki doğru (direnç/destek ya da üst/alt sınır) uydurup eğim ve yakınsama kurallarını kontrol ediyor; Genişleyen Formasyon 5 pivot (üç tepe + iki dip, ıraksayan).
+- **Açıkça yazılan bir varsayım** (CLAUDE.md: "varsayım yaptıysan açıkça yaz"): kataloğun `parallel_tolerance` parametresi (Yükselen/Alçalan Kanal) diğer tüm eşiklerin aksine `_atr` eki taşımıyor; motorda yine de ATR-oranlı uygulandı (`parallel_tolerance * ATR`), tutarlılık için — doğrulanmadı, kodda ve burada belirtiliyor.
+- **Simetrik Üçgen'in "apex" geçersizleşmesi:** kataloğun `APEX_REACHED` kuralı, iki doğrunun kesişeceği bar indeksine (`lineIntersection`) ulaşılırsa (kırılım daha önce olmadıysa) adayı öldürüyor — `scanDirectionalBreakout`'un `invalid` parametresi bar indeksiyle çalışıyor (fiyatla değil), bu da fonksiyonun zaten genel (herhangi bir `(i)=>boolean` koşulu kabul eden) tasarımıyla sorunsuz uyuştu.
+- **Test kurgusunda bulunan bir desen (gerçek motor hatası değil):** sentetik fikstürler ilk yazıldığında 5 formasyonda (Yükselen Kama, Alçalan Kama, Yükselen/Alçalan Kanal, Genişleyen) sıfır tespit çıktı — sebebi motor değil, test verisiydi: ilk pivotun **yanlış yönden** yaklaşılması (ör. bir DİP pivotu için fiyatın soldan **yükselerek** gelmesi, bu da o noktayı gerçek bir yerel dip yapmıyordu) ve Genişleyen'de son pivotun kendi 5-barlık onay penceresi içinde kırılım yönünde devam etmesi (pivotun kendisini geçersiz kılıyordu). `detectSwings`'in çıkardığı gerçek pivot listesi loglanarak teşhis edildi, fikstürler düzeltildi.
+- **Doğrulama:** D54 ile aynı yöntem — sentetik pozitif (her formasyon) + 2 negatif (Simetrik Üçgen'in yakınsamama durumu) + 9'unun birlikte ileriye-bakmama testi (rastgele yürüyüş, 1200 bar), `packages/engine/test/patterns/chart-lines.test.ts`. Katalog durumu `IMPLEMENTED`.
+- **Kalan (grafik formasyonları):** bayrak/flama (3, direk+konsolidasyon tespiti gerektiriyor — farklı bir yapı), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`). Ayrıca 9 harmonik ve SMC'nin strateji şemasına bağlanması hâlâ bekliyor.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

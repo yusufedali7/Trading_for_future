@@ -11,49 +11,7 @@ import {
 } from '../../src/patterns/chart';
 import { CHART_PIVOT_PARAMS } from '../../src/patterns/chart-shared';
 import { detectSwings } from '../../src/features/swing';
-import { randomWalk } from '../helpers/synthetic-bars';
-
-const BAR_MS = 15 * 60_000;
-const T0 = Date.parse('2026-01-06T08:00:00Z');
-
-/**
- * SYNTHETIC: a smooth piecewise-linear price path through `points` ([barIndex, price], sorted),
- * with a tiny constant wick on every bar - gentle and slow enough that each bar's own true range
- * stays far below the deliberately large (multi-ATR) tolerances used in the tests below, so the
- * exact ATR value never has to be computed by hand.
- */
-function pathBars(points: readonly (readonly [number, number])[]): Bars {
-  const last = points[points.length - 1]!;
-  const n = last[0] + 1;
-  const priceAt = (i: number) => {
-    let k = 0;
-    while (k < points.length - 2 && points[k + 1]![0] <= i) k++;
-    const [i0, p0] = points[k]!;
-    const [i1, p1] = points[k + 1]!;
-    const t = i1 === i0 ? 0 : (i - i0) / (i1 - i0);
-    return p0 + (p1 - p0) * t;
-  };
-  const eps = 0.0001;
-  const rows: [number, number, number, number][] = [];
-  let prevClose = priceAt(0);
-  for (let i = 0; i < n; i++) {
-    const c = priceAt(i);
-    const o = i === 0 ? c : prevClose;
-    rows.push([o, Math.max(o, c) + eps, Math.min(o, c) - eps, c]);
-    prevClose = c;
-  }
-  const t = rows.map((_, i) => T0 + i * BAR_MS);
-  return {
-    length: n,
-    t,
-    o: rows.map((r) => r[0]),
-    h: rows.map((r) => r[1]),
-    l: rows.map((r) => r[2]),
-    c: rows.map((r) => r[3]),
-    end: t.map((x) => x + BAR_MS),
-    v: rows.map(() => 0),
-  };
-}
+import { pathBars, randomWalk } from '../helpers/synthetic-bars';
 
 function swingsOf(b: Bars) {
   return detectSwings(b, CHART_PIVOT_PARAMS);

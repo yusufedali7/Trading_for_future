@@ -201,6 +201,17 @@ export {
   detectTripleBottom,
   detectTripleTop,
 } from './patterns/chart';
+export {
+  detectAscendingChannel,
+  detectAscendingTriangle,
+  detectBroadening,
+  detectDescendingChannel,
+  detectDescendingTriangle,
+  detectFallingWedge,
+  detectRectangle,
+  detectRisingWedge,
+  detectSymmetricalTriangle,
+} from './patterns/chart-lines';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export { detectIfvg } from './features/ifvg';
