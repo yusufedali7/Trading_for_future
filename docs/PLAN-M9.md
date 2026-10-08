@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **6. dilim tamamlandı (2026-10-08)** — kalan 34 mum formasyonu da bitti, **61/61 mum formasyonu `VERIFIED`.** Mum formasyonu kataloğu tamamen bitti. Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş, bkz. D53). Kalan: 21 grafik formasyonu + 9 harmonik + SMC'nin strateji şemasına bağlanması.
+> Durum: **7. dilim tamamlandı (2026-10-08)** — grafik formasyonlarına başlandı: 6 klasik dönüş formasyonu (İkili/Üçlü Tepe-Dip, Omuz Baş Omuz) motorda, `IMPLEMENTED`. Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı). Kalan: grafik formasyonlarının 15'i (üçgen/kama/kanal/dikdörtgen 9, bayrak/flama 3, fincan-kulp/çanak-dip/elmas 3) + 9 harmonik + SMC'nin strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -52,8 +52,14 @@
 - Doğrulama: gerçek 736.706 barlık veride 33/34 tam eşleşme; 1 gerçek hata bulunup düzeltildi (Hanging Man: `min`/`max` karışıklığı); Hikkake'nin TA-Lib'in sonraki-mum "onay" sinyali bilerek modellenmedi (yalnızca varlık+yön), fark %100 izole edilip doğrulandı.
 - **Katalog: 61/61 mum formasyonu `VERIFIED`. Mum formasyonu kataloğu tamamen bitti.**
 
+## 7. dilimde ne yapıldı (2026-10-08, D54) — grafik formasyonları başladı
+- Yeni aile, yeni mimari: `packages/engine/src/patterns/chart-shared.ts` (`pivotWindows`, `scanBreakout`, `lineAt`) + `packages/engine/src/patterns/chart.ts`. Pivotlar M4'ün swing motorundan (`detectSwings`), ama kataloğun kendi `left=right=5` ayarıyla — çağıran taraf hesaplayıp parametre olarak geçiyor (SMC'nin kendi swing'ini bağımsız hesaplamasından farklı, OTE'nin "swings dışarıdan gelir" modeline daha yakın).
+- **6 formasyon:** İkili Tepe, İkili Dip, Üçlü Tepe, Üçlü Dip, Omuz Baş Omuz, Ters Omuz Baş Omuz. Her biri `ChartPattern` tipinde (`patterns/types.ts`) — pivot listesi + kırılım referansı + geçersizleşme seviyesi + ölçülü-hareket hedefi.
+- **Doğrulama:** Bu ailede TA-Lib gibi bir oracle yok; sentetik pozitif/negatif sabitler + 6'sının birlikte ileriye-bakmama testi (`packages/engine/test/patterns/chart.test.ts`, 10 test). Katalog durumu `VERIFIED` değil **`IMPLEMENTED`** (SMC kavramlarıyla aynı kural, D50).
+- Kalan 15 grafik formasyonu (üçgen/kama/kanal/dikdörtgen 9, bayrak/flama 3, fincan-kulp/çanak-dip/elmas 3) ayrı dilimlerde — doğru-çizgi uydurma (triangle/wedge/channel) ve "yuvarlaklık" ölçüsü (cup&handle/rounding/diamond) farklı, yeni yardımcılar gerektiriyor.
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Grafik formasyonları (21) — pivot tabanlı, swing v1'e bağlı.
+1. Grafik formasyonları — üçgen/kama/kanal/dikdörtgen (9), bayrak/flama (3), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`).
 2. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
 3. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
 4. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).

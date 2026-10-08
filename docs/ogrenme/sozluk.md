@@ -550,3 +550,22 @@ Bazı formasyonlar (Matching Low, Counterattack, Separating Lines, Stick Sandwic
 
 ### Hikkake
 İçeride kalan bir mumdan (bir önceki mumun tepe-dip aralığının içinde kalan) sonra o aralığın dışına çıkılması — kısa vadeli bir tuzak/yön değişimi adayı. TA-Lib'in "sonraki 3 mumda onay" özelliği motorumuzda yok, yalnızca ilk sinyal tutuluyor.
+
+## M9 7. dilimde eklenenler: grafik formasyonlarının ilk 6'sı
+
+Mum formasyonlarından farklı olarak bunlar **tek mumla değil, birden çok onaylı tepe/dip (pivot) ile** tanınır — M4'ün swing motorunun ürettiği noktalar üzerine kurulu.
+
+### Boyun çizgisi (neckline)
+İkili/Üçlü Tepe-Dip ve Omuz Baş Omuz'un "kırılınca formasyonu onaylayan" referans seviyesi — iki dip (tepe formasyonlarında) ya da iki tepe (dip formasyonlarında) arasından geçen çizgi. Omuz Baş Omuz'da bu çizgi eğimli olabilir; diğerlerinde düz bir seviyedir.
+
+### İkili Tepe / İkili Dip (Double Top / Bottom)
+Aynı seviyeye iki kez ulaşıp geri çekilme (tepe) ya da aynı seviyeye iki kez düşüp geri sıçrama (dip) — ortadaki geri çekilme/sıçrama derinliği ATR'ye göre yeterince büyük olmalı, yoksa sıradan bir dalgalanmadan ayırt edilemez. Onay: fiyat boyun çizgisini kapanışla kırınca.
+
+### Üçlü Tepe / Üçlü Dip (Triple Top / Bottom)
+İkili Tepe/Dip'in üç tepe/dip'li hâli — Omuz Baş Omuz ile karışmaması için ortadaki tepe/dip diğerlerinden belirgin yüksek/düşük olmamalı (motor bunu ATR toleransıyla kontrol ediyor).
+
+### Omuz Baş Omuz / Ters Omuz Baş Omuz (Head and Shoulders)
+Üç tepeli (ya da dipli) bir dönüş formasyonu: ortadaki "baş" diğer ikisinden ("omuzlar") belirgin şekilde yüksek (tepe formasyonunda) ya da düşük (dip formasyonunda); omuzlar birbirine yakın. Onay: fiyat boyun çizgisini (iki omuz arasındaki dip/tepe çizgisi) kapanışla kırınca.
+
+### Bu ailede "VERIFIED" değil "IMPLEMENTED" denmesinin sebebi
+Mum formasyonlarında TA-Lib gibi resmi, kurulu bir karşılaştırma kütüphanesi (oracle) vardı. Grafik formasyonlarında öyle bir kütüphane yok — kurallar doğrudan kataloğun kendi tanımından (Bulkowski'nin kitabından) koda çevrildi ve sentetik testlerle + ileriye-bakmama testiyle doğrulandı, ama bağımsız bir kütüphaneyle karşılaştırılmadı. Bu yüzden katalogda "doğrulandı" (VERIFIED) değil "uygulandı" (IMPLEMENTED) yazıyor — SMC kavramlarıyla aynı durum.

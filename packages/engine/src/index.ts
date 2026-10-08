@@ -191,6 +191,16 @@ export {
   detectUnique3River,
   detectXSideGap3Methods,
 } from './patterns/candlestick-trend';
+export type { ChartPattern, ChartPatternPivot } from './patterns/types';
+export { CHART_PIVOT_PARAMS } from './patterns/chart-shared';
+export {
+  detectDoubleBottom,
+  detectDoubleTop,
+  detectHeadShouldersBottom,
+  detectHeadShouldersTop,
+  detectTripleBottom,
+  detectTripleTop,
+} from './patterns/chart';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export { detectIfvg } from './features/ifvg';

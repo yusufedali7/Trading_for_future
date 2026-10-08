@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "common": {
     "known_at_rule": "Bir tespit yalnızca 'known_at' mumunun kapanışından itibaren var sayılır. Pivotlar sağdaki 'pivot_right' mum kapandıktan sonra bilinir.",
-    "display_rule": "Motorun tespitleri arayüzde 'aday' olarak gösterilir; kesinlik ifadesi kullanılmaz."
+    "display_rule": "Motorun tespitleri arayüzde 'aday' olarak gösterilir; kesinlik ifadesi kullanılmaz.",
+    "verification_note": "Bu ailede mum formasyonlarındaki gibi resmi bir TA-Lib benzeri oracle yok; her 'IMPLEMENTED' formasyon sentetik pozitif/negatif sabitlerle ve ileriye-bakmama testiyle doğrulanır (packages/engine/test/patterns/chart.test.ts), VERIFIED değildir (bkz. docs/DECISIONS.md D54)."
   },
   "expression_note": "rules alanları insan okunur ifadelerdir; ajan bunları motor koduna çevirir ve her kuralı ayrı test eder. ATR(Px) = Px mumundaki ATR(atr_period).",
   "patterns": [
@@ -82,7 +83,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
@@ -164,7 +165,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
@@ -255,7 +256,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
@@ -348,7 +349,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
@@ -443,7 +444,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
@@ -538,7 +539,7 @@
         "zeta-zetra/chart_patterns",
         "neurotrader888/TechnicalAnalysisAutomation"
       ],
-      "status": "TO_IMPLEMENT",
+      "status": "IMPLEMENTED",
       "prototype_pivots": [
         1,
         2,
