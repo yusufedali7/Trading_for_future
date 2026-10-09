@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **10. dilim tamamlandı (2026-10-09)** — **grafik formasyonu kataloğu tamamen bitti: 21/21 `IMPLEMENTED`.** Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi), D56 (9. dilim: bayrak/flama ailesi), D57 (10. dilim: Fincan-Kulp/Çanak Dip/Elmas — parabol uyum skoru, kullanıcı onaylı). Kalan: 9 harmonik + SMC'nin 8 kavramının strateji şemasına bağlanması.
+> Durum: **11. dilim tamamlandı (2026-10-09)** — harmonik formasyonlar: 8/9 `IMPLEMENTED` (Shark hariç, kataloğun kendisi engelliyor). Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi), D56 (9. dilim: bayrak/flama ailesi), D57 (10. dilim: Fincan-Kulp/Çanak Dip/Elmas — parabol uyum skoru, kullanıcı onaylı), D58 (11. dilim: harmonikler, 6 "unverified" oran seti bağımsız kaynaklarla çapraz kontrol edildi). Kalan: SMC'nin 8 kavramının strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -78,8 +78,17 @@
 - **Kayıt hatası düzeltildi:** `broadening` (D55'te koda/teste girmişti) kataloğun durum güncelleme script'inde atlanmıştı, bu dilimde fark edilip düzeltildi.
 - **Katalog: grafik formasyonlarının 21/21'i `IMPLEMENTED`. Grafik formasyonu kataloğu tamamen bitti.**
 
+## 11. dilimde ne yapıldı (2026-10-09, D58) — harmonik formasyonlar (8/9)
+- `packages/engine/src/patterns/harmonic.ts`: Gartley, Kelebek, Yarasa, Alternatif Yarasa, Yengeç, Derin Yengeç, Cypher, AB=CD. **Shark bilerek atlandı** — katalog `BLOCKED_NEEDS_SOURCE` diyor, kaynak bulunmadan uygulanmayacak.
+- Kataloğun kendi uyarısı ("unverified olanlar doğrulanmadan uygulanmamalı") ciddiye alındı: 6 "unverified" formasyonun oranları web araması ile bağımsız kaynaklara (LuxAlgo, HarmonicTrader.com, HowToTrade, TradingSim, LiteFinance, TradeJini) karşı çapraz kontrol edildi — hepsi eşleşti, tek istisna Yengeç'in `CD_BC` alt sınırı (katalog 2.24, bir kaynak 2.618 diyor; çözülmedi, not eklendi).
+- Harmonikler, grafik formasyonlarından mimari olarak farklı: kataloğun kendisinde kırılım/geçersizleşme/hedef yok — formasyonun kendisi D noktasında sinyal, ek bir kapanış beklenmiyor.
+- Bir kod hatası (iyi haber: test yazarken yakalandı): Kelebek'in her iki oran setinde `CD_BC: null` (kontrol edilmiyor) — ilk yazımda bu fark edilmeyip rastgele bir aralık icat edilmişti, kataloğu tazeçekip düzeltildi.
+- Cypher'in `XD_XC` alanı iki okumaya açık (sığ/derin geri çekilme); projenin kendi isimlendirme kuralıyla tutarlı olan "harfi harfine" okuma seçildi, kodda açıkça belirtildi.
+- **Doğrulama:** her formasyon için el yazımı pozitif/negatif senaryo (`fakeSwing`, Bars kurmaya gerek yok) + 8'inin birlikte ileriye-bakmama testi (`harmonic.test.ts`, 13 test). Katalog durumu `IMPLEMENTED`.
+- **Katalog: harmoniklerin 8/9'u `IMPLEMENTED`.** Kalan M9 işi: SMC'nin 8 kavramının strateji şemasına bağlanması.
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-2. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
-3. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
-4. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+1. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
+2. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
+3. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+4. Shark — kaynak bulunursa ayrı, küçük bir iş.

@@ -64,7 +64,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "butterfly",
@@ -117,7 +117,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "bat",
@@ -125,7 +125,7 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü (Carney)",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58 - LuxAlgo/HarmonicTrader.com/HowToTrade/TradingSim all match)",
           "AB_XA": [
             0.382,
             0.5
@@ -156,7 +156,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "alt_bat",
@@ -164,7 +164,7 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü (Carney)",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58 - LuxAlgo/HarmonicTrader.com/HowToTrade/TradingSim all match)",
           "AB_XA": [
             0.382,
             0.382
@@ -195,7 +195,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "crab",
@@ -203,7 +203,8 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü (Carney)",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58)",
+          "note": "CD_BC alt sınırı (2.24) bazı kaynaklarda 2.618 olarak veriliyor (ör. Pro Trading School); kaynaklar burada ayrışıyor, katalogdaki 2.24 değeri korundu, çözülmedi.",
           "AB_XA": [
             0.382,
             0.618
@@ -234,7 +235,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "deep_crab",
@@ -242,7 +243,7 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü (Carney)",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58 - LuxAlgo/HarmonicTrader.com/HowToTrade/TradingSim all match)",
           "AB_XA": [
             0.886,
             0.886
@@ -273,7 +274,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "cypher",
@@ -281,7 +282,7 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58 - LuxAlgo/HarmonicTrader.com/HowToTrade/TradingSim all match)",
           "AB_XA": [
             0.382,
             0.618
@@ -309,7 +310,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     },
     {
       "id": "shark",
@@ -341,7 +342,7 @@
       "ratio_sets": [
         {
           "source": "yaygın harmonik literatürü",
-          "verification": "unverified",
+          "verification": "cross-checked (2026-10-09, D58 - LuxAlgo/HarmonicTrader.com/HowToTrade/TradingSim all match)",
           "BC_AB": [
             0.382,
             0.886
@@ -369,7 +370,7 @@
       "known_at": "D noktasının pivot olarak onaylandığı mum",
       "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
       "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "TO_IMPLEMENT"
+      "status": "IMPLEMENTED"
     }
   ]
 }

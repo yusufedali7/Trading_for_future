@@ -47,3 +47,33 @@ export interface ChartPattern {
   /** Price level whose close before the breakout would have killed the candidate. */
   invalidationRef: number | null;
 }
+
+/** A harmonic pattern's labelled swing point (X, A, B, C, or D). */
+export interface HarmonicPatternPivot extends ChartPatternPivot {
+  label: 'X' | 'A' | 'B' | 'C' | 'D';
+}
+
+/**
+ * Harmonic (XABCD) patterns, `catalog/patterns/harmonic.json`. Unlike the chart-pattern family,
+ * the pattern itself *is* the signal - known as soon as D is confirmed, with no later breakout
+ * to wait for (CLAUDE.md's "aday" framing: D is the candidate reversal zone, not a prediction).
+ */
+export interface HarmonicPattern {
+  id: string;
+  /** `catalog/patterns/harmonic.json` id, e.g. "gartley". */
+  patternId: string;
+  /** Which of the pattern's `ratio_sets` matched (there can be more than one per id). */
+  ratioSetSource: string;
+  defVersion: 'v1';
+  /** BULLISH: D is a low (potential reversal up). BEARISH: D is a high. */
+  direction: 'BULLISH' | 'BEARISH';
+  pivots: HarmonicPatternPivot[];
+  /** = D's own formed bar. */
+  formedAt: UtcMs;
+  formedIndex: number;
+  /** = D's own confirmation bar (the pattern needs nothing past that). */
+  confirmedAt: UtcMs;
+  confirmedIndex: number;
+  /** The actually-measured ratios (e.g. `{ AB_XA: 0.61, ... }`), for display/debugging. */
+  ratios: Record<string, number>;
+}

@@ -613,3 +613,22 @@ Kataloğun kendisi bunun için somut bir formül vermiyor, sadece "basit bir eğ
 
 ### Elmas (Diamond)
 Önce tepeler/dipler birbirinden **uzaklaşıyor** (Genişleyen Formasyon gibi), sonra **yakınlaşıyor** (Simetrik Üçgen gibi) — iki formasyonun arka arkaya gelmiş hâli, elmas şeklini andırıyor. Nadir ve kataloğun kendisine göre de en öznel formasyonlardan biri.
+
+## M9 11. dilimde eklenenler: harmonik formasyonlar (XABCD)
+
+Harmonikler, grafik formasyonlarından farklı bir aile: tek bir kırılım beklemek yerine, **5 noktanın (X-A-B-C-D) birbirine oranı** Fibonacci seviyelerine ne kadar uyuyorsa o kadar "aday" sayılıyor. Formasyonun kendisi D noktasında zaten sinyal — ek bir kapanış beklenmiyor.
+
+### X-A-B-C-D ve "PRZ" (Potansiyel Dönüş Bölgesi)
+X, A, B, C, D fiyatın sırayla gittiği beş uç nokta (tepe-dip-tepe-dip-tepe ya da tersi). Her bacağın (XA, AB, BC, CD) uzunluğu, bir öncekine göre belirli bir Fibonacci oranında olmalı. D noktası, bu oranların hepsi tutarsa "PRZ" (olası dönüş bölgesi) oluyor — kesin bir dönüş değil, izlenmeye değer bir aday.
+
+### Gartley, Yarasa (Bat), Alternatif Yarasa, Yengeç (Crab), Derin Yengeç, Kelebek (Butterfly)
+Hepsi aynı X-A-B-C-D iskeletini kullanıyor, sadece her bacağın oranı farklı (ör. Yengeç'te D, X'in çok ötesine geçiyor; Yarasa'da D, X'e yakın kalıyor). Her biri Scott Carney'nin harmonik ticaret literatüründen, bu oturumda bağımsız kaynaklarla çapraz kontrol edildi.
+
+### Cypher
+Diğerlerinden farklı: C noktası A'nın **ötesine** taşıyor (daha yüksek bir tepe/daha düşük bir dip), ve D, XA bacağına göre değil **XC** bacağına göre ölçülüyor. Darren Oglesbee'ye ait.
+
+### AB=CD
+En basit harmonik şekil — X yok, sadece A-B-C-D dört nokta. Adından da anlaşılacağı gibi, CD bacağının uzunluğu AB bacağına **yaklaşık eşit** olmalı.
+
+### Shark neden yok
+Kataloğun kendisi Shark formasyonunu "güvenilir bir kaynaktan oran alınmadan uygulanmayacak" diye işaretlemiş. Güvenilir bir kaynak bulunana kadar bu formasyon motora eklenmiyor — tahmin yürütmek yerine, kuralın kendisine uyuldu.
