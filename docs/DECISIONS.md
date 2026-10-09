@@ -456,6 +456,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** yeni engine testleri (random-baseline: determinizm + eşit payla doğru sayıda işlem + stop/hedef oranı; catalog-strategies: her iki versiyon geçerli spec + gerçek sentetik veride zincirleme çalışıyor) + gömülü tarayıcıda canlı kontrol (katalogdan strateji eklendi, özet doğru, veri-yok uyarısı doğru göründü, konsol hatasız).
 ---
 
+## D62 — Olay deposunun ölçüm çekirdeği: MFE/MAE + rastgele kontrol
+- **Tarih:** 2026-10-09 · **Durum:** Kabul edildi (otonom çalışma devam ediyor)
+- **Kapsam bilinçli olarak sınırlı tutuldu:** Adım 4 ("olay deposu") hem bir **ölçüm yöntemi** (MFE/MAE + rastgele kontrol seviyesi) hem de bir **kalıcı veri modeli** (her tespitin `event_id`, durum, motor versiyonu vb. ile saklanması) istiyor. Bu dilimde yalnızca ölçüm yöntemi kuruldu (`packages/engine/src/research/excursion.ts`) — yeni bir IndexedDB şeması (beşinci veri alanı, `trw-market/user/strategy/research`'ten sonra) ve onu tarayan bir arayüz **henüz yok**. Gerekçe: bu, projenin her yeni veri alanında yaptığı gibi (D4, D37 vb.) kendi küçük bir karar turunu hak ediyor — kullanıcıya rapor edilecek.
+- **Yöntem:** `catalog/experiments/fvg_random_walk.py`'nin mantığından esinlenildi (gerçek bir seviyenin "rastgele bir seviyeye göre" ne kadar farklı davrandığını ölçmek) ama MFE/MAE'ye uyarlanırken **açıkça farklı bir yorum** seçildi — kodda belirtildi: python betiği "aynı mesafedeki rastgele bir SEVİYE"yi karşılaştırıyor (revisit oranı), burada ise MFE/MAE bir "an"dan itibaren ölçüldüğü için kontrol, **rastgele bir ANdan** itibaren aynı ufuklarla ölçülüyor ("bu adayın ardından gelen hareket, rastgele bir andan sonraki hareketten farklı mı?"). İkisi de meşru bir taban çizgisi; kataloğun metni ikisi arasında seçim yapmıyor, bu yüzden seçim açıkça gerekçelendirildi.
+- **`detectionExcursions(bars, detection, horizons, rng)`:** herhangi bir `confirmedIndex`+`direction` taşıyan adayı kabul ediyor (M4/SMC/M9 katalogundan herhangi biri, tek bir tip birleşimine bağlı değil). Her ufuk için MFE/MAE onay kapanışından itibaren biriktiriliyor; ufuk henüz kapanmadıysa `null` (kural 3). `summarizeExcursions()` birçok raporu ufuk başına ortalamaya indirgiyor.
+- **Doğrulama:** el yazımı sentetik mumlarla MFE/MAE'nin doğru biriktiğini (ufuk büyüdükçe azalmadığını), BULLISH/BEARISH'in doğru ayna olduğunu, ufuk kapanmadan `null` döndüğünü, kontrolün tohuma göre belirleyici olduğunu kanıtlayan 5 test + `summarizeExcursions` testi (6 test toplam).
+- **Kalan (Adım 4'ün geri kalanı, ayrı bir iş):** kalıcı olay deposu şeması (yeni IndexedDB tablosu), canlı modda otomatik doldurma, bir "Olaylar" arayüz sayfası.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
