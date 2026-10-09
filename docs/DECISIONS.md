@@ -407,6 +407,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (grafik formasyonları):** fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence` — "yuvarlaklık" öznel bir ölçü gerektiriyor, bu motorda kullanılan kesin tanımların ilk sınırını zorlayacak). Ayrıca 9 harmonik ve SMC'nin strateji şemasına bağlanması hâlâ bekliyor.
 ---
 
+## D57 — M9: grafik formasyon kataloğu tamamlandı — Fincan-Kulp, Çanak Dip, Elmas (21/21)
+- **Tarih:** 2026-10-09 · **Durum:** Kabul edildi — kullanıcıya kataloğun bu üç formasyonu nasıl ele alacağımız soruldu (`AskUserQuestion`), çünkü katalog bunları kendisi "düşük güven/öznel" diye işaretlemiş ve "yuvarlaklık" için somut bir formül vermiyor, sadece "basit bir eğri uyumu skoru yeterli" diyor. Kullanıcı **parabol uyum skoru (R²)** önerisini seçti.
+- **"Yuvarlaklık" tanımı** (`packages/engine/src/patterns/chart-shared.ts`, `roundness(bars, i0, i1)`): kapanış fiyatlarına en küçük kareler yöntemiyle bir parabol (ikinci derece eğri) uydurulur; `a` katsayısının işareti (yukarı/aşağı açılma) ve `r2` (uyum kalitesi, 1 = kusursuz parabol) döndürülür. Kataloğun `roundness_min` eşiği `r2`'ye uygulanıyor, yön kontrolü için `a`'nın işareti de kontrol ediliyor (örn. Çanak Dip için `a>0`, yukarı açılan bir "U"). **Bu resmi olarak doğrulanmış bir tanım değil** — öznel olduğu zaten kabul edilen bir ölçüt için kullanıcı onaylı, belgeli bir mühendislik kararı.
+- **3 formasyon** (`packages/engine/src/patterns/chart-curve.ts`): Fincan-Kulp (4 pivot: iki kenar + dip + kulp), Çanak Dip (3 pivot: iki kenar + dip, Fincan-Kulp'un kulpsuz hali), Elmas (6 pivot: önce genişleyen, sonra daralan — `chart-lines.ts`'teki Genişleyen Formasyon'un mantığı, ikinci yarıda daralan bir Simetrik Üçgen'e dönüşüyor).
+- **Doğrulama farklı, iki katmanlı:** (1) `roundness()` fonksiyonunun kendisi doğrudan test edildi — gerçek bir parabol (R²>0,99, doğru işaret), düz-ortalamalı bir zikzak (R²<0,3) — fonksiyonun *matematiksel olarak* doğru çalıştığını kanıtlıyor; (2) dedektörlerin kendisi sentetik pozitif/negatif senaryolarla (`chart-curve.test.ts`, 10 test) + 3'ünün birlikte ileriye-bakmama testiyle doğrulandı. Bu, "formül doğru çalışıyor" ile "formül doğru tanımı mı ölçüyor" sorularını ayrı tutuyor — ikincisi öznel kalıyor ve bu açıkça böyle belgelendi.
+- **Bulunan bir kayıt hatası (D55'ten, kod hatası değil):** `broadening` (Genişleyen Formasyon) D55'te zaten koda ve teste girmişti, ama kataloğun durumunu `IMPLEMENTED` yapan script yanlışlıkla onu listeye almamıştı (`TO_IMPLEMENT` kalmıştı). Bu dilimde fark edilip düzeltildi.
+- **Katalog: grafik formasyonlarının 21/21'i `IMPLEMENTED`. Grafik formasyonu kataloğu tamamen bitti.** Kalan: 9 harmonik, SMC'nin 8 kavramının strateji şemasına bağlanması, olay deposu, canlı mod, strateji kataloğu.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

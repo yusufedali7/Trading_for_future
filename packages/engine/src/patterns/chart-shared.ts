@@ -100,6 +100,83 @@ export function scanDirectionalBreakout(
   return null;
 }
 
+function solve3x3(
+  m: readonly (readonly number[])[],
+  v: readonly number[],
+): [number, number, number] | null {
+  const det3 = (r: readonly (readonly number[])[]) =>
+    r[0]![0]! * (r[1]![1]! * r[2]![2]! - r[1]![2]! * r[2]![1]!) -
+    r[0]![1]! * (r[1]![0]! * r[2]![2]! - r[1]![2]! * r[2]![0]!) +
+    r[0]![2]! * (r[1]![0]! * r[2]![1]! - r[1]![1]! * r[2]![0]!);
+  const d = det3(m);
+  if (Math.abs(d) < 1e-12) return null;
+  const withCol = (col: number) => m.map((row, i) => row.map((x, j) => (j === col ? v[i]! : x)));
+  return [det3(withCol(0)) / d, det3(withCol(1)) / d, det3(withCol(2)) / d];
+}
+
+/**
+ * How well the closes over `[i0, i1]` fit a parabola (least-squares, bar index normalized to
+ * [0, 1] for numerical stability) - the catalog's "roundness score" for Cup and Handle / Rounding
+ * Bottom (`catalog/patterns/chart.json`, `roundness_min`), whose own spec says only "a simple
+ * curve-fit score is enough for v1" with no formula. `a` is the fitted curve's own-value
+ * coefficient (positive = opens upward, a bowl; negative = opens downward, a dome) and `r2` is
+ * the fit quality (1 = perfect parabola, 0 = no better than a flat average). Not a validated
+ * definition of "roundness" - a reasonable, documented choice for an admittedly subjective
+ * measure (see D57).
+ */
+export function roundness(b: Bars, i0: number, i1: number): { a: number; r2: number } {
+  const n = i1 - i0 + 1;
+  if (n < 5) return { a: 0, r2: 0 };
+  const xs: number[] = [];
+  const ys: number[] = [];
+  for (let i = i0; i <= i1; i++) {
+    xs.push((i - i0) / (i1 - i0));
+    ys.push(b.c[i]!);
+  }
+  let s0 = 0,
+    s1 = 0,
+    s2 = 0,
+    s3 = 0,
+    s4 = 0,
+    sy = 0,
+    sxy = 0,
+    sx2y = 0;
+  for (let k = 0; k < n; k++) {
+    const x = xs[k]!;
+    const y = ys[k]!;
+    const x2 = x * x;
+    s0 += 1;
+    s1 += x;
+    s2 += x2;
+    s3 += x2 * x;
+    s4 += x2 * x2;
+    sy += y;
+    sxy += x * y;
+    sx2y += x2 * y;
+  }
+  const solved = solve3x3(
+    [
+      [s4, s3, s2],
+      [s3, s2, s1],
+      [s2, s1, s0],
+    ],
+    [sx2y, sxy, sy],
+  );
+  if (solved == null) return { a: 0, r2: 0 };
+  const [a, bCoef, c] = solved;
+  const meanY = sy / n;
+  let ssRes = 0;
+  let ssTot = 0;
+  for (let k = 0; k < n; k++) {
+    const x = xs[k]!;
+    const y = ys[k]!;
+    const pred = a * x * x + bCoef * x + c;
+    ssRes += (y - pred) ** 2;
+    ssTot += (y - meanY) ** 2;
+  }
+  return { a, r2: ssTot === 0 ? 1 : 1 - ssRes / ssTot };
+}
+
 function pivotRecord(s: Swing): ChartPatternPivot {
   return { at: s.formedAt, index: s.formedIndex, price: s.price, kind: s.kind };
 }

@@ -602,3 +602,14 @@ Bayrakla aynı mantık, ama konsolidasyon bir bayrak değil minik bir **simetrik
 
 ### Bu ailede kullanılan bir varsayım
 Bayrak/flama'nın kataloğu, bir kanalın/üçgenin ihtiyaç duyduğu "her çizgi için 2 nokta" kuralına göre bir pivot eksik veriyor (yalnızca 3-4 pivot var). Motor bunu, kırılacak tarafı direğin ucu + konsolidasyondaki tek pivottan **bir doğru**, karşı tarafı da o pivotun fiyatında **düz bir sınır** olarak yorumluyor — bu, dış bir kaynaktan doğrulanmış bir kural değil, kataloğun eksik bıraktığı bir noktanın savunulabilir bir okuması (bkz. `docs/DECISIONS.md` D56).
+
+## M9 10. dilimde eklenenler: Fincan-Kulp, Çanak Dip, Elmas (grafik formasyonu kataloğu tamam)
+
+### Fincan-Kulp (Cup and Handle) / Çanak Dip (Rounding Bottom)
+İki kenar (aynı seviyede) arasında **yuvarlak bir çanak** şeklinde yavaş bir düşüş-ve-yükseliş. Fincan-Kulp'ta çanağın ardından küçük bir "kulp" (hafif bir geri çekilme) daha var; Çanak Dip bunun kulpsuz, daha uzun süreli hâli. İkisi de kırılım ile (üst kenarın üzerine kapanışla) onaylanıyor.
+
+### "Yuvarlaklık" nasıl ölçülüyor
+Kataloğun kendisi bunun için somut bir formül vermiyor, sadece "basit bir eğri uyumu skoru yeterli" diyor — yani bu tanım zaten **öznel**. Motor, çanağın kapanış fiyatlarına bir **parabol** (ikinci derece eğri) uydurup ne kadar iyi uyduğunu (**R²**, 1 = kusursuz uyum) ölçüyor. Bu, kullanıcıya sorulup onaylanmış bir mühendislik kararı (bkz. `docs/DECISIONS.md` D57) — dış bir kaynaktan doğrulanmış resmi bir tanım değil.
+
+### Elmas (Diamond)
+Önce tepeler/dipler birbirinden **uzaklaşıyor** (Genişleyen Formasyon gibi), sonra **yakınlaşıyor** (Simetrik Üçgen gibi) — iki formasyonun arka arkaya gelmiş hâli, elmas şeklini andırıyor. Nadir ve kataloğun kendisine göre de en öznel formasyonlardan biri.

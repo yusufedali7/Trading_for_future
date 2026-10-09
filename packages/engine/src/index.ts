@@ -213,6 +213,8 @@ export {
   detectSymmetricalTriangle,
 } from './patterns/chart-lines';
 export { detectBearFlag, detectBullFlag, detectPennant } from './patterns/chart-continuation';
+export { detectCupAndHandle, detectDiamond, detectRoundingBottom } from './patterns/chart-curve';
+export { roundness } from './patterns/chart-shared';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export { detectIfvg } from './features/ifvg';

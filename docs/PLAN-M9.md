@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **9. dilim tamamlandı (2026-10-09)** — grafik formasyonları: 18/21 artık `IMPLEMENTED` (İkili/Üçlü Tepe-Dip, Omuz Baş Omuz, üçgen×3/kama×2/kanal×2/dikdörtgen/genişleyen, bayrak×2/flama). Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi), D56 (9. dilim: bayrak/flama ailesi). Kalan: grafik formasyonlarının 3'ü (fincan-kulp/çanak-dip/elmas, en düşük güven) + 9 harmonik + SMC'nin strateji şemasına bağlanması.
+> Durum: **10. dilim tamamlandı (2026-10-09)** — **grafik formasyonu kataloğu tamamen bitti: 21/21 `IMPLEMENTED`.** Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi), D56 (9. dilim: bayrak/flama ailesi), D57 (10. dilim: Fincan-Kulp/Çanak Dip/Elmas — parabol uyum skoru, kullanıcı onaylı). Kalan: 9 harmonik + SMC'nin 8 kavramının strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -71,9 +71,15 @@
 - **Doğrulama:** sentetik pozitif/negatif + 3'ünün birlikte ileriye-bakmama testi (`chart-continuation.test.ts`, 6 test). Katalog durumu `IMPLEMENTED`.
 - Kalan 3 grafik formasyonu: fincan-kulp/çanak-dip/elmas — en düşük `definition_confidence`, "yuvarlaklık" ölçüsü gerektiriyor.
 
+## 10. dilimde ne yapıldı (2026-10-09, D57) — Fincan-Kulp, Çanak Dip, Elmas: katalog tamam
+- Kullanıcıya "yuvarlaklık" ölçüsü nasıl tanımlanmalı diye soruldu; **parabol uyum skoru (R²)** seçildi (`roundness()`, `chart-shared.ts`) — kapanışlara en küçük kareler parabolü uydurup R² + eğrinin işaretini (yukarı/aşağı açılma) döndürüyor.
+- **3 formasyon** (`packages/engine/src/patterns/chart-curve.ts`): Fincan-Kulp, Çanak Dip, Elmas.
+- **Doğrulama iki katmanlı:** `roundness()` doğrudan test edildi (gerçek parabol → R²>0,99; düz-ortalamalı zikzak → R²<0,3) + dedektörler sentetik pozitif/negatif + 3'ünün birlikte ileriye-bakmama testiyle (`chart-curve.test.ts`, 10 test). Katalog durumu `IMPLEMENTED`.
+- **Kayıt hatası düzeltildi:** `broadening` (D55'te koda/teste girmişti) kataloğun durum güncelleme script'inde atlanmıştı, bu dilimde fark edilip düzeltildi.
+- **Katalog: grafik formasyonlarının 21/21'i `IMPLEMENTED`. Grafik formasyonu kataloğu tamamen bitti.**
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Grafik formasyonları — fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`, "yuvarlaklık" ölçüsü gerektiriyor).
-2. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
-3. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
-4. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
-5. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
+1. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
+2. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
+3. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
+4. Olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (görev dosyasının Adım 4-8'i).
