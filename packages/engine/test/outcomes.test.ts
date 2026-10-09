@@ -117,6 +117,35 @@ describe('featureOutcomes', () => {
     expect(a.SWING.some((o) => o.status === 'HELD')).toBe(true);
   });
 
+  it('the 4 SMC outcome concepts (D59) are empty without smc and populated with it', () => {
+    const noSmc = featureOutcomes(b, features, p);
+    expect(noSmc.ORDER_BLOCK).toEqual([]);
+    expect(noSmc.IFVG).toEqual([]);
+    expect(noSmc.BREAKER).toEqual([]);
+    expect(noSmc.OTE).toEqual([]);
+    const orderBlock = {
+      id: 'ob1',
+      defVersion: 'v1' as const,
+      type: 'ORDER_BLOCK' as const,
+      direction: 'BULLISH' as const,
+      top: 1.1003,
+      bottom: 1.1001,
+      breakId: 'b',
+      formedAt: T0,
+      formedIndex: 0,
+      confirmedAt: end(1),
+      confirmedIndex: 1,
+    };
+    const withSmc = featureOutcomes(b, features, p, {
+      orderBlocks: [orderBlock],
+      ifvgs: [],
+      breakers: [],
+      ote: [],
+    });
+    expect(withSmc.ORDER_BLOCK).toHaveLength(1);
+    expect(withSmc.ORDER_BLOCK[0]!.id).toBe('ob1');
+  });
+
   it('cutting the data never changes an outcome that was already decided', () => {
     const full = featureOutcomes(b, features, p);
     for (let k = 20; k <= b.length; k += 17) {

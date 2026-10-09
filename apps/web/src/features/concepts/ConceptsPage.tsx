@@ -12,6 +12,7 @@ import {
   type Instrument,
   type ResampledCandle,
   type SessionLevels,
+  type SmcSet,
   type Timeframe,
   type UtcMs,
 } from '@trw/engine';
@@ -30,7 +31,12 @@ export interface ShowTarget {
 
 export interface ConceptsPageProps {
   /** The chart's current data (not the replay view): examples come from real, loaded data only. */
-  data: { candles: ResampledCandle[]; features: FeatureSet; sessions: SessionLevels[] } | null;
+  data: {
+    candles: ResampledCandle[];
+    features: FeatureSet;
+    sessions: SessionLevels[];
+    smc: SmcSet;
+  } | null;
   meta: DataSetMeta | null;
   instrument: Instrument | null;
   timeframe: Timeframe;
@@ -56,8 +62,40 @@ function examplesOf(
   names: Record<string, string>,
 ): Example[] {
   const f = data.features;
+  const smc = data.smc;
   const layer = c.layer;
   switch (c.id) {
+    case 'DISPLACEMENT':
+      return smc.displacements.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]! }));
+    case 'ORDER_BLOCK':
+      return smc.orderBlocks.map((d) => ({
+        id: d.id,
+        at: d.formedAt,
+        what: k[d.direction]!,
+        layer,
+      }));
+    case 'IFVG':
+      return smc.ifvgs.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]!, layer }));
+    case 'BREAKER':
+      return smc.breakers.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]!, layer }));
+    case 'EQUAL_LEVELS':
+      return smc.equalLevels.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.side]!, layer }));
+    case 'PREMIUM_DISCOUNT':
+      return smc.premiumDiscount.map((d) => ({
+        id: d.id,
+        at: d.formedAt,
+        what: t.equilibriumAt(d.equilibrium),
+        layer,
+      }));
+    case 'OTE':
+      return smc.ote.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]!, layer }));
+    case 'CANDIDATE_SR':
+      return smc.candidateSr.map((d) => ({
+        id: d.id,
+        at: d.formedAt,
+        what: t.touches(d.touches),
+        layer,
+      }));
     case 'SWING':
       return f.swings.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.kind]!, layer }));
     case 'FVG':
@@ -197,7 +235,7 @@ function RealData({ concept: c, ...p }: ConceptsPageProps & { concept: Concept }
   const outcomes = useMemo(() => {
     if (!data || !p.instrument || !c.outcome) return null;
     const bars = toBars(data.candles, p.instrument, p.timeframe);
-    return featureOutcomes(bars, data.features, { horizonBars: horizon })[c.outcome];
+    return featureOutcomes(bars, data.features, { horizonBars: horizon }, data.smc)[c.outcome];
   }, [c.outcome, data, p.instrument, p.timeframe, horizon]);
 
   if (!data || !p.meta) {

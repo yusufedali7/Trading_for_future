@@ -215,6 +215,8 @@ export const tr = {
     failures: 'Beklendiği gibi gitmeyen örnekler',
     failedAt: (when: string) => `bozulma ${when}`,
     noFailures: 'Bu veride beklendiği gibi gitmeyen örnek yok.',
+    equilibriumAt: (price: number) => `denge ${price.toFixed(5)}`,
+    touches: (n: number) => `${n} dokunuş`,
     kinds: {
       HIGH: 'tepe',
       LOW: 'dip',

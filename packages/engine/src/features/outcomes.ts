@@ -1,6 +1,7 @@
 import type { UtcMs } from '../core/types';
 import type { Bars } from './bars';
 import type { FeatureSet } from './compute';
+import type { SmcSet } from './smc';
 import type { Detection } from './types';
 
 /**
@@ -28,12 +29,21 @@ export interface CandidateOutcome {
 }
 
 /**
- * Concepts wired into `featureOutcomes` (bound to `FeatureSet`). ORDER_BLOCK/IFVG/BREAKER/OTE are
- * not included yet - none of them are part of `FeatureSet` in this slice (see
- * features/order-block.ts, ifvg.ts, breaker.ts, ote.ts) - but `candidateOutcome` below already
- * handles each of them for direct, ad-hoc calls.
+ * Concepts wired into `featureOutcomes`. The 4 `FeatureSet` ones, plus the 4 SMC concepts that
+ * have a single direction + invalidation price (D59 - the same 4 that became `ORDER_BLOCK`/
+ * `IFVG`/`BREAKER`/`OTE` `EventStep`s); the other 4 SMC concepts (Displacement, Equal Levels,
+ * Premium/Discount, Candidate S/R) have no such price and so no outcome measurement at all, like
+ * `PERIOD_LEVELS`/`SESSIONS` in the concept library.
  */
-export type OutcomeConcept = 'SWING' | 'FVG' | 'STRUCTURE_BREAK' | 'LIQUIDITY_SWEEP';
+export type OutcomeConcept =
+  | 'SWING'
+  | 'FVG'
+  | 'STRUCTURE_BREAK'
+  | 'LIQUIDITY_SWEEP'
+  | 'ORDER_BLOCK'
+  | 'IFVG'
+  | 'BREAKER'
+  | 'OTE';
 
 /** The price a close must not go beyond, and on which side "beyond" is. */
 function failureLine(d: Detection): { price: number; below: boolean } {
@@ -82,6 +92,7 @@ export function featureOutcomes(
   b: Bars,
   f: Pick<FeatureSet, 'swings' | 'fvgs' | 'breaks' | 'sweeps'>,
   p: OutcomeParams = OUTCOME_DEFAULTS,
+  smc?: Pick<SmcSet, 'orderBlocks' | 'ifvgs' | 'breakers' | 'ote'>,
 ): Record<OutcomeConcept, CandidateOutcome[]> {
   const all = (ds: readonly Detection[]) => ds.map((d) => candidateOutcome(b, d, p));
   return {
@@ -89,6 +100,10 @@ export function featureOutcomes(
     FVG: all(f.fvgs),
     STRUCTURE_BREAK: all(f.breaks),
     LIQUIDITY_SWEEP: all(f.sweeps),
+    ORDER_BLOCK: all(smc?.orderBlocks ?? []),
+    IFVG: all(smc?.ifvgs ?? []),
+    BREAKER: all(smc?.breakers ?? []),
+    OTE: all(smc?.ote ?? []),
   };
 }
 

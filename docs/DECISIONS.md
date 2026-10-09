@@ -437,6 +437,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan M9/yol haritası işi:** M6.4 kavram kütüphanesine SMC'nin 8 kavramının eklenmesi (ayrı, küçük iş); olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (`docs/AGENT-GOREV-M9-formasyonlar.md` Adım 4-8).
 ---
 
+## D60 — M6.4 kavram kütüphanesine SMC'nin 8 kavramı eklendi
+- **Tarih:** 2026-10-09 · **Durum:** Kabul edildi (otonom çalışma devam ediyor)
+- **8 yeni `Concept`** (`apps/web/src/content/concepts.ts`): Displacement, Order block, Ters FVG, Breaker, Eşit tepeler/dipler, Premium/Discount, OTE, Aday destek/direnç — içerik `docs/definitions/*-v1.md` dosyalarından (bu dosyanın başındaki kural: "Mirrors docs/definitions/*-v1.md" — tutarlılık korundu, yeniden yazılmadı).
+- **4'ünde (Order block/IFVG/Breaker/OTE) "beklendiği gibi gitmedi" ölçümü de var, 4'ünde yok** — tıpkı motordaki `Detection` birleşimi ayrımı gibi (Displacement/Eşit Seviyeler/Premium-Discount/Aday S-D'nin doğal bir geçersizleşme fiyatı yok). Bunu mümkün kılmak için `packages/engine/src/features/outcomes.ts`'teki `OutcomeConcept` tipi ve `featureOutcomes()` 4 yeni anahtarla genişledi, isteğe bağlı 4. parametre (`smc`) ile — `candidateOutcome()` zaten bu 4 türü D49-50'den beri destekliyordu (`failureLine()` switch'i), yalnızca toplu/önbellekli sarmalayıcı eksikti.
+- **Arayüz:** `ConceptsPageProps.data`'ya `smc: SmcSet` eklendi (App.tsx'teki `data` state'i zaten `ChartData`'nın bir parçası olarak `smc` taşıyordu — yapısal olarak uyumlu, çağıran tarafta değişiklik gerekmedi). `examplesOf()` 8 yeni dal aldı; Premium/Discount ve Aday S/D için anlamlı örnek etiketleri eklendi (denge fiyatı, dokunuş sayısı — `tr.ts`'e `equilibriumAt`/`touches` eklendi).
+- **Doğrulama:** `outcomes.test.ts`'e yeni testler + tip kontrolü + gömülü tarayıcıda canlı kontrol (Kavramlar sayfasında 8 yeni kavram listede görünüyor, Order block kartı tüm bölümleriyle (Nedir/Motorun tanımı/parametre tablosu/Sınırlar) doğru render ediyor, konsol hatasız).
+- **Kalan yol haritası işi:** olay deposu, canlı mod, strateji kataloğu, "en iyi aday" sıralaması (`docs/AGENT-GOREV-M9-formasyonlar.md` Adım 4-8) — bunlar M9'un parçası değil, ayrı büyük işler.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
