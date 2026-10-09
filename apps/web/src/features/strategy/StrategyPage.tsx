@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  CATALOG_STRATEGIES,
   STRATEGY_STATUSES,
   defaultSpec,
   newVersion,
@@ -38,7 +39,10 @@ export interface StrategyPageProps {
 }
 
 type Mode =
-  { kind: 'VIEW' } | { kind: 'NEW_STRATEGY' } | { kind: 'NEW_VERSION'; from: StrategySpec };
+  | { kind: 'VIEW' }
+  | { kind: 'NEW_STRATEGY' }
+  | { kind: 'NEW_VERSION'; from: StrategySpec }
+  | { kind: 'CATALOG' };
 
 export function StrategyPage(p: StrategyPageProps) {
   const [list, setList] = useState<Strategy[] | null>(null);
@@ -88,6 +92,10 @@ export function StrategyPage(p: StrategyPageProps) {
     setMode({ kind: 'VIEW' });
   };
 
+  const importCatalog = async (c: (typeof CATALOG_STRATEGIES)[number]) => {
+    await saveNew(c.spec, { name: c.name, description: c.description, note: t.importCatalogNote });
+  };
+
   const saveVersion = async (spec: StrategySpec, meta: { note: string }) => {
     if (!strategy) return;
     const at = p.now();
@@ -118,13 +126,18 @@ export function StrategyPage(p: StrategyPageProps) {
     <div className="strategy-page">
       <aside className="strategy-list" aria-label={t.title}>
         <h2>{t.title}</h2>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={() => setMode({ kind: 'NEW_STRATEGY' })}
-        >
-          {t.newStrategy}
-        </button>
+        <div className="field-row">
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={() => setMode({ kind: 'NEW_STRATEGY' })}
+          >
+            {t.newStrategy}
+          </button>
+          <button type="button" className="btn" onClick={() => setMode({ kind: 'CATALOG' })}>
+            {t.importCatalog}
+          </button>
+        </div>
         {list.length === 0 && <p className="hint">{t.empty}</p>}
         <ul className="levels">
           {list.map((s) => (
@@ -158,7 +171,33 @@ export function StrategyPage(p: StrategyPageProps) {
           />
         )}
 
-        {mode.kind !== 'NEW_STRATEGY' && strategy && (
+        {mode.kind === 'CATALOG' && (
+          <section className="panel stack" aria-label={t.importCatalog}>
+            <h3>{t.importCatalog}</h3>
+            <p className="hint">{t.importCatalogHint}</p>
+            <ul className="levels">
+              {CATALOG_STRATEGIES.map((c) => (
+                <li key={`${c.catalogId}:${c.versionLabel}`}>
+                  <div className="level-row">
+                    <span>
+                      <strong>{c.name}</strong>
+                      <br />
+                      <span className="hint">{c.description}</span>
+                    </span>
+                    <button type="button" className="btn" onClick={() => void importCatalog(c)}>
+                      {t.newStrategy}
+                    </button>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <button type="button" className="btn" onClick={() => setMode({ kind: 'VIEW' })}>
+              {t.cancel}
+            </button>
+          </section>
+        )}
+
+        {mode.kind !== 'NEW_STRATEGY' && mode.kind !== 'CATALOG' && strategy && (
           <>
             <h2>{strategy.name}</h2>
             {strategy.description && <p className="muted-inline">{strategy.description}</p>}

@@ -46,6 +46,7 @@
   "ambiguities": [
     "[1] ile önceki mumun seviyesi kullanılır (ileriye bakma yok)."
   ],
+  "engine_status": "BLOCKED: motor henüz highest()/lowest() gibi kayan pencere koşullarını, ATR_MULTIPLE stop'u ya da CHANNEL_EXIT'i desteklemiyor (D61).",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

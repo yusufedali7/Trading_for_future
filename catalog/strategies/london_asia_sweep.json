@@ -76,6 +76,7 @@
     "MSS için displacement zorunlu mu?",
     "FVG yoksa setup iptal mi, yoksa OB girişi mi?"
   ],
+  "engine_status": "IMPLEMENTED: 2 strateji versiyonu olarak kuruldu (fvg, order_block) - packages/engine/src/catalog/strategies.ts, D61. Asya seansı projenin kendi BUILTIN_SESSIONS tanımını kullanıyor (Asia/Tokyo 09:00-18:00), bu dosyanın \"şimdilik\" notundaki 00:00-09:00 değil.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

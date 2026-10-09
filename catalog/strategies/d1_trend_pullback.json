@@ -66,6 +66,7 @@
   "ambiguities": [
     "Ders 6'daki 'desteğe dönmüş direnç' ve 'güçlü mum' koşulları bu sürümde yok; v2 adayı."
   ],
+  "engine_status": "BLOCKED: motor henüz EMA_TREND filtresini, TOUCH_LEVEL/BAR_CLOSE serbest koşullarını ya da ATR_MULTIPLE stop'u desteklemiyor (D61). Gösterge tabanlı adım türleri EventStep'e eklenmeden kurulamaz.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

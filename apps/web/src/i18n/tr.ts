@@ -411,6 +411,10 @@ export const tr = {
     empty:
       'Henüz strateji yok. Bir fikri kurallara dökmek için “Yeni strateji” ile başla. Kurallar M4 motor adaylarıyla tanımlanır.',
     newStrategy: 'Yeni strateji',
+    importCatalog: 'Katalogdan ekle',
+    importCatalogHint:
+      'Katalogdaki strateji taslaklarından (catalog/strategies/) motorun bugün kurabildikleri — "fikir" durumunda eklenir, gerçek veride henüz test edilmedi.',
+    importCatalogNote: 'Katalogdan içe aktarıldı (D61); gerçek veride henüz test edilmedi.',
     name: 'Ad',
     description: 'Açıklama / hipotez',
     versions: 'Versiyonlar',

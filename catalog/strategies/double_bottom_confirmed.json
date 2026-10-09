@@ -44,6 +44,7 @@
   "ambiguities": [
     "Hedef ölçülen hareket mi, yoksa sabit 2R mi? İki versiyon olarak test et."
   ],
+  "engine_status": "BLOCKED: motorun EventStep'i M9 katalogundaki 111 formasyon dedektöründen (burada double_bottom@1.0.0) herhangi birini PATTERN_EVENT adımı olarak kullanmayı henüz desteklemiyor (D61) - yalnızca SMC'nin 4 kavramı (order block/ifvg/breaker/ote, D59) EventStep oldu.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

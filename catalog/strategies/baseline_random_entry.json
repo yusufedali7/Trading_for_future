@@ -23,6 +23,7 @@
   "ambiguities": [
     "Bu bir strateji değil, ölçüm aracıdır. 'En iyi strateji' seçiminde zorunlu karşılaştırma."
   ],
+  "engine_status": "IMPLEMENTED farklı biçimde: StrategySpec değil, packages/engine/src/backtest/random-baseline.ts (randomEntryBaseline, D61) - sabit pip mesafeli stop + R katlı hedef, rastgele zamanlı giriş.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

@@ -362,6 +362,12 @@ export type {
 } from './backtest/run';
 export { backtestStats } from './backtest/stats';
 export type { BacktestStats, BreakdownRow } from './backtest/stats';
+export { randomEntryBaseline } from './backtest/random-baseline';
+export type { RandomBaselineInput } from './backtest/random-baseline';
+export { CATALOG_STRATEGIES } from './catalog/strategies';
+export type { CatalogStrategy } from './catalog/strategies';
+export { mulberry32, randomInt } from './core/rng';
+export type { Rng } from './core/rng';
 export { runRecord, splitRange } from './backtest/record';
 export type { BacktestRun, SplitRole, StoredBacktest } from './backtest/record';
 export { MAX_SWEEP_COMBINATIONS, applyParam, sweepGrid, sweepableParams } from './research/sweep';
