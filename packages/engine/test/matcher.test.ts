@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { toBars } from '../src/features/bars';
 import type { FeatureSet } from '../src/features/compute';
-import type { Fvg, LiquiditySweep, StructureBreak } from '../src/features/types';
+import type { SmcSet } from '../src/features/smc';
+import type {
+  Breaker,
+  Fvg,
+  Ifvg,
+  LiquiditySweep,
+  OrderBlock,
+  OteZone,
+  StructureBreak,
+} from '../src/features/types';
 import { findSetups, inWindow } from '../src/strategy/matcher';
 import { defaultSpec, type StrategySpec } from '../src/strategy/schema';
 import { BAR_MS, T0, bars } from './helpers/synthetic-bars';
@@ -54,6 +63,51 @@ const set = (p: Partial<FeatureSet>): FeatureSet => ({
   sweeps: [],
   periods: [],
   ...p,
+});
+const emptySmc = (p: Partial<SmcSet>): SmcSet => ({
+  displacements: [],
+  orderBlocks: [],
+  ifvgs: [],
+  breakers: [],
+  equalLevels: [],
+  premiumDiscount: [],
+  ote: [],
+  candidateSr: [],
+  ...p,
+});
+const orderBlock = (id: string, formed: number, confirmed: number): OrderBlock => ({
+  ...timing(id, formed, confirmed),
+  type: 'ORDER_BLOCK',
+  direction: 'BULLISH',
+  top: 1.1003,
+  bottom: 1.1001,
+  breakId: 'b',
+});
+const ifvg = (id: string, formed: number, confirmed: number): Ifvg => ({
+  ...timing(id, formed, confirmed),
+  type: 'IFVG',
+  direction: 'BULLISH',
+  top: 1.1006,
+  bottom: 1.1004,
+  sourceFvgId: 'f',
+});
+const breaker = (id: string, formed: number, confirmed: number): Breaker => ({
+  ...timing(id, formed, confirmed),
+  type: 'BREAKER',
+  direction: 'BULLISH',
+  top: 1.1006,
+  bottom: 1.1004,
+  sourceOrderBlockId: 'ob',
+});
+const oteZone = (id: string, formed: number, confirmed: number): OteZone => ({
+  ...timing(id, formed, confirmed),
+  type: 'OTE',
+  direction: 'BULLISH',
+  top: 1.1006,
+  bottom: 1.1004,
+  sweetSpot: 1.1005,
+  startSwingId: 's1',
+  endSwingId: 's2',
 });
 
 const spec: StrategySpec = {
@@ -147,5 +201,51 @@ describe('findSetups (v1)', () => {
         all.filter((x) => x.signalAt <= cutoff),
       );
     }
+  });
+});
+
+describe('findSetups with SMC steps (D58)', () => {
+  it('chains an order block into an IFVG, reading SmcSet instead of FeatureSet', () => {
+    const s: StrategySpec = {
+      ...spec,
+      steps: [
+        { id: 'ob', type: 'ORDER_BLOCK', direction: 'BULLISH' },
+        { id: 'ifvg', type: 'IFVG', direction: 'BULLISH', maxBars: 5 },
+      ],
+    };
+    const smc = emptySmc({
+      orderBlocks: [orderBlock('ob1', 2, 3)],
+      ifvgs: [ifvg('iv1', 6, 7)],
+    });
+    const [found, ...rest] = findSetups(s, b, set({}), smc);
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({
+      id: 'SETUP:ob1|iv1',
+      refs: { 'ob.top': 1.1003, 'ob.bottom': 1.1001, 'ob.mid': 1.1002, 'ifvg.top': 1.1006 },
+    });
+  });
+
+  it('matches a breaker and an OTE step, with sweetSpot available as a ref', () => {
+    const s: StrategySpec = {
+      ...spec,
+      steps: [
+        { id: 'brk', type: 'BREAKER', direction: 'BULLISH' },
+        { id: 'ote', type: 'OTE', direction: 'BULLISH', maxBars: 5 },
+      ],
+    };
+    const smc = emptySmc({
+      breakers: [breaker('bk1', 2, 3)],
+      ote: [oteZone('ot1', 4, 5)],
+    });
+    const [found] = findSetups(s, b, set({}), smc);
+    expect(found).toMatchObject({ refs: { 'ote.sweetSpot': 1.1005 } });
+  });
+
+  it('finds nothing when smc is omitted, even if a step asks for an SMC concept', () => {
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'ob', type: 'ORDER_BLOCK', direction: 'BULLISH' }],
+    };
+    expect(findSetups(s, b, set({}))).toEqual([]);
   });
 });

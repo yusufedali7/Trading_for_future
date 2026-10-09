@@ -2,10 +2,33 @@ import { utcToLocal } from '../core/tz';
 import type { UtcMs } from '../core/types';
 import type { Bars } from '../features/bars';
 import type { FeatureSet } from '../features/compute';
-import type { Fvg, LiquiditySweep, StructureBreak, Swing } from '../features/types';
+import type { SmcSet } from '../features/smc';
+import type {
+  Breaker,
+  Fvg,
+  Ifvg,
+  LiquiditySweep,
+  OrderBlock,
+  OteZone,
+  StructureBreak,
+  Swing,
+} from '../features/types';
 import type { EventStep, Ref, StrategySpec, TimeWindow } from './schema';
 
-type AnyDetection = Swing | Fvg | StructureBreak | LiquiditySweep;
+type AnyDetection =
+  Swing | Fvg | StructureBreak | LiquiditySweep | OrderBlock | Ifvg | Breaker | OteZone;
+
+/** D58: `findSetups` callers that don't use any SMC step types can omit `smc` entirely. */
+const EMPTY_SMC: SmcSet = {
+  displacements: [],
+  orderBlocks: [],
+  ifvgs: [],
+  breakers: [],
+  equalLevels: [],
+  premiumDiscount: [],
+  ote: [],
+  candidateSr: [],
+};
 
 export interface StepMatch {
   stepId: string;
@@ -28,7 +51,7 @@ export interface Setup {
   refs: Record<Ref, number>;
 }
 
-function candidates(step: EventStep, f: FeatureSet): AnyDetection[] {
+function candidates(step: EventStep, f: FeatureSet, smc: SmcSet): AnyDetection[] {
   switch (step.type) {
     case 'LIQUIDITY_SWEEP':
       return f.sweeps.filter(
@@ -46,6 +69,14 @@ function candidates(step: EventStep, f: FeatureSet): AnyDetection[] {
       return f.fvgs.filter((d) => !step.direction || d.direction === step.direction);
     case 'SWING':
       return f.swings.filter((d) => !step.kind || d.kind === step.kind);
+    case 'ORDER_BLOCK':
+      return smc.orderBlocks.filter((d) => !step.direction || d.direction === step.direction);
+    case 'IFVG':
+      return smc.ifvgs.filter((d) => !step.direction || d.direction === step.direction);
+    case 'BREAKER':
+      return smc.breakers.filter((d) => !step.direction || d.direction === step.direction);
+    case 'OTE':
+      return smc.ote.filter((d) => !step.direction || d.direction === step.direction);
   }
 }
 
@@ -56,7 +87,12 @@ function values(d: AnyDetection): Record<string, number> {
     case 'STRUCTURE_BREAK':
       return { level: d.level };
     case 'FVG':
+    case 'ORDER_BLOCK':
+    case 'IFVG':
+    case 'BREAKER':
       return { top: d.top, bottom: d.bottom, mid: (d.top + d.bottom) / 2 };
+    case 'OTE':
+      return { top: d.top, bottom: d.bottom, mid: (d.top + d.bottom) / 2, sweetSpot: d.sweetSpot };
     case 'SWING':
       return { price: d.price };
   }
@@ -96,9 +132,18 @@ export function inWindow(w: TimeWindow | null, t: UtcMs): boolean {
  * last step's bar and must start inside the window. Several first-step candidates leading to
  * the same last detection give one setup (the first). Only uses detections confirmed by the
  * signal, so setups found on data cut at T are exactly those of the full data known by T.
+ * `smc` (D58) is optional - only strategies with an `ORDER_BLOCK`/`IFVG`/`BREAKER`/`OTE` step
+ * need it; the other 4 SMC concepts (Displacement, Equal Levels, Premium/Discount, Candidate
+ * S/R) have no single direction/invalidation price and so have no step type at all (same reason
+ * they're not in `Detection` - see `features/smc.ts` and the `docs/definitions/*-v1.md` files).
  */
-export function findSetups(spec: StrategySpec, b: Bars, f: FeatureSet): Setup[] {
-  const lists = spec.steps.map((s) => candidates(s, f).sort(byConfirmation));
+export function findSetups(
+  spec: StrategySpec,
+  b: Bars,
+  f: FeatureSet,
+  smc: SmcSet = EMPTY_SMC,
+): Setup[] {
+  const lists = spec.steps.map((s) => candidates(s, f, smc).sort(byConfirmation));
   const out: Setup[] = [];
   const usedSignals = new Set<string>();
   for (const first of lists[0] ?? []) {

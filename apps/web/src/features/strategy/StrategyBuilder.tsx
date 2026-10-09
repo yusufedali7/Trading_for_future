@@ -17,12 +17,25 @@ import { toDefinition, type UserSession } from '../../storage/sessions-repo';
 
 const b = tr.strategy.builder;
 const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '30m', '1h', '4h'];
-const STEP_TYPES: StepType[] = ['LIQUIDITY_SWEEP', 'STRUCTURE_BREAK', 'FVG', 'SWING'];
+const STEP_TYPES: StepType[] = [
+  'LIQUIDITY_SWEEP',
+  'STRUCTURE_BREAK',
+  'FVG',
+  'SWING',
+  'ORDER_BLOCK',
+  'IFVG',
+  'BREAKER',
+  'OTE',
+];
 const STEP_BASE: Record<StepType, string> = {
   LIQUIDITY_SWEEP: 'sweep',
   STRUCTURE_BREAK: 'mss',
   FVG: 'fvg',
   SWING: 'swing',
+  ORDER_BLOCK: 'ob',
+  IFVG: 'ifvg',
+  BREAKER: 'breaker',
+  OTE: 'ote',
 };
 const FIXED_LEVELS: LiquidityKind[] = [
   'SWING_HIGH',

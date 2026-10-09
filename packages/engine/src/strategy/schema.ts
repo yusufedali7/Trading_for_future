@@ -14,7 +14,15 @@ import {
 } from '../session/sessions';
 
 /** Strategy schema v1 (D31): typed, ordered event steps; no free-text conditions. */
-export type StepType = 'LIQUIDITY_SWEEP' | 'STRUCTURE_BREAK' | 'FVG' | 'SWING';
+export type StepType =
+  | 'LIQUIDITY_SWEEP'
+  | 'STRUCTURE_BREAK'
+  | 'FVG'
+  | 'SWING'
+  | 'ORDER_BLOCK'
+  | 'IFVG'
+  | 'BREAKER'
+  | 'OTE';
 
 interface StepBase {
   /** Lower-case id used in references (`sweep.extreme`). */
@@ -41,7 +49,25 @@ export interface SwingStep extends StepBase {
   type: 'SWING';
   kind?: 'HIGH' | 'LOW';
 }
-export type EventStep = SweepStep | BreakStep | FvgStep | SwingStep;
+/** D58: the M9 SMC concepts that have a single direction + invalidation price (D49–D50). */
+export interface OrderBlockStep extends StepBase {
+  type: 'ORDER_BLOCK';
+  direction?: FeatureDirection;
+}
+export interface IfvgStep extends StepBase {
+  type: 'IFVG';
+  direction?: FeatureDirection;
+}
+export interface BreakerStep extends StepBase {
+  type: 'BREAKER';
+  direction?: FeatureDirection;
+}
+export interface OteStep extends StepBase {
+  type: 'OTE';
+  direction?: FeatureDirection;
+}
+export type EventStep =
+  SweepStep | BreakStep | FvgStep | SwingStep | OrderBlockStep | IfvgStep | BreakerStep | OteStep;
 
 /** `stepId.field` */
 export type Ref = string;
@@ -124,6 +150,10 @@ export const REF_FIELDS: Record<StepType, readonly string[]> = {
   STRUCTURE_BREAK: ['level'],
   FVG: ['top', 'bottom', 'mid'],
   SWING: ['price'],
+  ORDER_BLOCK: ['top', 'bottom', 'mid'],
+  IFVG: ['top', 'bottom', 'mid'],
+  BREAKER: ['top', 'bottom', 'mid'],
+  OTE: ['top', 'bottom', 'mid', 'sweetSpot'],
 };
 
 /** Every reference the steps make available, in step order. */
@@ -271,10 +301,19 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
 }
 
 /** Not errors, but probably not what was meant (e.g. a long after a bearish break). */
+const DIRECTIONAL_STEP_TYPES: readonly StepType[] = [
+  'STRUCTURE_BREAK',
+  'FVG',
+  'ORDER_BLOCK',
+  'IFVG',
+  'BREAKER',
+  'OTE',
+];
+
 export function specWarnings(s: StrategySpec): SpecWarning[] {
   const against: FeatureDirection = s.direction === 'LONG' ? 'BEARISH' : 'BULLISH';
   return s.steps.flatMap((st, i) =>
-    (st.type === 'STRUCTURE_BREAK' || st.type === 'FVG') && st.direction === against
+    DIRECTIONAL_STEP_TYPES.includes(st.type) && 'direction' in st && st.direction === against
       ? [{ code: 'DIRECTION_MISMATCH' as const, path: `steps.${i}.direction` }]
       : [],
   );

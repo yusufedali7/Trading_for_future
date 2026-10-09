@@ -11,6 +11,7 @@ import {
 } from '../execution/trade-sim';
 import { toBars, type Bars } from '../features/bars';
 import type { FeatureSet } from '../features/compute';
+import type { SmcSet } from '../features/smc';
 import { marketState } from '../instruments/hours';
 import { pipsToPrice, roundToTick, type Instrument } from '../instruments/registry';
 import { positionSize, quoteToUsd, tradePnl, type LotRules } from '../risk/sizing';
@@ -47,6 +48,8 @@ export interface BacktestInput {
   /** Candles of `spec.timeframe` and the features computed on them with `spec.features`. */
   candles: readonly ResampledCandle[];
   features: FeatureSet;
+  /** SMC candidates (D58); only needed when `spec` has an ORDER_BLOCK/IFVG/BREAKER/OTE step. */
+  smc?: SmcSet;
   config: BacktestConfig;
 }
 
@@ -183,10 +186,12 @@ export function orderFor(
  * current equity. Same input → identical result.
  */
 export function runBacktest(input: BacktestInput): BacktestResult {
-  const { spec, inst, series, baseMs, candles, features, config } = input;
+  const { spec, inst, series, baseMs, candles, features, smc, config } = input;
   const { from, to } = config.range;
   const b = toBars(candles, inst, spec.timeframe);
-  const setups = findSetups(spec, b, features).filter((s) => s.signalAt >= from && s.signalAt < to);
+  const setups = findSetups(spec, b, features, smc).filter(
+    (s) => s.signalAt >= from && s.signalAt < to,
+  );
   const spread = pipsToPrice(inst, config.costs.spreadPips);
   const slippage = pipsToPrice(inst, config.costs.slippagePips);
   const skipped = Object.fromEntries(SKIP_REASONS.map((r) => [r, 0])) as Record<SkipReason, number>;

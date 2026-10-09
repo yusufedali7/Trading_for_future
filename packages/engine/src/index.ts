@@ -316,10 +316,14 @@ export {
   validateSpec,
 } from './strategy/schema';
 export type {
+  BreakerStep,
   BreakStep,
   EntryRule,
   EventStep,
   FvgStep,
+  IfvgStep,
+  OrderBlockStep,
+  OteStep,
   Ref,
   SpecProblem,
   SpecProblemCode,

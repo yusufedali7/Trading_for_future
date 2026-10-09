@@ -164,6 +164,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
     key: string;
     candles: ResampledCandle[];
     features: FeatureSet;
+    smc: SmcSet;
     defs: SessionDefinition[];
   } | null = null;
   const forStrategy = async (meta: DataSetMeta, spec: StrategySpec) => {
@@ -173,11 +174,12 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
     const defs = allSessionDefs(spec.sessions ?? []);
     const key = `${c.key}:${spec.timeframe}:${canonicalJson(spec.features)}:${canonicalJson(defs)}`;
     if (strategyCache?.key !== key) {
+      const inst = getInstrument(meta.instrument);
       const candles = await candlesFor(meta, c.series, spec.timeframe);
       const features = computeFeatures(
         {
           candles,
-          inst: getInstrument(meta.instrument),
+          inst,
           tf: spec.timeframe,
           periods: c.periods,
           sessions: sessionsFor(meta, c, defs),
@@ -185,7 +187,10 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         },
         spec.features,
       );
-      strategyCache = { key, candles, features, defs };
+      // SMC candidates (D58): only strategies using an ORDER_BLOCK/IFVG/BREAKER/OTE step need
+      // these, but computing them is cheap and keeps backtest/setups consistent with the chart.
+      const smc = computeSmc(toBars(candles, inst, spec.timeframe), inst);
+      strategyCache = { key, candles, features, smc, defs };
     }
     return { c, ...strategyCache };
   };
@@ -237,7 +242,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       return simulateTrade(order, c.series, { ...opts, baseMs: timeframeMs(meta.baseTimeframe) });
     },
     async backtest(meta, spec, config) {
-      const { c, candles, features, defs } = await forStrategy(meta, spec);
+      const { c, candles, features, smc, defs } = await forStrategy(meta, spec);
       const inst = getInstrument(meta.instrument);
       const result = runBacktest({
         spec,
@@ -246,16 +251,18 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         baseMs: timeframeMs(meta.baseTimeframe),
         candles,
         features,
+        smc,
         config,
       });
       return { result, stats: backtestStats(result, inst, config.range.from, defs) };
     },
     async setups(meta, spec) {
-      const { candles, features } = await forStrategy(meta, spec);
+      const { candles, features, smc } = await forStrategy(meta, spec);
       return findSetups(
         spec,
         toBars(candles, getInstrument(meta.instrument), spec.timeframe),
         features,
+        smc,
       );
     },
     dispose() {

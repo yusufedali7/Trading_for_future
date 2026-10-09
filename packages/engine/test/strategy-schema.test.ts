@@ -75,6 +75,45 @@ describe('strategy schema v1', () => {
     expect(specWarnings(s)).toEqual([{ code: 'DIRECTION_MISMATCH', path: 'steps.1.direction' }]);
   });
 
+  it('accepts the SMC step types (D58) and exposes their refs, including OTE.sweetSpot', () => {
+    const s: StrategySpec = {
+      ...LONDON_SWEEP,
+      steps: [
+        { id: 'ob', type: 'ORDER_BLOCK', direction: 'BULLISH' },
+        { id: 'ifvg', type: 'IFVG', maxBars: 5 },
+        { id: 'brk', type: 'BREAKER', maxBars: 5 },
+        { id: 'ote', type: 'OTE', maxBars: 5 },
+      ],
+      entry: { type: 'MARKET' },
+      stop: { type: 'FIXED_PIPS', pips: 10 },
+      target: { type: 'AT_REF', ref: 'ote.sweetSpot', bufferPips: 0 },
+    };
+    expect(validateSpec(s)).toEqual([]);
+    expect(availableRefs(s.steps)).toEqual([
+      'ob.top',
+      'ob.bottom',
+      'ob.mid',
+      'ifvg.top',
+      'ifvg.bottom',
+      'ifvg.mid',
+      'brk.top',
+      'brk.bottom',
+      'brk.mid',
+      'ote.top',
+      'ote.bottom',
+      'ote.mid',
+      'ote.sweetSpot',
+    ]);
+    const warned: StrategySpec = {
+      ...s,
+      direction: 'SHORT',
+      steps: [{ id: 'ob', type: 'ORDER_BLOCK', direction: 'BULLISH' }],
+    };
+    expect(specWarnings(warned)).toEqual([
+      { code: 'DIRECTION_MISMATCH', path: 'steps.0.direction' },
+    ]);
+  });
+
   it('hashes the content, not the key order', () => {
     const reordered = JSON.parse(canonicalJson(LONDON_SWEEP)) as StrategySpec;
     const { schema, ...rest } = LONDON_SWEEP;
