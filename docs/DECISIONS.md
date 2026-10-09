@@ -399,6 +399,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (grafik formasyonları):** bayrak/flama (3, direk+konsolidasyon tespiti gerektiriyor — farklı bir yapı), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`). Ayrıca 9 harmonik ve SMC'nin strateji şemasına bağlanması hâlâ bekliyor.
 ---
 
+## D56 — M9: grafik formasyonları devam — bayrak/flama ailesi (direk + konsolidasyon)
+- **Tarih:** 2026-10-09 · **Durum:** Kabul edildi (D54/D55'in devamı, "devam et")
+- **Önemli, açıkça yazılan varsayım** (CLAUDE.md: "varsayım yaptıysan açıkça yaz"): kataloğun bayrak tanımı yalnızca 3 pivot veriyor (direk başı, direk sonu, bayrak içindeki 1 pivot), flama da 4 (direk başı/sonu + minik üçgenin 2 pivotu) — `chart-lines.ts`'teki üçgen/kanal ailesinin her çizgi için tam 2 nokta kullanmasının bir eksiği. Kataloğun kendi alan adlarını birebir okuyarak çözüldü: `flag_upper_line`/`flag_lower_line`/`triangle_line` ("line" diyor, bar'a bağlı) direğin ucu + bayraktaki tek pivottan kurulan **tek bir doğru**; karşı taraftaki `flag_low`/`flag_high` ("line" demiyor) o tek pivotun fiyatında **düz bir geçersizleşme seviyesi**. Bu, resmi bir kaynaktan doğrulanmış bir kural değil — kataloğun eksik bıraktığı bir noktanın tutarlı, savunulabilir bir okuması.
+- **3 formasyon** (`packages/engine/src/patterns/chart-continuation.ts`): Boğa Bayrağı, Ayı Bayrağı, Flama. Direk: `min_pole_atr`'den büyük ve `max_pole_bars` içinde kalan sert bir pivot-çift hareketi (mevcut `pivotWindows` mekanizması zaten bunu karşılıyor — direk sadece büyük fiyat farklı, kısa aralıklı bir swing çifti). Flama kataloğunda yalnızca **boğa yönlü** (L,H,L,H) tanım var, ayı yönlü flama kataloglanmamış — motor da bu yüzden yalnızca boğa flaması üretiyor (kodda not edildi).
+- **Doğrulama:** D54/D55 ile aynı yöntem — sentetik pozitif + negatif (retrace/üçgen-boyutu eşiği) + 3'ünün birlikte ileriye-bakmama testi (`packages/engine/test/patterns/chart-continuation.test.ts`, 6 test). Katalog durumu `IMPLEMENTED`.
+- **Kalan (grafik formasyonları):** fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence` — "yuvarlaklık" öznel bir ölçü gerektiriyor, bu motorda kullanılan kesin tanımların ilk sınırını zorlayacak). Ayrıca 9 harmonik ve SMC'nin strateji şemasına bağlanması hâlâ bekliyor.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

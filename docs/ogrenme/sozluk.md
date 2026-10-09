@@ -588,3 +588,17 @@ Hem direnç hem destek **yatay** — fiyat bir bant içinde gidip geliyor. Yukar
 
 ### Genişleyen Formasyon / Megafon (Broadening)
 Tepeler gittikçe yükseliyor, dipler gittikçe düşüyor — iki doğru birbirinden **uzaklaşıyor** (ıraksıyor). Diğerlerinin aksine bir "sıkışma" yok, piyasanın gittikçe daha kararsız/oynak hale geldiğinin işareti.
+
+## M9 9. dilimde eklenenler: bayrak ve flama (direk + konsolidasyon)
+
+### Direk (Pole)
+Bayrak/flama formasyonlarının ilk parçası: kısa bir sürede, sert bir fiyat hareketi (ATR'ye göre büyük). Formasyonun "yakıtı" gibi düşün — ne kadar güçlüyse, kırılım sonrası beklenen hareket de o kadar büyük (hedef, direğin boyu kadar).
+
+### Boğa/Ayı Bayrağı (Bull/Bear Flag)
+Direkten sonra, ona **ters yönde hafifçe eğimli** (ya da yatay) küçük bir konsolidasyon — direğin yönünün aksine kısa bir "soluklanma". Fiyat bu küçük kanaldan direk yönünde çıkınca (kırılınca) formasyon onaylanıyor.
+
+### Flama (Pennant)
+Bayrakla aynı mantık, ama konsolidasyon bir bayrak değil minik bir **simetrik üçgen** — iki çizgi birbirine yaklaşıyor. Kataloğumuzda yalnızca yükseliş yönlü direk + flama tanımlı (düşüş yönlüsü için ayrı bir resmi tanım yok).
+
+### Bu ailede kullanılan bir varsayım
+Bayrak/flama'nın kataloğu, bir kanalın/üçgenin ihtiyaç duyduğu "her çizgi için 2 nokta" kuralına göre bir pivot eksik veriyor (yalnızca 3-4 pivot var). Motor bunu, kırılacak tarafı direğin ucu + konsolidasyondaki tek pivottan **bir doğru**, karşı tarafı da o pivotun fiyatında **düz bir sınır** olarak yorumluyor — bu, dış bir kaynaktan doğrulanmış bir kural değil, kataloğun eksik bıraktığı bir noktanın savunulabilir bir okuması (bkz. `docs/DECISIONS.md` D56).

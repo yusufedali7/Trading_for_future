@@ -1,6 +1,6 @@
 # PLAN — M9: Formasyon kataloğu
 
-> Durum: **8. dilim tamamlandı (2026-10-08)** — grafik formasyonları: 6+9=15/21 artık `IMPLEMENTED` (İkili/Üçlü Tepe-Dip, Omuz Baş Omuz + üçgen×3/kama×2/kanal×2/dikdörtgen/genişleyen). Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi). Kalan: grafik formasyonlarının 6'sı (bayrak/flama 3, fincan-kulp/çanak-dip/elmas 3) + 9 harmonik + SMC'nin strateji şemasına bağlanması.
+> Durum: **9. dilim tamamlandı (2026-10-09)** — grafik formasyonları: 18/21 artık `IMPLEMENTED` (İkili/Üçlü Tepe-Dip, Omuz Baş Omuz, üçgen×3/kama×2/kanal×2/dikdörtgen/genişleyen, bayrak×2/flama). Kararlar `docs/DECISIONS.md` D48 (1. dilim), D49 (2. dilim), D50 (3. dilim), D51 (4. dilim: SMC grafiğe bağlama), D52 (5. dilim: 24 mum formasyonu), D53 (6. dilim: kalan 34 — "trend bağlamı" aslında TA-Lib'de hiç uygulanmıyormuş), D54 (7. dilim: grafik formasyonları başladı), D55 (8. dilim: doğru-çizgi ailesi), D56 (9. dilim: bayrak/flama ailesi). Kalan: grafik formasyonlarının 3'ü (fincan-kulp/çanak-dip/elmas, en düşük güven) + 9 harmonik + SMC'nin strateji şemasına bağlanması.
 
 ## Neden dilimler halinde
 `docs/AGENT-GOREV-M9-formasyonlar.md` kendisi 8 adıma bölünmüş; 107 tanımın hepsini tek oturumda CLAUDE.md'nin istediği titizlikte (pozitif + negatif sentetik test, ileriye-bakmama testi, oracle karşılaştırması, gerçek veride sıklık raporu) yapmak gerçekçi değil. M8'deki gibi küçük, test edilmiş parçalar halinde ilerliyoruz.
@@ -65,8 +65,14 @@
 - **Doğrulama:** sentetik pozitif/negatif + 9'unun birlikte ileriye-bakmama testi (`packages/engine/test/patterns/chart-lines.test.ts`, 11 test). Katalog durumu `IMPLEMENTED`.
 - Kalan 6 grafik formasyonu: bayrak/flama (3, direk+konsolidasyon — farklı yapı), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`, "yuvarlaklık" ölçüsü gerektiriyor).
 
+## 9. dilimde ne yapıldı (2026-10-09, D56) — bayrak/flama ailesi
+- `packages/engine/src/patterns/chart-continuation.ts`: Boğa Bayrağı, Ayı Bayrağı, Flama (direk + konsolidasyon). Açıkça yazılan varsayım: kataloğun yalnızca 3-4 pivot vermesi nedeniyle bayrak/flama çizgisi direk ucu + konsolidasyondaki tek pivottan kurulan bir doğru; karşı taraf o pivotun fiyatında düz bir seviye (D56'da detaylı).
+- Flama kataloğunda yalnızca boğa yönlü tanım var; motor da yalnızca onu üretiyor.
+- **Doğrulama:** sentetik pozitif/negatif + 3'ünün birlikte ileriye-bakmama testi (`chart-continuation.test.ts`, 6 test). Katalog durumu `IMPLEMENTED`.
+- Kalan 3 grafik formasyonu: fincan-kulp/çanak-dip/elmas — en düşük `definition_confidence`, "yuvarlaklık" ölçüsü gerektiriyor.
+
 ## Sonraki dilimler (onay bekliyor, sırayla değil)
-1. Grafik formasyonları — bayrak/flama (3, direk+konsolidasyon), fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`).
+1. Grafik formasyonları — fincan-kulp/çanak-dip/elmas (3, en düşük `definition_confidence`, "yuvarlaklık" ölçüsü gerektiriyor).
 2. Harmonikler (9) — kaynağa göre farklı oran setleri, `unverified` olanlar kullanılmadan önce doğrulanmalı.
 3. SMC'nin 8 kavramının strateji şemasına (`EventStep`) bağlanması — grafikte "aday" olarak görünüyor ama backtest/strateji henüz kullanamıyor.
 4. M6.4 kavram kütüphanesine (`content/concepts.ts`) bu 8 kavramın eklenmesi (küçük, ayrı iş).
