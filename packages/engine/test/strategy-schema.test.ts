@@ -114,6 +114,38 @@ describe('strategy schema v1', () => {
     ]);
   });
 
+  it('accepts a PATTERN_EVENT step (D63), exposes its refs, and rejects an unknown patternId', () => {
+    const s: StrategySpec = {
+      ...LONDON_SWEEP,
+      steps: [{ id: 'pattern', type: 'PATTERN_EVENT', patternId: 'double_bottom' }],
+      entry: { type: 'MARKET' },
+      stop: { type: 'BEYOND_REF', ref: 'pattern.invalidationRef', bufferPips: 1 },
+      target: { type: 'AT_REF', ref: 'pattern.targetPrice', bufferPips: 0 },
+    };
+    expect(validateSpec(s)).toEqual([]);
+    expect(availableRefs(s.steps)).toEqual([
+      'pattern.confirmationRef',
+      'pattern.targetPrice',
+      'pattern.invalidationRef',
+    ]);
+    expect(
+      codes({
+        ...s,
+        steps: [{ id: 'pattern', type: 'PATTERN_EVENT', patternId: 'not_a_pattern' }],
+      }),
+    ).toContain('UNKNOWN_PATTERN@steps.0.patternId');
+    const warned: StrategySpec = {
+      ...s,
+      direction: 'SHORT',
+      steps: [
+        { id: 'pattern', type: 'PATTERN_EVENT', patternId: 'double_bottom', direction: 'BULLISH' },
+      ],
+    };
+    expect(specWarnings(warned)).toEqual([
+      { code: 'DIRECTION_MISMATCH', path: 'steps.0.direction' },
+    ]);
+  });
+
   it('hashes the content, not the key order', () => {
     const reordered = JSON.parse(canonicalJson(LONDON_SWEEP)) as StrategySpec;
     const { schema, ...rest } = LONDON_SWEEP;

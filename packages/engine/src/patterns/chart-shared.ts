@@ -194,6 +194,7 @@ export function makeChartPattern(
   const last = pivots[pivots.length - 1]!;
   return {
     id: `CHART:v1:${patternId}:${pivots[0]!.formedAt}:${last.formedAt}`,
+    type: 'PATTERN_EVENT',
     patternId,
     defVersion: 'v1',
     direction,

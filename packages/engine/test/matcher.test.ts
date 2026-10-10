@@ -11,6 +11,7 @@ import type {
   OteZone,
   StructureBreak,
 } from '../src/features/types';
+import type { ChartPattern } from '../src/patterns/types';
 import { findSetups, inWindow } from '../src/strategy/matcher';
 import { defaultSpec, type StrategySpec } from '../src/strategy/schema';
 import { BAR_MS, T0, bars } from './helpers/synthetic-bars';
@@ -108,6 +109,23 @@ const oteZone = (id: string, formed: number, confirmed: number): OteZone => ({
   sweetSpot: 1.1005,
   startSwingId: 's1',
   endSwingId: 's2',
+});
+const chartPattern = (
+  id: string,
+  patternId: string,
+  formed: number,
+  confirmed: number,
+  extra: Partial<ChartPattern> = {},
+): ChartPattern => ({
+  ...timing(id, formed, confirmed),
+  type: 'PATTERN_EVENT',
+  patternId,
+  direction: 'BULLISH',
+  pivots: [],
+  confirmationRef: 1.1,
+  targetPrice: 1.105,
+  invalidationRef: 1.098,
+  ...extra,
 });
 
 const spec: StrategySpec = {
@@ -247,5 +265,54 @@ describe('findSetups with SMC steps (D58)', () => {
       steps: [{ id: 'ob', type: 'ORDER_BLOCK', direction: 'BULLISH' }],
     };
     expect(findSetups(s, b, set({}))).toEqual([]);
+  });
+});
+
+describe('findSetups with a PATTERN_EVENT step (D63)', () => {
+  const s: StrategySpec = {
+    ...spec,
+    steps: [{ id: 'pattern', type: 'PATTERN_EVENT', patternId: 'double_bottom' }],
+  };
+
+  it('matches by patternId and exposes confirmationRef/targetPrice/invalidationRef as refs', () => {
+    const patterns = [chartPattern('p1', 'double_bottom', 2, 4)];
+    const [found, ...rest] = findSetups(s, b, set({}), undefined, patterns);
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({
+      id: 'SETUP:p1',
+      refs: {
+        'pattern.confirmationRef': 1.1,
+        'pattern.targetPrice': 1.105,
+        'pattern.invalidationRef': 1.098,
+      },
+    });
+  });
+
+  it('ignores a different patternId', () => {
+    const patterns = [chartPattern('p1', 'rectangle', 2, 4)];
+    expect(findSetups(s, b, set({}), undefined, patterns)).toEqual([]);
+  });
+
+  it('omits a null targetPrice/invalidationRef from refs instead of fabricating a value', () => {
+    const patterns = [
+      chartPattern('p1', 'double_bottom', 2, 4, { targetPrice: null, invalidationRef: null }),
+    ];
+    const [found] = findSetups(s, b, set({}), undefined, patterns);
+    expect(found!.refs).toEqual({ 'pattern.confirmationRef': 1.1 });
+  });
+
+  it('finds nothing when patterns is omitted, even if a step asks for one', () => {
+    expect(findSetups(s, b, set({}))).toEqual([]);
+  });
+
+  it('filters by direction when the step asks for one', () => {
+    const sBearish: StrategySpec = {
+      ...spec,
+      steps: [
+        { id: 'pattern', type: 'PATTERN_EVENT', patternId: 'double_bottom', direction: 'BEARISH' },
+      ],
+    };
+    const patterns = [chartPattern('p1', 'double_bottom', 2, 4)]; // BULLISH
+    expect(findSetups(sBearish, b, set({}), undefined, patterns)).toEqual([]);
   });
 });

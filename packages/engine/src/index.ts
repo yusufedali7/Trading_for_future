@@ -215,6 +215,11 @@ export {
 export { detectBearFlag, detectBullFlag, detectPennant } from './patterns/chart-continuation';
 export { detectCupAndHandle, detectDiamond, detectRoundingBottom } from './patterns/chart-curve';
 export { roundness } from './patterns/chart-shared';
+export {
+  CHART_PATTERN_DETECTORS,
+  CHART_PATTERN_IDS,
+  detectAllChartPatterns,
+} from './patterns/chart-registry';
 export type { HarmonicPattern, HarmonicPatternPivot } from './patterns/types';
 export {
   detectAbCd,
@@ -324,6 +329,7 @@ export type {
   IfvgStep,
   OrderBlockStep,
   OteStep,
+  PatternEventStep,
   Ref,
   SpecProblem,
   SpecProblemCode,

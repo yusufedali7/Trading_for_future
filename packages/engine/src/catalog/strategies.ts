@@ -3,13 +3,15 @@ import { FEATURE_DEFAULTS } from '../features/compute';
 import type { StrategySpec } from '../strategy/schema';
 
 /**
- * `catalog/strategies/*.json` adapted to today's `StrategySpec` (D61). Only the strategies that
- * fit the current schema are here - 5 of the catalog's 6 use step types the engine does not have
- * yet (`PATTERN_EVENT` referencing one of the M9 catalog's 111 pattern detectors, `EMA_TREND`/
- * `ATR_MULTIPLE`/rolling-window indicator conditions, `RANDOM_ENTRY`). Building those would mean
- * extending `EventStep` far beyond this slice's scope (`docs/DECISIONS.md` D61); they stay
- * un-adapted until that happens. `baseline_random_entry` isn't a `StrategySpec` at all - it's
- * `backtest/random-baseline.ts`'s `randomEntryBaseline()` instead.
+ * `catalog/strategies/*.json` adapted to today's `StrategySpec` (D61, D63). Only the strategies
+ * that fit the current schema are here. `double_bottom_confirmed` became buildable once the
+ * `PATTERN_EVENT` step type (D63) could reference one of the 21 `ChartPattern`-family M9
+ * detectors. The other 3 blocked strategies still use step types the engine doesn't have:
+ * `EMA_TREND`/`ATR_MULTIPLE`/rolling-window indicator conditions (`d1_trend_pullback`,
+ * `donchian_breakout_d1`), or BOTH `PATTERN_EVENT` and a non-directional `PRICE_IN_ZONE`
+ * (`engulfing_at_candidate_sr` - `candidate_sr` has no single direction/invalidation price, same
+ * reason it's not an `EventStep` on its own, D59). `baseline_random_entry` isn't a `StrategySpec`
+ * at all - it's `backtest/random-baseline.ts`'s `randomEntryBaseline()` instead.
  *
  * `london_asia_sweep` is the one buildable today, and its own `ambiguities` turned out to be
  * exactly the catalog's stated convention elsewhere ("test as two versions") applied to its two
@@ -23,6 +25,14 @@ import type { StrategySpec } from '../strategy/schema';
  * own "şimdilik Asia/Tokyo 00:00-09:00" note predates this project's own `BUILTIN_SESSIONS` ASIA
  * definition (Asia/Tokyo 09:00-18:00, used everywhere else since M2/D23) - the already-established
  * project default was used instead of the stale catalog note.
+ *
+ * `double_bottom_confirmed`'s own open question ("hedef ölçülen hareket mi, sabit 2R mi?") is
+ * resolved the same way, as two versions. Its stop wants an ATR-relative buffer (`bufferAtr: 0.2`)
+ * that the engine's `BEYOND_REF` doesn't have (only `bufferPips`) - the same ATR-threshold gap
+ * blocking `d1_trend_pullback`/`donchian_breakout_d1`; here it's substituted with a fixed 3-pip
+ * buffer, explicitly flagged rather than silently treated as equivalent. Its `NEXT_OPEN` entry is
+ * just the engine's existing `MARKET` entry under another name (fills after the signal bar's
+ * close - the D7/D8 model), so no new entry type was needed.
  */
 export interface CatalogStrategy {
   /** `catalog/strategies/<catalogId>.json`'s own `id`. */
@@ -43,6 +53,20 @@ const LONDON_ASIA_SWEEP_BASE = {
   risk: { percentPerTrade: 0.5 },
   maxTradesPerDay: null,
   features: FEATURE_DEFAULTS,
+};
+
+const DOUBLE_BOTTOM_BASE = {
+  schema: 'strategy/v1' as const,
+  instrument: 'EURUSD',
+  timeframe: '4h' as const,
+  direction: 'LONG' as const,
+  window: null,
+  risk: { percentPerTrade: 0.5 },
+  maxTradesPerDay: null,
+  features: FEATURE_DEFAULTS,
+  steps: [{ id: 'pattern', type: 'PATTERN_EVENT' as const, patternId: 'double_bottom' }],
+  entry: { type: 'MARKET' as const },
+  stop: { type: 'BEYOND_REF' as const, ref: 'pattern.invalidationRef', bufferPips: 3 },
 };
 
 export const CATALOG_STRATEGIES: readonly CatalogStrategy[] = [
@@ -78,6 +102,26 @@ export const CATALOG_STRATEGIES: readonly CatalogStrategy[] = [
       ],
       entry: { type: 'LIMIT_AT', ref: 'ob.top', expireBars: 8 },
       stop: { type: 'BEYOND_REF', ref: 'sweep.extreme', bufferPips: 1 },
+      target: { type: 'R_MULTIPLE', r: 2 },
+    },
+  },
+  {
+    catalogId: 'double_bottom_confirmed',
+    versionLabel: 'measured_move',
+    name: 'Onaylı ikili dip (ölçülen hareket hedefi)',
+    description: 'İkili dip onaylandığında piyasa girişi; hedef formasyonun ölçülen hareketi.',
+    spec: {
+      ...DOUBLE_BOTTOM_BASE,
+      target: { type: 'AT_REF', ref: 'pattern.targetPrice', bufferPips: 0 },
+    },
+  },
+  {
+    catalogId: 'double_bottom_confirmed',
+    versionLabel: 'fixed_2r',
+    name: 'Onaylı ikili dip (sabit 2R hedef)',
+    description: 'İkili dip onaylandığında piyasa girişi; hedef sabit 2R.',
+    spec: {
+      ...DOUBLE_BOTTOM_BASE,
       target: { type: 'R_MULTIPLE', r: 2 },
     },
   },

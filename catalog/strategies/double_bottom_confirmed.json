@@ -44,7 +44,7 @@
   "ambiguities": [
     "Hedef ölçülen hareket mi, yoksa sabit 2R mi? İki versiyon olarak test et."
   ],
-  "engine_status": "BLOCKED: motorun EventStep'i M9 katalogundaki 111 formasyon dedektöründen (burada double_bottom@1.0.0) herhangi birini PATTERN_EVENT adımı olarak kullanmayı henüz desteklemiyor (D61) - yalnızca SMC'nin 4 kavramı (order block/ifvg/breaker/ote, D59) EventStep oldu.",
+  "engine_status": "IMPLEMENTED: 2 strateji versiyonu olarak kuruldu (measured_move, fixed_2r) - packages/engine/src/catalog/strategies.ts, D63. PATTERN_EVENT adımı 21 ChartPattern-ailesi M9 dedektörünü (double_bottom dahil) destekliyor. Stop'un bufferAtr isteği sabit pip tamponuyla değiştirildi (açıkça belirtildi).",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

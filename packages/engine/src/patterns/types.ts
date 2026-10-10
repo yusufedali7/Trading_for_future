@@ -31,6 +31,8 @@ export interface ChartPatternPivot {
  */
 export interface ChartPattern {
   id: string;
+  /** Discriminant shared with `strategy/matcher.ts`'s `AnyDetection` union (D63). */
+  type: 'PATTERN_EVENT';
   /** `catalog/patterns/chart.json` id, e.g. "double_top". */
   patternId: string;
   defVersion: 'v1';

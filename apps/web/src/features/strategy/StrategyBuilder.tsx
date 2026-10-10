@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   availableRefs,
+  CHART_PATTERN_IDS,
   listInstruments,
   specWarnings,
   validateSpec,
@@ -26,6 +27,7 @@ const STEP_TYPES: StepType[] = [
   'IFVG',
   'BREAKER',
   'OTE',
+  'PATTERN_EVENT',
 ];
 const STEP_BASE: Record<StepType, string> = {
   LIQUIDITY_SWEEP: 'sweep',
@@ -36,6 +38,7 @@ const STEP_BASE: Record<StepType, string> = {
   IFVG: 'ifvg',
   BREAKER: 'breaker',
   OTE: 'ote',
+  PATTERN_EVENT: 'pattern',
 };
 const FIXED_LEVELS: LiquidityKind[] = [
   'SWING_HIGH',
@@ -66,7 +69,8 @@ function uniqueId(steps: readonly EventStep[], type: StepType): string {
 
 function blankStep(type: StepType, id: string, first: boolean): EventStep {
   const maxBars = first ? undefined : 12;
-  return { id, type, ...(maxBars ? { maxBars } : {}) } as EventStep;
+  const extra = type === 'PATTERN_EVENT' ? { patternId: CHART_PATTERN_IDS[0]! } : {};
+  return { id, type, ...extra, ...(maxBars ? { maxBars } : {}) } as EventStep;
 }
 
 export interface StrategyBuilderProps {
@@ -361,6 +365,21 @@ export function StrategyBuilder({
                       {(['', 'HIGH', 'LOW'] as const).map((k) => (
                         <option key={k} value={k}>
                           {b.swingKind[k]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {st.type === 'PATTERN_EVENT' && (
+                  <label className="inline-field">
+                    <span>{b.patternId}</span>
+                    <select
+                      value={st.patternId}
+                      onChange={(e) => setStep(i, { ...st, patternId: e.target.value })}
+                    >
+                      {CHART_PATTERN_IDS.map((p) => (
+                        <option key={p} value={p}>
+                          {b.patternNames[p] ?? p}
                         </option>
                       ))}
                     </select>

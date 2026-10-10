@@ -14,6 +14,7 @@ import type { FeatureSet } from '../features/compute';
 import type { SmcSet } from '../features/smc';
 import { marketState } from '../instruments/hours';
 import { pipsToPrice, roundToTick, type Instrument } from '../instruments/registry';
+import type { ChartPattern } from '../patterns/types';
 import { positionSize, quoteToUsd, tradePnl, type LotRules } from '../risk/sizing';
 import { findSetups, type Setup } from '../strategy/matcher';
 import type { StrategySpec } from '../strategy/schema';
@@ -50,6 +51,8 @@ export interface BacktestInput {
   features: FeatureSet;
   /** SMC candidates (D58); only needed when `spec` has an ORDER_BLOCK/IFVG/BREAKER/OTE step. */
   smc?: SmcSet;
+  /** Chart-pattern candidates (D63); only needed when `spec` has a PATTERN_EVENT step. */
+  patterns?: readonly ChartPattern[];
   config: BacktestConfig;
 }
 
@@ -186,10 +189,10 @@ export function orderFor(
  * current equity. Same input → identical result.
  */
 export function runBacktest(input: BacktestInput): BacktestResult {
-  const { spec, inst, series, baseMs, candles, features, smc, config } = input;
+  const { spec, inst, series, baseMs, candles, features, smc, patterns, config } = input;
   const { from, to } = config.range;
   const b = toBars(candles, inst, spec.timeframe);
-  const setups = findSetups(spec, b, features, smc).filter(
+  const setups = findSetups(spec, b, features, smc, patterns).filter(
     (s) => s.signalAt >= from && s.signalAt < to,
   );
   const spread = pipsToPrice(inst, config.costs.spreadPips);

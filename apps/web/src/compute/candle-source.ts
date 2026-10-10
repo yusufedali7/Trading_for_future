@@ -3,7 +3,10 @@ import {
   backtestStats,
   bucketStart,
   canonicalJson,
+  CHART_PIVOT_PARAMS,
   computeSmc,
+  detectAllChartPatterns,
+  detectSwings,
   findSetups,
   runBacktest,
   toBars,
@@ -22,6 +25,7 @@ import {
   type BacktestResult,
   type BacktestStats,
   type CandleSeries,
+  type ChartPattern,
   type DataSetMeta,
   type FeatureSet,
   type PeriodLevel,
@@ -165,6 +169,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
     candles: ResampledCandle[];
     features: FeatureSet;
     smc: SmcSet;
+    patterns: ChartPattern[];
     defs: SessionDefinition[];
   } | null = null;
   const forStrategy = async (meta: DataSetMeta, spec: StrategySpec) => {
@@ -189,8 +194,12 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       );
       // SMC candidates (D58): only strategies using an ORDER_BLOCK/IFVG/BREAKER/OTE step need
       // these, but computing them is cheap and keeps backtest/setups consistent with the chart.
-      const smc = computeSmc(toBars(candles, inst, spec.timeframe), inst);
-      strategyCache = { key, candles, features, smc, defs };
+      const bars = toBars(candles, inst, spec.timeframe);
+      const smc = computeSmc(bars, inst);
+      // Chart-pattern candidates (D63): only strategies using a PATTERN_EVENT step need these -
+      // same "cheap enough, keep it consistent" reasoning as smc above.
+      const patterns = detectAllChartPatterns(bars, detectSwings(bars, CHART_PIVOT_PARAMS));
+      strategyCache = { key, candles, features, smc, patterns, defs };
     }
     return { c, ...strategyCache };
   };
@@ -242,7 +251,7 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       return simulateTrade(order, c.series, { ...opts, baseMs: timeframeMs(meta.baseTimeframe) });
     },
     async backtest(meta, spec, config) {
-      const { c, candles, features, smc, defs } = await forStrategy(meta, spec);
+      const { c, candles, features, smc, patterns, defs } = await forStrategy(meta, spec);
       const inst = getInstrument(meta.instrument);
       const result = runBacktest({
         spec,
@@ -252,17 +261,19 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         candles,
         features,
         smc,
+        patterns,
         config,
       });
       return { result, stats: backtestStats(result, inst, config.range.from, defs) };
     },
     async setups(meta, spec) {
-      const { candles, features, smc } = await forStrategy(meta, spec);
+      const { candles, features, smc, patterns } = await forStrategy(meta, spec);
       return findSetups(
         spec,
         toBars(candles, getInstrument(meta.instrument), spec.timeframe),
         features,
         smc,
+        patterns,
       );
     },
     dispose() {

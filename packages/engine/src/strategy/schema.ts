@@ -6,6 +6,7 @@ import type { Direction } from '../execution/trade-sim';
 import { FEATURE_DEFAULTS, type FeatureParams } from '../features/compute';
 import type { FeatureDirection, LiquidityKind } from '../features/types';
 import { listInstruments } from '../instruments/registry';
+import { CHART_PATTERN_IDS } from '../patterns/chart-registry';
 import {
   BUILTIN_SESSIONS,
   allSessionDefs,
@@ -22,7 +23,8 @@ export type StepType =
   | 'ORDER_BLOCK'
   | 'IFVG'
   | 'BREAKER'
-  | 'OTE';
+  | 'OTE'
+  | 'PATTERN_EVENT';
 
 interface StepBase {
   /** Lower-case id used in references (`sweep.extreme`). */
@@ -66,8 +68,27 @@ export interface OteStep extends StepBase {
   type: 'OTE';
   direction?: FeatureDirection;
 }
+/**
+ * D63: any of the 21 M9 chart-pattern detectors (`patterns/chart-registry.ts`) that share the
+ * `ChartPattern` shape (direction + invalidation/target price). Candlestick and harmonic patterns
+ * are a different shape and aren't usable here yet (see that registry's own doc comment).
+ */
+export interface PatternEventStep extends StepBase {
+  type: 'PATTERN_EVENT';
+  /** A `CHART_PATTERN_IDS` entry, e.g. "double_bottom". */
+  patternId: string;
+  direction?: FeatureDirection;
+}
 export type EventStep =
-  SweepStep | BreakStep | FvgStep | SwingStep | OrderBlockStep | IfvgStep | BreakerStep | OteStep;
+  | SweepStep
+  | BreakStep
+  | FvgStep
+  | SwingStep
+  | OrderBlockStep
+  | IfvgStep
+  | BreakerStep
+  | OteStep
+  | PatternEventStep;
 
 /** `stepId.field` */
 export type Ref = string;
@@ -154,6 +175,10 @@ export const REF_FIELDS: Record<StepType, readonly string[]> = {
   IFVG: ['top', 'bottom', 'mid'],
   BREAKER: ['top', 'bottom', 'mid'],
   OTE: ['top', 'bottom', 'mid', 'sweetSpot'],
+  /** `targetPrice`/`invalidationRef` are sometimes absent at runtime (some chart patterns define
+   * no target or no invalidation level, e.g. `symmetrical_triangle`) - a step referencing a ref
+   * that a particular match lacks simply fails that match (D63, same as a missing feature ref). */
+  PATTERN_EVENT: ['confirmationRef', 'targetPrice', 'invalidationRef'],
 };
 
 /** Every reference the steps make available, in step order. */
@@ -193,7 +218,8 @@ export type SpecProblemCode =
   | 'MAX_PER_DAY'
   | 'FEATURE_PARAMS'
   | 'BAD_SESSION'
-  | 'UNKNOWN_LEVEL';
+  | 'UNKNOWN_LEVEL'
+  | 'UNKNOWN_PATTERN';
 
 export interface SpecProblem {
   code: SpecProblemCode;
@@ -296,6 +322,8 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
   s.steps.forEach((st, i) => {
     if (st.type === 'LIQUIDITY_SWEEP' && st.levels?.some((l) => !known.has(l)))
       bad('UNKNOWN_LEVEL', `steps.${i}.levels`);
+    if (st.type === 'PATTERN_EVENT' && !CHART_PATTERN_IDS.includes(st.patternId))
+      bad('UNKNOWN_PATTERN', `steps.${i}.patternId`);
   });
   return out;
 }
@@ -308,6 +336,7 @@ const DIRECTIONAL_STEP_TYPES: readonly StepType[] = [
   'IFVG',
   'BREAKER',
   'OTE',
+  'PATTERN_EVENT',
 ];
 
 export function specWarnings(s: StrategySpec): SpecWarning[] {

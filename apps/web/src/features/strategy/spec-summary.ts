@@ -13,6 +13,7 @@ function stepLine(st: EventStep, i: number, sessions: StrategySpec['sessions']):
     return `${name} ${l.endsWith('_HIGH') ? 'Y' : 'D'}`;
   };
   const parts: string[] = [b.stepTypes[st.type]];
+  if (st.type === 'PATTERN_EVENT') parts.push(b.patternNames[st.patternId] ?? st.patternId);
   if (st.type !== 'SWING') if (st.direction) parts.push(b.direction3[st.direction].toLowerCase());
   if (st.type === 'STRUCTURE_BREAK' && st.kind) parts.push(st.kind === 'BOS' ? 'BOS' : 'CHoCH');
   if (st.type === 'SWING' && st.kind) parts.push(b.swingKind[st.kind].toLowerCase());

@@ -64,7 +64,7 @@
   "ambiguities": [
     "Kullanıcının elle çizdiği seviyeler mi, motorun aday seviyeleri mi? İkisi ayrı versiyon."
   ],
-  "engine_status": "BLOCKED: hem PATTERN_EVENT (cdlengulfing) hem de PRICE_IN_ZONE (candidate_sr) adım türleri motorda yok (D61) - Aday destek/direnç zaten tek yön/geçersizleşme fiyatı taşımadığı için D59'da EventStep yapılmamıştı.",
+  "engine_status": "BLOCKED: D63'te eklenen PATTERN_EVENT yalnızca 21 ChartPattern-ailesi M9 dedektörünü kapsıyor (double_bottom gibi) - cdlengulfing bir CandlePattern, farklı bir şekil (yön+onay var ama invalidationRef/targetPrice yok), henüz desteklenmiyor. PRICE_IN_ZONE (candidate_sr) ve EMA_TREND filtresi de motorda yok. Aday destek/direnç zaten tek yön/geçersizleşme fiyatı taşımadığı için D59'da EventStep yapılmamıştı.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

@@ -13,10 +13,19 @@ import type {
   StructureBreak,
   Swing,
 } from '../features/types';
+import type { ChartPattern } from '../patterns/types';
 import type { EventStep, Ref, StrategySpec, TimeWindow } from './schema';
 
 type AnyDetection =
-  Swing | Fvg | StructureBreak | LiquiditySweep | OrderBlock | Ifvg | Breaker | OteZone;
+  | Swing
+  | Fvg
+  | StructureBreak
+  | LiquiditySweep
+  | OrderBlock
+  | Ifvg
+  | Breaker
+  | OteZone
+  | ChartPattern;
 
 /** D58: `findSetups` callers that don't use any SMC step types can omit `smc` entirely. */
 const EMPTY_SMC: SmcSet = {
@@ -29,6 +38,8 @@ const EMPTY_SMC: SmcSet = {
   ote: [],
   candidateSr: [],
 };
+/** D63: `findSetups` callers that don't use any PATTERN_EVENT step can omit `patterns` entirely. */
+const EMPTY_PATTERNS: readonly ChartPattern[] = [];
 
 export interface StepMatch {
   stepId: string;
@@ -51,7 +62,12 @@ export interface Setup {
   refs: Record<Ref, number>;
 }
 
-function candidates(step: EventStep, f: FeatureSet, smc: SmcSet): AnyDetection[] {
+function candidates(
+  step: EventStep,
+  f: FeatureSet,
+  smc: SmcSet,
+  patterns: readonly ChartPattern[],
+): AnyDetection[] {
   switch (step.type) {
     case 'LIQUIDITY_SWEEP':
       return f.sweeps.filter(
@@ -77,6 +93,11 @@ function candidates(step: EventStep, f: FeatureSet, smc: SmcSet): AnyDetection[]
       return smc.breakers.filter((d) => !step.direction || d.direction === step.direction);
     case 'OTE':
       return smc.ote.filter((d) => !step.direction || d.direction === step.direction);
+    case 'PATTERN_EVENT':
+      return patterns.filter(
+        (d) =>
+          d.patternId === step.patternId && (!step.direction || d.direction === step.direction),
+      );
   }
 }
 
@@ -95,6 +116,12 @@ function values(d: AnyDetection): Record<string, number> {
       return { top: d.top, bottom: d.bottom, mid: (d.top + d.bottom) / 2, sweetSpot: d.sweetSpot };
     case 'SWING':
       return { price: d.price };
+    case 'PATTERN_EVENT': {
+      const out: Record<string, number> = { confirmationRef: d.confirmationRef };
+      if (d.targetPrice !== null) out.targetPrice = d.targetPrice;
+      if (d.invalidationRef !== null) out.invalidationRef = d.invalidationRef;
+      return out;
+    }
   }
 }
 
@@ -136,14 +163,16 @@ export function inWindow(w: TimeWindow | null, t: UtcMs): boolean {
  * need it; the other 4 SMC concepts (Displacement, Equal Levels, Premium/Discount, Candidate
  * S/R) have no single direction/invalidation price and so have no step type at all (same reason
  * they're not in `Detection` - see `features/smc.ts` and the `docs/definitions/*-v1.md` files).
+ * `patterns` (D63) is optional likewise - only strategies with a `PATTERN_EVENT` step need it.
  */
 export function findSetups(
   spec: StrategySpec,
   b: Bars,
   f: FeatureSet,
   smc: SmcSet = EMPTY_SMC,
+  patterns: readonly ChartPattern[] = EMPTY_PATTERNS,
 ): Setup[] {
-  const lists = spec.steps.map((s) => candidates(s, f, smc).sort(byConfirmation));
+  const lists = spec.steps.map((s) => candidates(s, f, smc, patterns).sort(byConfirmation));
   const out: Setup[] = [];
   const usedSignals = new Set<string>();
   for (const first of lists[0] ?? []) {
