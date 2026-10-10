@@ -465,6 +465,16 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (Adım 4'ün geri kalanı, ayrı bir iş):** kalıcı olay deposu şeması (yeni IndexedDB tablosu), canlı modda otomatik doldurma, bir "Olaylar" arayüz sayfası.
 ---
 
+## D63 — "En iyi aday" sıralaması: kıyaslama çekirdeği (Adım 8'in bir kısmı)
+- **Tarih:** 2026-10-10 · **Durum:** Kabul edildi (otonom çalışma devam ediyor)
+- **Kapsam bilinçli olarak sınırlı:** `docs/AGENT-GOREV-M9-formasyonlar.md` Adım 8, 6 ölçüt sayıyor. Bu dilimde yalnızca ölçüt (1) "30'un altı hiç listelenmez", (2) "maliyetler düşüldükten sonra pozitif beklenen değer" ve (3) "rastgele giriş tabanını yenmesi; fark ve bootstrap güven aralığıyla raporlanır" kuruldu (`packages/engine/src/research/ranking.ts`, `rankCandidates()`). **Bilinçli olarak kapsanmayanlar** (kodda da belirtildi): (1)'in "out-of-sample'da en az 100 işlem" eşiği — bu bir R listesinin hangi backtest çalışmasından geldiğini (`BacktestRun.split.role`) bilen çağıran tarafın işi, bu saf fonksiyon bunu bilmiyor; (4) komşu parametre dayanıklılığı — M6.2'nin tarama aracıyla (`research/sweep.ts`) birlikte ayrı bir karşılaştırma katmanı ister; (5) yıl/enstrüman tutarlılığı — `BacktestStats.monthly`/`bySession` zaten var, bununla birleştirmek ayrı iş; (6) deneme sayısı — zaten `ResearchExperiment.trialCount` ile izleniyor (M6.2), tekrar edilmedi.
+- **Girdi her zaman gerçek, önceden çalıştırılmış bir backtest'in işlem başına net R listesi** (rule 1) — fonksiyon hiçbir sayı üretmiyor, `user/journal.ts`'in zaten var olan `tradeStats()`'ını hem adayın kendisi hem de D61'in `randomEntryBaseline()` çıktısı için çağırıp karşılaştırıyor.
+- **Bootstrap güven aralığı:** adayın ve rastgele tabanın R listelerinden yerine koyarak (with replacement) 2000 kez (ayarlanabilir) tekrar örnekleme, her seferinde ortalama farkını alıp %95 aralığı (2,5/97,5 persentil) veriyor — kullanılan `rng` çağıran tarafça sabit tohumla verilmeli ve kaydedilmeli (kural 5).
+- **Sıralama:** `edgeR` (adayın ortalama R'si eksi rastgele tabanın ortalama R'si) büyükten küçüğe; 30'dan az işlemli adaylar listeden çıkarılmıyor ama en sona konuyor (`excludedLowSample: true`) — şeffaflık için gizlenmiyor, UI'nin "elenmişler" diye ayrı göstermesi beklenir.
+- **Henüz bağlanmadı:** gerçek kayıtlı strateji sonuçlarını (`trw-research`) bu fonksiyona besleyen bir arayüz/akış yok — bu da olay deposu gibi kendi küçük kararını hak ediyor (hangi çalışmalar karşılaştırılacak, UI nerede gösterilecek).
+- **Doğrulama:** 5 yeni engine testi (edge sıralaması, taban çizgisi eksikken sıfır kabul, 30 altının dışlanması, pozitif beklenen değer bağımsız kontrolü, bootstrap CI'nin tohuma göre belirleyici olduğu).
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

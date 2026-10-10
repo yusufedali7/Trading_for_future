@@ -368,6 +368,8 @@ export { CATALOG_STRATEGIES } from './catalog/strategies';
 export type { CatalogStrategy } from './catalog/strategies';
 export { detectionExcursions, summarizeExcursions } from './research/excursion';
 export type { Excursion, ExcursionReport, ExcursionSummary } from './research/excursion';
+export { rankCandidates } from './research/ranking';
+export type { RankCandidate, RankedCandidate } from './research/ranking';
 export { mulberry32, randomInt } from './core/rng';
 export type { Rng } from './core/rng';
 export { runRecord, splitRange } from './backtest/record';
