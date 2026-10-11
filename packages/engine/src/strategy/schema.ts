@@ -6,6 +6,7 @@ import type { Direction } from '../execution/trade-sim';
 import { FEATURE_DEFAULTS, type FeatureParams } from '../features/compute';
 import type { FeatureDirection, LiquidityKind } from '../features/types';
 import { listInstruments } from '../instruments/registry';
+import { CANDLE_PATTERN_IDS } from '../patterns/candle-registry';
 import { CHART_PATTERN_IDS } from '../patterns/chart-registry';
 import {
   BUILTIN_SESSIONS,
@@ -26,7 +27,8 @@ export type StepType =
   | 'OTE'
   | 'PATTERN_EVENT'
   | 'EMA_PULLBACK'
-  | 'DONCHIAN_BREAK';
+  | 'DONCHIAN_BREAK'
+  | 'CANDLE_PATTERN_EVENT';
 
 interface StepBase {
   /** Lower-case id used in references (`sweep.extreme`). */
@@ -104,6 +106,20 @@ export interface DonchianBreakStep extends StepBase {
   period: number;
   direction?: FeatureDirection;
 }
+/**
+ * D67: any of the 61 M9 candlestick detectors (`patterns/candle-registry.ts`). A separate step
+ * type from `PATTERN_EVENT` (not a shared one filtered by `patternId`) because `CandlePattern` has
+ * no price fields at all - only `low`/`high` of its own confirmation bar, read from `Bars` at
+ * match time (like `EMA_PULLBACK`/`DONCHIAN_BREAK`, not precomputed). Sharing `PATTERN_EVENT`
+ * would have made `REF_FIELDS` depend on `patternId` as well as `StepType`, breaking the
+ * one-static-ref-list-per-step-type pattern every other step relies on.
+ */
+export interface CandlePatternEventStep extends StepBase {
+  type: 'CANDLE_PATTERN_EVENT';
+  /** A `CANDLE_PATTERN_IDS` entry, e.g. "cdlengulfing". */
+  patternId: string;
+  direction?: FeatureDirection;
+}
 export type EventStep =
   | SweepStep
   | BreakStep
@@ -115,7 +131,8 @@ export type EventStep =
   | OteStep
   | PatternEventStep
   | EmaPullbackStep
-  | DonchianBreakStep;
+  | DonchianBreakStep
+  | CandlePatternEventStep;
 
 /** `stepId.field` */
 export type Ref = string;
@@ -219,6 +236,8 @@ export const REF_FIELDS: Record<StepType, readonly string[]> = {
   /** The EMA value touched, or the rolling high/low level broken through. */
   EMA_PULLBACK: ['level'],
   DONCHIAN_BREAK: ['level'],
+  /** The confirmation bar's own low/high (D67 - `CandlePattern` carries no price fields itself). */
+  CANDLE_PATTERN_EVENT: ['low', 'high'],
 };
 
 /** Every reference the steps make available, in step order. */
@@ -310,6 +329,8 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
     if (i > 0 && !posInt(st.maxBars)) bad('MAX_BARS', `steps.${i}.maxBars`);
     if ((st.type === 'EMA_PULLBACK' || st.type === 'DONCHIAN_BREAK') && !posInt(st.period))
       bad('BAD_NUMBER', `steps.${i}.period`);
+    if (st.type === 'CANDLE_PATTERN_EVENT' && !CANDLE_PATTERN_IDS.includes(st.patternId))
+      bad('UNKNOWN_PATTERN', `steps.${i}.patternId`);
   });
   const refs = new Set(availableRefs(s.steps));
   const checkRef = (ref: string, path: string) => {
@@ -389,6 +410,7 @@ const DIRECTIONAL_STEP_TYPES: readonly StepType[] = [
   'PATTERN_EVENT',
   'EMA_PULLBACK',
   'DONCHIAN_BREAK',
+  'CANDLE_PATTERN_EVENT',
 ];
 
 export function specWarnings(s: StrategySpec): SpecWarning[] {

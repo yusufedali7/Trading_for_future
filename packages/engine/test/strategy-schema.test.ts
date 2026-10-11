@@ -191,6 +191,39 @@ describe('strategy schema v1', () => {
     ]);
   });
 
+  it('accepts a CANDLE_PATTERN_EVENT step (D67), exposes low/high refs, and rejects an unknown patternId', () => {
+    const s: StrategySpec = {
+      ...LONDON_SWEEP,
+      steps: [{ id: 'candle', type: 'CANDLE_PATTERN_EVENT', patternId: 'cdlengulfing' }],
+      entry: { type: 'MARKET' },
+      stop: { type: 'BEYOND_REF', ref: 'candle.low', bufferPips: 1 },
+      target: { type: 'R_MULTIPLE', r: 2 },
+    };
+    expect(validateSpec(s)).toEqual([]);
+    expect(availableRefs(s.steps)).toEqual(['candle.low', 'candle.high']);
+    expect(
+      codes({
+        ...s,
+        steps: [{ id: 'candle', type: 'CANDLE_PATTERN_EVENT', patternId: 'not_a_pattern' }],
+      }),
+    ).toContain('UNKNOWN_PATTERN@steps.0.patternId');
+    const warned: StrategySpec = {
+      ...s,
+      direction: 'SHORT',
+      steps: [
+        {
+          id: 'candle',
+          type: 'CANDLE_PATTERN_EVENT',
+          patternId: 'cdlengulfing',
+          direction: 'BULLISH',
+        },
+      ],
+    };
+    expect(specWarnings(warned)).toEqual([
+      { code: 'DIRECTION_MISMATCH', path: 'steps.0.direction' },
+    ]);
+  });
+
   it('hashes the content, not the key order', () => {
     const reordered = JSON.parse(canonicalJson(LONDON_SWEEP)) as StrategySpec;
     const { schema, ...rest } = LONDON_SWEEP;

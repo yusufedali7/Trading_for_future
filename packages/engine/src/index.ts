@@ -156,6 +156,11 @@ export {
 } from './patterns/candlestick';
 export type { CandlePattern } from './patterns/types';
 export {
+  CANDLE_PATTERN_DETECTORS,
+  CANDLE_PATTERN_IDS,
+  detectAllCandlePatterns,
+} from './patterns/candle-registry';
+export {
   detect3BlackCrows,
   detect3Inside,
   detect3LineStrike,
@@ -325,6 +330,9 @@ export {
 export type {
   BreakerStep,
   BreakStep,
+  CandlePatternEventStep,
+  DonchianBreakStep,
+  EmaPullbackStep,
   EntryRule,
   EventStep,
   FvgStep,

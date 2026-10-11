@@ -14,6 +14,8 @@ function stepLine(st: EventStep, i: number, sessions: StrategySpec['sessions']):
   };
   const parts: string[] = [b.stepTypes[st.type]];
   if (st.type === 'PATTERN_EVENT') parts.push(b.patternNames[st.patternId] ?? st.patternId);
+  if (st.type === 'CANDLE_PATTERN_EVENT')
+    parts.push(b.candlePatternNames[st.patternId] ?? st.patternId);
   if (st.type === 'EMA_PULLBACK' || st.type === 'DONCHIAN_BREAK') parts.push(`${st.period}`);
   if (st.type !== 'SWING') if (st.direction) parts.push(b.direction3[st.direction].toLowerCase());
   if (st.type === 'STRUCTURE_BREAK' && st.kind) parts.push(st.kind === 'BOS' ? 'BOS' : 'CHoCH');

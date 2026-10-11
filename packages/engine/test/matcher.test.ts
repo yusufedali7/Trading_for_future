@@ -423,3 +423,47 @@ describe('findSetups with a trendFilter (D65)', () => {
     expect(findSetups(s, shortB, set({}))).toEqual([]);
   });
 });
+
+describe('findSetups with a CANDLE_PATTERN_EVENT step (D67)', () => {
+  // SYNTHETIC: same fixture as patterns/candlestick.test.ts's detectEngulfing positive case.
+  const b2 = bars([
+    [1.101, 1.1012, 1.1005, 1.1015],
+    [1.1017, 1.1019, 1.1003, 1.1005],
+  ]);
+  const s: StrategySpec = {
+    ...spec,
+    steps: [{ id: 'candle', type: 'CANDLE_PATTERN_EVENT', patternId: 'cdlengulfing' }],
+  };
+
+  it('matches by patternId and exposes the confirmation bar low/high as refs', () => {
+    const [found, ...rest] = findSetups(s, b2, set({}));
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({
+      signalIndex: 1,
+      refs: { 'candle.low': 1.1003, 'candle.high': 1.1019 },
+    });
+  });
+
+  it('filters by direction when the step asks for one', () => {
+    const sBullish: StrategySpec = {
+      ...spec,
+      steps: [
+        {
+          id: 'candle',
+          type: 'CANDLE_PATTERN_EVENT',
+          patternId: 'cdlengulfing',
+          direction: 'BULLISH',
+        },
+      ],
+    };
+    expect(findSetups(sBullish, b2, set({}))).toEqual([]); // the fixture is BEARISH
+  });
+
+  it('ignores a different patternId', () => {
+    const sOther: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'candle', type: 'CANDLE_PATTERN_EVENT', patternId: 'cdlmarubozu' }],
+    };
+    expect(findSetups(sOther, b2, set({}))).toEqual([]);
+  });
+});

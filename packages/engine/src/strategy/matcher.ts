@@ -15,7 +15,8 @@ import type {
   StructureBreak,
   Swing,
 } from '../features/types';
-import type { ChartPattern } from '../patterns/types';
+import { detectAllCandlePatterns } from '../patterns/candle-registry';
+import type { CandlePattern, ChartPattern } from '../patterns/types';
 import type { EventStep, Ref, StrategySpec, TimeWindow } from './schema';
 
 /**
@@ -44,7 +45,8 @@ type AnyDetection =
   | Breaker
   | OteZone
   | ChartPattern
-  | IndicatorEvent;
+  | IndicatorEvent
+  | CandlePattern;
 
 /** D58: `findSetups` callers that don't use any SMC step types can omit `smc` entirely. */
 const EMPTY_SMC: SmcSet = {
@@ -177,10 +179,18 @@ function candidates(
       return donchianBreaks(b, step.period).filter(
         (d) => !step.direction || d.direction === step.direction,
       );
+    case 'CANDLE_PATTERN_EVENT':
+      // On the fly like EMA_PULLBACK/DONCHIAN_BREAK (D65), not caller-precomputed like
+      // PATTERN_EVENT's ChartPattern (D63) - no extra dependency (e.g. swings) to share, so
+      // there's nothing a caller would need to compute once and pass in.
+      return detectAllCandlePatterns(b).filter(
+        (d) =>
+          d.patternId === step.patternId && (!step.direction || d.direction === step.direction),
+      );
   }
 }
 
-function values(d: AnyDetection): Record<string, number> {
+function values(d: AnyDetection, b: Bars): Record<string, number> {
   switch (d.type) {
     case 'LIQUIDITY_SWEEP':
       return { level: d.level, extreme: d.extreme };
@@ -204,6 +214,8 @@ function values(d: AnyDetection): Record<string, number> {
     case 'EMA_PULLBACK':
     case 'DONCHIAN_BREAK':
       return { level: d.level };
+    case 'CANDLE_PATTERN_EVENT':
+      return { low: b.l[d.confirmedIndex]!, high: b.h[d.confirmedIndex]! };
   }
 }
 
@@ -301,7 +313,8 @@ export function findSetups(
     usedSignals.add(last.id);
     const refs: Record<Ref, number> = {};
     chain.forEach((d, k) => {
-      for (const [field, v] of Object.entries(values(d))) refs[`${spec.steps[k]!.id}.${field}`] = v;
+      for (const [field, v] of Object.entries(values(d, b)))
+        refs[`${spec.steps[k]!.id}.${field}`] = v;
     });
     out.push({
       id: `SETUP:${chain.map((d) => d.id).join('|')}`,

@@ -6,6 +6,8 @@ import type { UtcMs } from '../core/types';
  */
 export interface CandlePattern {
   id: string;
+  /** Discriminant shared with `strategy/matcher.ts`'s `AnyDetection` union (D67). */
+  type: 'CANDLE_PATTERN_EVENT';
   /** `catalog/patterns/candlestick.json` id, e.g. "cdldoji". */
   patternId: string;
   defVersion: 'v1';

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   availableRefs,
+  CANDLE_PATTERN_IDS,
   CHART_PATTERN_IDS,
   listInstruments,
   specWarnings,
@@ -30,6 +31,7 @@ const STEP_TYPES: StepType[] = [
   'PATTERN_EVENT',
   'EMA_PULLBACK',
   'DONCHIAN_BREAK',
+  'CANDLE_PATTERN_EVENT',
 ];
 const STEP_BASE: Record<StepType, string> = {
   LIQUIDITY_SWEEP: 'sweep',
@@ -43,6 +45,7 @@ const STEP_BASE: Record<StepType, string> = {
   PATTERN_EVENT: 'pattern',
   EMA_PULLBACK: 'pullback',
   DONCHIAN_BREAK: 'breakout',
+  CANDLE_PATTERN_EVENT: 'candle',
 };
 const FIXED_LEVELS: LiquidityKind[] = [
   'SWING_HIGH',
@@ -76,11 +79,13 @@ function blankStep(type: StepType, id: string, first: boolean): EventStep {
   const extra =
     type === 'PATTERN_EVENT'
       ? { patternId: CHART_PATTERN_IDS[0]! }
-      : type === 'EMA_PULLBACK'
-        ? { period: 50 }
-        : type === 'DONCHIAN_BREAK'
-          ? { period: 20 }
-          : {};
+      : type === 'CANDLE_PATTERN_EVENT'
+        ? { patternId: CANDLE_PATTERN_IDS[0]! }
+        : type === 'EMA_PULLBACK'
+          ? { period: 50 }
+          : type === 'DONCHIAN_BREAK'
+            ? { period: 20 }
+            : {};
   return { id, type, ...extra, ...(maxBars ? { maxBars } : {}) } as EventStep;
 }
 
@@ -391,6 +396,21 @@ export function StrategyBuilder({
                       {CHART_PATTERN_IDS.map((p) => (
                         <option key={p} value={p}>
                           {b.patternNames[p] ?? p}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+                {st.type === 'CANDLE_PATTERN_EVENT' && (
+                  <label className="inline-field">
+                    <span>{b.candlePatternId}</span>
+                    <select
+                      value={st.patternId}
+                      onChange={(e) => setStep(i, { ...st, patternId: e.target.value })}
+                    >
+                      {CANDLE_PATTERN_IDS.map((p) => (
+                        <option key={p} value={p}>
+                          {b.candlePatternNames[p] ?? p}
                         </option>
                       ))}
                     </select>

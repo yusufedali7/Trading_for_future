@@ -10,6 +10,7 @@ export const multi = (
   direction: CandlePattern['direction'],
 ): CandlePattern => ({
   id: `${patternId}:v1:${b.t[confirmedIndex]}`,
+  type: 'CANDLE_PATTERN_EVENT',
   patternId,
   defVersion: 'v1',
   direction,
