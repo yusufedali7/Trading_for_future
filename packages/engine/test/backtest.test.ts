@@ -137,6 +137,28 @@ describe('runBacktest', () => {
     expect(gap.trades).toEqual([]);
   });
 
+  it('ATR_MULTIPLE stop: sizes the stop from the ATR at the signal bar (D65)', () => {
+    // SYNTHETIC: hand-computable ATR(2) at the signal bar (index 2) = 3.5 pips (see D65's test
+    // comment math: tr0=2, tr1=4 -> seed 3; tr2=4 -> (3*1+4)/2=3.5). Entry at bar 3's open (1.1),
+    // stop = 1.1 - 3.5 pips * mult(1) = P(-3.5); target R_MULTIPLE r=2 = P(7), hit at bar 4.
+    const path: Bar[] = [
+      [0, 1, -1, 0],
+      [0, 2, -2, -1],
+      [-1, 1, -3, 0],
+      [0, 1, -1, 0],
+      [0, 8, -1, 7],
+      ...flat(2, 7),
+    ];
+    const res = runBacktest(
+      input(path, [1], { stop: { type: 'ATR_MULTIPLE', period: 2, mult: 1 } }),
+    );
+    expect(res.setupsFound).toBe(1);
+    const [t] = res.trades;
+    expect(t!.order.stop).toBe(P(-3.5));
+    expect(t!.order.target).toBe(P(7));
+    expect(t!.exit).toBe('TP');
+  });
+
   it('counts expired limit orders and closes open trades at the end of the range', () => {
     const path: Bar[] = [...flat(3), ...flat(10, 3)];
     const expired = runBacktest(

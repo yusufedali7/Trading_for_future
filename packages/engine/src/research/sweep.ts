@@ -18,7 +18,10 @@ export function sweepableParams(spec: StrategySpec): SweepParam[] {
   if (spec.target.type === 'FIXED_PIPS') add('target.pips', 'number', spec.target.pips);
   if (spec.target.type === 'AT_REF') add('target.bufferPips', 'number', spec.target.bufferPips);
   if (spec.stop.type === 'BEYOND_REF') add('stop.bufferPips', 'number', spec.stop.bufferPips);
-  else add('stop.pips', 'number', spec.stop.pips);
+  else if (spec.stop.type === 'ATR_MULTIPLE') {
+    add('stop.period', 'int', spec.stop.period);
+    add('stop.mult', 'number', spec.stop.mult);
+  } else add('stop.pips', 'number', spec.stop.pips);
   if (spec.entry.type !== 'MARKET') add('entry.expireBars', 'int', spec.entry.expireBars);
   spec.steps.forEach((st, i) => {
     if (i > 0 && st.maxBars !== undefined) add(`steps.${i}.maxBars`, 'int', st.maxBars);

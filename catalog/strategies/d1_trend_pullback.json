@@ -66,7 +66,7 @@
   "ambiguities": [
     "Ders 6'daki 'desteğe dönmüş direnç' ve 'güçlü mum' koşulları bu sürümde yok; v2 adayı."
   ],
-  "engine_status": "BLOCKED: motor henüz EMA_TREND filtresini, TOUCH_LEVEL/BAR_CLOSE serbest koşullarını ya da ATR_MULTIPLE stop'u desteklemiyor (D61). Gösterge tabanlı adım türleri EventStep'e eklenmeden kurulamaz.",
+  "engine_status": "IMPLEMENTED: 2 strateji versiyonu olarak kuruldu (long, short) - packages/engine/src/catalog/strategies.ts, D65. EMA_TREND -> trendFilter (StrategySpec alanı, sinyal barında kontrol), TOUCH_LEVEL+BAR_CLOSE -> tek EMA_PULLBACK adımı (maxBars:0 zaten aynı barı zorunlu kılıyordu), ATR_MULTIPLE stop motorda. direction:BOTH iki ayrı versiyon olarak çözüldü.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

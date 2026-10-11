@@ -46,7 +46,7 @@
   "ambiguities": [
     "[1] ile önceki mumun seviyesi kullanılır (ileriye bakma yok)."
   ],
-  "engine_status": "BLOCKED: motor henüz highest()/lowest() gibi kayan pencere koşullarını, ATR_MULTIPLE stop'u ya da CHANNEL_EXIT'i desteklemiyor (D61).",
+  "engine_status": "IMPLEMENTED (kısmen): 2 strateji versiyonu olarak kuruldu (long, short) - packages/engine/src/catalog/strategies.ts, D65. highest()/lowest() -> DONCHIAN_BREAK adımı (bir bar önceki pencereye bakar, [1] notasyonuyla uyumlu), ATR_MULTIPLE stop motorda. CHANNEL_EXIT (her barda yeniden değerlendirilen dinamik çıkış) motorda YOK - schema.ts'in kendi v0 kapsamı pozisyon yönetimini (trailing stop dahil) dışlıyor; sabit 2R hedefle değiştirildi, açıkça belirtildi.",
   "claims": [],
   "results": "YOK: gerçek veride test edilmedi"
 }

@@ -33,6 +33,22 @@ import type { StrategySpec } from '../strategy/schema';
  * buffer, explicitly flagged rather than silently treated as equivalent. Its `NEXT_OPEN` entry is
  * just the engine's existing `MARKET` entry under another name (fills after the signal bar's
  * close - the D7/D8 model), so no new entry type was needed.
+ *
+ * D65 added `EMA_PULLBACK`/`DONCHIAN_BREAK` steps, an `ATR_MULTIPLE` stop and a `trendFilter`
+ * (the catalog's `EMA_TREND` "filters" concept), which makes `d1_trend_pullback` and
+ * `donchian_breakout_d1` buildable too:
+ * - `d1_trend_pullback`'s separate `TOUCH_LEVEL`+`BAR_CLOSE` steps (chained with `maxBars: 0`,
+ *   which already means "same bar" under this schema) collapse into the single `EMA_PULLBACK`
+ *   step - mechanically identical, not a simplification (see that step's own doc comment).
+ * - `donchian_breakout_d1`'s `exit.type: "CHANNEL_EXIT"` (a dynamic, re-evaluated-every-bar exit)
+ *   has no engine equivalent - `strategy/schema.ts`'s own documented v0 scope excludes trailing/
+ *   position-management exits entirely. Substituted with the same `R_MULTIPLE r=2` target the
+ *   catalog itself uses as `d1_trend_pullback`'s target, explicitly flagged rather than silently
+ *   dropped; building a real trailing-exit mechanism is a separate, larger decision.
+ * - Both catalog entries say `"direction": "BOTH"`, which this schema can't express in one spec
+ *   (every `StrategySpec` picks one direction) - built as two versions, `long`/`short`, mirroring
+ *   each other exactly since `EMA_PULLBACK`/`DONCHIAN_BREAK`/`ATR_MULTIPLE`/`trendFilter` are all
+ *   direction-symmetric by construction.
  */
 export interface CatalogStrategy {
   /** `catalog/strategies/<catalogId>.json`'s own `id`. */
@@ -67,6 +83,33 @@ const DOUBLE_BOTTOM_BASE = {
   steps: [{ id: 'pattern', type: 'PATTERN_EVENT' as const, patternId: 'double_bottom' }],
   entry: { type: 'MARKET' as const },
   stop: { type: 'BEYOND_REF' as const, ref: 'pattern.invalidationRef', bufferPips: 3 },
+};
+
+const D1_TREND_PULLBACK_BASE = {
+  schema: 'strategy/v1' as const,
+  instrument: 'EURUSD',
+  timeframe: '1D' as const,
+  window: null,
+  trendFilter: { fast: 50, slow: 200 },
+  entry: { type: 'MARKET' as const },
+  stop: { type: 'ATR_MULTIPLE' as const, period: 14, mult: 1.5 },
+  target: { type: 'R_MULTIPLE' as const, r: 2 },
+  risk: { percentPerTrade: 1.0 },
+  maxTradesPerDay: null,
+  features: FEATURE_DEFAULTS,
+};
+
+const DONCHIAN_BREAKOUT_BASE = {
+  schema: 'strategy/v1' as const,
+  instrument: 'EURUSD',
+  timeframe: '1D' as const,
+  window: null,
+  entry: { type: 'MARKET' as const },
+  stop: { type: 'ATR_MULTIPLE' as const, period: 20, mult: 2.0 },
+  target: { type: 'R_MULTIPLE' as const, r: 2 },
+  risk: { percentPerTrade: 0.5 },
+  maxTradesPerDay: null,
+  features: FEATURE_DEFAULTS,
 };
 
 export const CATALOG_STRATEGIES: readonly CatalogStrategy[] = [
@@ -123,6 +166,54 @@ export const CATALOG_STRATEGIES: readonly CatalogStrategy[] = [
     spec: {
       ...DOUBLE_BOTTOM_BASE,
       target: { type: 'R_MULTIPLE', r: 2 },
+    },
+  },
+  {
+    catalogId: 'd1_trend_pullback',
+    versionLabel: 'long',
+    name: 'Günlük trend içinde geri çekilme (long)',
+    description:
+      'EMA(50) üstü EMA(200) üstünde (yükseliş trendi) iken fiyat EMA(50)\'ye geri çekilip yükseliş yönünde kapanır; piyasa girişi, stop ATR(14)×1,5.',
+    spec: {
+      ...D1_TREND_PULLBACK_BASE,
+      direction: 'LONG',
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 50, direction: 'BULLISH' }],
+    },
+  },
+  {
+    catalogId: 'd1_trend_pullback',
+    versionLabel: 'short',
+    name: 'Günlük trend içinde geri çekilme (short)',
+    description:
+      'EMA(50) altı EMA(200) altında (düşüş trendi) iken fiyat EMA(50)\'ye geri çekilip düşüş yönünde kapanır; piyasa girişi, stop ATR(14)×1,5.',
+    spec: {
+      ...D1_TREND_PULLBACK_BASE,
+      direction: 'SHORT',
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 50, direction: 'BEARISH' }],
+    },
+  },
+  {
+    catalogId: 'donchian_breakout_d1',
+    versionLabel: 'long',
+    name: 'Donchian kanal kırılımı (long)',
+    description:
+      'Kapanış önceki 20 günün en yükseğini kırınca piyasa girişi; stop ATR(20)×2. Kataloğun dinamik kanal çıkışı (CHANNEL_EXIT) yerine sabit 2R hedef (bkz. dosya başı not).',
+    spec: {
+      ...DONCHIAN_BREAKOUT_BASE,
+      direction: 'LONG',
+      steps: [{ id: 'breakout', type: 'DONCHIAN_BREAK', period: 20, direction: 'BULLISH' }],
+    },
+  },
+  {
+    catalogId: 'donchian_breakout_d1',
+    versionLabel: 'short',
+    name: 'Donchian kanal kırılımı (short)',
+    description:
+      'Kapanış önceki 20 günün en düşüğünü kırınca piyasa girişi; stop ATR(20)×2. Kataloğun dinamik kanal çıkışı (CHANNEL_EXIT) yerine sabit 2R hedef (bkz. dosya başı not).',
+    spec: {
+      ...DONCHIAN_BREAKOUT_BASE,
+      direction: 'SHORT',
+      steps: [{ id: 'breakout', type: 'DONCHIAN_BREAK', period: 20, direction: 'BEARISH' }],
     },
   },
 ];

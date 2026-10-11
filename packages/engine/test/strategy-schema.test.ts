@@ -146,6 +146,51 @@ describe('strategy schema v1', () => {
     ]);
   });
 
+  it('accepts EMA_PULLBACK/DONCHIAN_BREAK steps, an ATR_MULTIPLE stop and a trendFilter (D65)', () => {
+    const s: StrategySpec = {
+      ...LONDON_SWEEP,
+      trendFilter: { fast: 50, slow: 200 },
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 50 }],
+      entry: { type: 'MARKET' },
+      stop: { type: 'ATR_MULTIPLE', period: 14, mult: 1.5 },
+      target: { type: 'R_MULTIPLE', r: 2 },
+    };
+    expect(validateSpec(s)).toEqual([]);
+    expect(availableRefs(s.steps)).toEqual(['pullback.level']);
+
+    const s2: StrategySpec = {
+      ...s,
+      steps: [{ id: 'breakout', type: 'DONCHIAN_BREAK', period: 20, direction: 'BULLISH' }],
+    };
+    expect(validateSpec(s2)).toEqual([]);
+    expect(availableRefs(s2.steps)).toEqual(['breakout.level']);
+
+    expect(codes({ ...s, steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 0 }] })).toContain(
+      'BAD_NUMBER@steps.0.period',
+    );
+    expect(codes({ ...s, stop: { type: 'ATR_MULTIPLE', period: 0, mult: 1.5 } })).toContain(
+      'BAD_NUMBER@stop.period',
+    );
+    expect(codes({ ...s, stop: { type: 'ATR_MULTIPLE', period: 14, mult: 0 } })).toContain(
+      'BAD_NUMBER@stop.mult',
+    );
+    expect(codes({ ...s, trendFilter: { fast: 200, slow: 50 } })).toContain(
+      'BAD_TREND_FILTER@trendFilter',
+    );
+    expect(codes({ ...s, trendFilter: { fast: 0, slow: 200 } })).toContain(
+      'BAD_TREND_FILTER@trendFilter',
+    );
+
+    const warned: StrategySpec = {
+      ...s,
+      direction: 'SHORT',
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 50, direction: 'BULLISH' }],
+    };
+    expect(specWarnings(warned)).toEqual([
+      { code: 'DIRECTION_MISMATCH', path: 'steps.0.direction' },
+    ]);
+  });
+
   it('hashes the content, not the key order', () => {
     const reordered = JSON.parse(canonicalJson(LONDON_SWEEP)) as StrategySpec;
     const { schema, ...rest } = LONDON_SWEEP;

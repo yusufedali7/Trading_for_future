@@ -11,6 +11,7 @@ import {
 } from '../execution/trade-sim';
 import { toBars, type Bars } from '../features/bars';
 import type { FeatureSet } from '../features/compute';
+import { atr } from '../features/indicators';
 import type { SmcSet } from '../features/smc';
 import { marketState } from '../instruments/hours';
 import { pipsToPrice, roundToTick, type Instrument } from '../instruments/registry';
@@ -143,12 +144,17 @@ function hasDataGap(
   return false;
 }
 
-/** The order a setup produces, or null if its prices make no sense (stop on the wrong side). */
+/**
+ * The order a setup produces, or null if its prices make no sense (stop on the wrong side).
+ * `atrAtSignal` (D65) is only looked at for an `ATR_MULTIPLE` stop - the caller precomputes the
+ * ATR series once (its `period` is the stop's own choice) and passes the value at the signal bar.
+ */
 export function orderFor(
   spec: StrategySpec,
   inst: Instrument,
   s: Setup,
   lastClose: number,
+  atrAtSignal: number | null = null,
 ): TradeOrder | null {
   const long = spec.direction === 'LONG';
   const dir = long ? 1 : -1;
@@ -162,7 +168,9 @@ export function orderFor(
   const stop =
     spec.stop.type === 'BEYOND_REF'
       ? (s.refs[spec.stop.ref] ?? NaN) - dir * pip(spec.stop.bufferPips)
-      : entryRef - dir * pip(spec.stop.pips);
+      : spec.stop.type === 'ATR_MULTIPLE'
+        ? entryRef - dir * (atrAtSignal ?? NaN) * spec.stop.mult
+        : entryRef - dir * pip(spec.stop.pips);
   const t = spec.target;
   const target =
     t.type === 'R_MULTIPLE'
@@ -195,6 +203,7 @@ export function runBacktest(input: BacktestInput): BacktestResult {
   const setups = findSetups(spec, b, features, smc, patterns).filter(
     (s) => s.signalAt >= from && s.signalAt < to,
   );
+  const atrSeries = spec.stop.type === 'ATR_MULTIPLE' ? atr(b, spec.stop.period) : null;
   const spread = pipsToPrice(inst, config.costs.spreadPips);
   const slippage = pipsToPrice(inst, config.costs.slippagePips);
   const skipped = Object.fromEntries(SKIP_REASONS.map((r) => [r, 0])) as Record<SkipReason, number>;
@@ -221,7 +230,13 @@ export function runBacktest(input: BacktestInput): BacktestResult {
       skipped.DAILY_LIMIT++;
       continue;
     }
-    const order = orderFor(spec, inst, s, b.c[s.signalIndex]!);
+    const order = orderFor(
+      spec,
+      inst,
+      s,
+      b.c[s.signalIndex]!,
+      atrSeries ? (atrSeries[s.signalIndex] ?? null) : null,
+    );
     if (!order) {
       skipped.INVALID_ORDER++;
       continue;

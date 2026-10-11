@@ -24,7 +24,9 @@ export type StepType =
   | 'IFVG'
   | 'BREAKER'
   | 'OTE'
-  | 'PATTERN_EVENT';
+  | 'PATTERN_EVENT'
+  | 'EMA_PULLBACK'
+  | 'DONCHIAN_BREAK';
 
 interface StepBase {
   /** Lower-case id used in references (`sweep.extreme`). */
@@ -79,6 +81,29 @@ export interface PatternEventStep extends StepBase {
   patternId: string;
   direction?: FeatureDirection;
 }
+/**
+ * D65: a bar where price dips to (or through) a moving average and closes back on the trend side
+ * of it - a single-bar, documented reading of the catalog's separate "touch" + "bullish close"
+ * steps (D61's `d1_trend_pullback.json` chains them with `maxBars: 0`, which already means "same
+ * bar" under this schema's matching rule, so collapsing them into one step changes nothing
+ * mechanically). BULLISH: `low <= EMA(period)` and `close > EMA(period)` and `close > open`.
+ * BEARISH mirrors. The EMA is recomputed from `period` on every match (cheap at D1/4H bar counts),
+ * not drawn from `spec.features` - unlike M4's concepts, the period here is the step's own choice.
+ */
+export interface EmaPullbackStep extends StepBase {
+  type: 'EMA_PULLBACK';
+  period: number;
+  direction?: FeatureDirection;
+}
+/**
+ * D65: a bar whose close breaks the highest high / lowest low of the PRIOR `period` bars (the
+ * current bar excluded, matching the catalog's `[1]` lag notation - no lookahead, rule 3).
+ */
+export interface DonchianBreakStep extends StepBase {
+  type: 'DONCHIAN_BREAK';
+  period: number;
+  direction?: FeatureDirection;
+}
 export type EventStep =
   | SweepStep
   | BreakStep
@@ -88,7 +113,9 @@ export type EventStep =
   | IfvgStep
   | BreakerStep
   | OteStep
-  | PatternEventStep;
+  | PatternEventStep
+  | EmaPullbackStep
+  | DonchianBreakStep;
 
 /** `stepId.field` */
 export type Ref = string;
@@ -97,7 +124,11 @@ export type EntryRule =
   { type: 'MARKET' } | { type: 'LIMIT_AT' | 'STOP_AT'; ref: Ref; expireBars: number };
 
 export type StopRule =
-  { type: 'BEYOND_REF'; ref: Ref; bufferPips: number } | { type: 'FIXED_PIPS'; pips: number };
+  | { type: 'BEYOND_REF'; ref: Ref; bufferPips: number }
+  | { type: 'FIXED_PIPS'; pips: number }
+  /** D65: stop = entry ∓ ATR(period, at signal) × mult. Computed once at the signal bar, not a
+   * trailing stop - the schema's own documented scope still excludes position management. */
+  | { type: 'ATR_MULTIPLE'; period: number; mult: number };
 
 export type TargetRule =
   | { type: 'R_MULTIPLE'; r: number }
@@ -117,6 +148,12 @@ export interface StrategySpec {
   direction: Direction;
   /** The setup (last step) must be confirmed inside this local-time window; null = any time. */
   window: TimeWindow | null;
+  /**
+   * D65: the catalog's "filters" concept (e.g. `EMA_TREND`) - a persistent background condition,
+   * not a sequence event, checked only at the signal bar (same mechanism as `window`). LONG
+   * requires close and the fast EMA both above the slow EMA at the signal; SHORT mirrors below.
+   */
+  trendFilter?: { fast: number; slow: number };
   steps: EventStep[];
   entry: EntryRule;
   stop: StopRule;
@@ -179,6 +216,9 @@ export const REF_FIELDS: Record<StepType, readonly string[]> = {
    * no target or no invalidation level, e.g. `symmetrical_triangle`) - a step referencing a ref
    * that a particular match lacks simply fails that match (D63, same as a missing feature ref). */
   PATTERN_EVENT: ['confirmationRef', 'targetPrice', 'invalidationRef'],
+  /** The EMA value touched, or the rolling high/low level broken through. */
+  EMA_PULLBACK: ['level'],
+  DONCHIAN_BREAK: ['level'],
 };
 
 /** Every reference the steps make available, in step order. */
@@ -219,7 +259,8 @@ export type SpecProblemCode =
   | 'FEATURE_PARAMS'
   | 'BAD_SESSION'
   | 'UNKNOWN_LEVEL'
-  | 'UNKNOWN_PATTERN';
+  | 'UNKNOWN_PATTERN'
+  | 'BAD_TREND_FILTER';
 
 export interface SpecProblem {
   code: SpecProblemCode;
@@ -267,6 +308,8 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
     else if (seen.has(st.id)) bad('DUPLICATE_STEP_ID', `steps.${i}.id`);
     seen.add(st.id);
     if (i > 0 && !posInt(st.maxBars)) bad('MAX_BARS', `steps.${i}.maxBars`);
+    if ((st.type === 'EMA_PULLBACK' || st.type === 'DONCHIAN_BREAK') && !posInt(st.period))
+      bad('BAD_NUMBER', `steps.${i}.period`);
   });
   const refs = new Set(availableRefs(s.steps));
   const checkRef = (ref: string, path: string) => {
@@ -279,6 +322,9 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
   if (s.stop.type === 'BEYOND_REF') {
     checkRef(s.stop.ref, 'stop.ref');
     if (!nonNeg(s.stop.bufferPips)) bad('BAD_NUMBER', 'stop.bufferPips');
+  } else if (s.stop.type === 'ATR_MULTIPLE') {
+    if (!posInt(s.stop.period)) bad('BAD_NUMBER', 'stop.period');
+    if (!pos(s.stop.mult)) bad('BAD_NUMBER', 'stop.mult');
   } else if (!pos(s.stop.pips)) bad('BAD_NUMBER', 'stop.pips');
   if (s.target.type === 'R_MULTIPLE' && !pos(s.target.r)) bad('BAD_NUMBER', 'target.r');
   if (s.target.type === 'FIXED_PIPS' && !pos(s.target.pips)) bad('BAD_NUMBER', 'target.pips');
@@ -300,6 +346,10 @@ export function validateSpec(s: StrategySpec): SpecProblem[] {
   }
   if (s.maxTradesPerDay !== null && !posInt(s.maxTradesPerDay))
     bad('MAX_PER_DAY', 'maxTradesPerDay');
+  if (s.trendFilter) {
+    const { fast, slow } = s.trendFilter;
+    if (!posInt(fast) || !posInt(slow) || fast >= slow) bad('BAD_TREND_FILTER', 'trendFilter');
+  }
   const f = s.features;
   if (
     !posInt(f.swing.left) ||
@@ -337,6 +387,8 @@ const DIRECTIONAL_STEP_TYPES: readonly StepType[] = [
   'BREAKER',
   'OTE',
   'PATTERN_EVENT',
+  'EMA_PULLBACK',
+  'DONCHIAN_BREAK',
 ];
 
 export function specWarnings(s: StrategySpec): SpecWarning[] {

@@ -316,3 +316,110 @@ describe('findSetups with a PATTERN_EVENT step (D63)', () => {
     expect(findSetups(sBearish, b, set({}), undefined, patterns)).toEqual([]);
   });
 });
+
+describe('findSetups with EMA_PULLBACK / DONCHIAN_BREAK steps (D65)', () => {
+  it('EMA_PULLBACK: fires when the bar dips to the EMA and closes back above it, bullish', () => {
+    // SYNTHETIC: ema(bars, 2) seeds at 1.0 from bars 0-1, then bar 2 (low 0.99, close 1.05,
+    // open 1.0) dips under the level and closes back above it with a bullish body.
+    const b3 = bars([
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.06, 0.99, 1.05],
+    ]);
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 2, direction: 'BULLISH' }],
+    };
+    const [found, ...rest] = findSetups(s, b3, set({}));
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({ id: 'SETUP:EMA_PULLBACK:2:2', signalIndex: 2 });
+    expect(found!.refs['pullback.level']).toBeCloseTo(1.033333, 5);
+  });
+
+  it('EMA_PULLBACK: a direction filter excludes the opposite-signed bar', () => {
+    const b3 = bars([
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.06, 0.99, 1.05], // bullish pullback bar
+    ]);
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 2, direction: 'BEARISH' }],
+    };
+    expect(findSetups(s, b3, set({}))).toEqual([]);
+  });
+
+  it("DONCHIAN_BREAK: fires when the close breaks the prior period's high (lagged, no lookahead)", () => {
+    // SYNTHETIC: highs 1.00/1.02/1.01 over bars 0-2 -> prior rolling high at bar 3 is 1.02;
+    // bar 3 closes at 1.05, above it.
+    const b4 = bars([
+      [1.0, 1.0, 0.99, 1.0],
+      [1.0, 1.02, 0.99, 1.0],
+      [1.0, 1.01, 0.99, 1.0],
+      [1.0, 1.1, 1.0, 1.05],
+    ]);
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'breakout', type: 'DONCHIAN_BREAK', period: 3, direction: 'BULLISH' }],
+    };
+    const [found, ...rest] = findSetups(s, b4, set({}));
+    expect(rest).toEqual([]);
+    expect(found).toMatchObject({ signalIndex: 3, refs: { 'breakout.level': 1.02 } });
+  });
+
+  it('DONCHIAN_BREAK: does not fire on the bar that sets the high itself (no lookahead)', () => {
+    // A single rising series never closes above its OWN prior window within the window itself.
+    const b4 = bars([
+      [1.0, 1.0, 0.99, 1.0],
+      [1.0, 1.02, 0.99, 1.0],
+      [1.0, 1.01, 0.99, 1.0],
+    ]);
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'breakout', type: 'DONCHIAN_BREAK', period: 3, direction: 'BULLISH' }],
+    };
+    expect(findSetups(s, b4, set({}))).toEqual([]);
+  });
+});
+
+describe('findSetups with a trendFilter (D65)', () => {
+  const f = set({
+    sweeps: [sweep('sw1', 2)],
+    breaks: [brk('b1', 5), brk('b2', 6)],
+    fvgs: [fvg('f1', 6)], // confirmed at 7, same chain as the first describe block's test
+  });
+
+  it('keeps an otherwise-valid setup when the trend condition holds at the signal bar', () => {
+    // SYNTHETIC: 7 flat bars at 1.1, then a jump to 1.3 from bar 7 on - close and the fast EMA
+    // both end up above the slower EMA at the signal bar (7).
+    const bJump = bars([
+      ...Array.from({ length: 7 }, () => [1.1, 1.1005, 1.0995, 1.1] as const),
+      ...Array.from({ length: 13 }, () => [1.3, 1.3005, 1.2995, 1.3] as const),
+    ]);
+    const s: StrategySpec = { ...spec, trendFilter: { fast: 2, slow: 5 } };
+    expect(findSetups(s, bJump, f).map((x) => x.signalIndex)).toEqual([7]);
+  });
+
+  it('removes an otherwise-valid setup when the trend condition fails at the signal bar', () => {
+    // The base fixture's bars are flat throughout, so fast EMA === slow EMA === close at every
+    // bar - "strictly above" never holds, so a LONG trend filter rejects every bar.
+    const s: StrategySpec = { ...spec, trendFilter: { fast: 2, slow: 5 } };
+    expect(findSetups(s, b, f)).toEqual([]);
+  });
+
+  it('rejects a bar where the slow EMA has not warmed up yet, instead of fabricating a value', () => {
+    // Only 3 bars exist; ema(b, 5) needs 5 to produce anything, so it's null everywhere - the
+    // filter must not treat "unknown" as "passes" (rule 1: no data, no result).
+    const shortB = bars([
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.0, 1.0, 1.0],
+      [1.0, 1.06, 0.99, 1.05],
+    ]);
+    const s: StrategySpec = {
+      ...spec,
+      steps: [{ id: 'pullback', type: 'EMA_PULLBACK', period: 2, direction: 'BULLISH' }],
+      trendFilter: { fast: 2, slow: 5 },
+    };
+    expect(findSetups(s, shortB, set({}))).toEqual([]);
+  });
+});

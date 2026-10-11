@@ -14,6 +14,7 @@ function stepLine(st: EventStep, i: number, sessions: StrategySpec['sessions']):
   };
   const parts: string[] = [b.stepTypes[st.type]];
   if (st.type === 'PATTERN_EVENT') parts.push(b.patternNames[st.patternId] ?? st.patternId);
+  if (st.type === 'EMA_PULLBACK' || st.type === 'DONCHIAN_BREAK') parts.push(`${st.period}`);
   if (st.type !== 'SWING') if (st.direction) parts.push(b.direction3[st.direction].toLowerCase());
   if (st.type === 'STRUCTURE_BREAK' && st.kind) parts.push(st.kind === 'BOS' ? 'BOS' : 'CHoCH');
   if (st.type === 'SWING' && st.kind) parts.push(b.swingKind[st.kind].toLowerCase());
@@ -38,7 +39,12 @@ export function specSummary(spec: StrategySpec): string[] {
       ? s.entryMarket
       : s.entryAt(e.type === 'LIMIT_AT' ? 'limit' : 'stop', e.ref, e.expireBars);
   const st = spec.stop;
-  const stop = st.type === 'BEYOND_REF' ? s.stopBeyond(st.ref, st.bufferPips) : s.stopPips(st.pips);
+  const stop =
+    st.type === 'BEYOND_REF'
+      ? s.stopBeyond(st.ref, st.bufferPips)
+      : st.type === 'ATR_MULTIPLE'
+        ? s.stopAtr(st.period, st.mult)
+        : s.stopPips(st.pips);
   const t = spec.target;
   const target =
     t.type === 'R_MULTIPLE'
@@ -48,6 +54,7 @@ export function specSummary(spec: StrategySpec): string[] {
         : s.targetRef(t.ref, t.bufferPips);
   const tail = [entry, stop, target, s.risk(spec.risk.percentPerTrade)];
   if (spec.maxTradesPerDay !== null) tail.push(s.perDay(spec.maxTradesPerDay));
+  if (spec.trendFilter) tail.push(s.trendFilter(spec.trendFilter.fast, spec.trendFilter.slow));
   const sessions = (spec.sessions ?? []).map((d) => `${d.name}: ${d.start}–${d.end} (${d.tz})`);
   return [
     head,

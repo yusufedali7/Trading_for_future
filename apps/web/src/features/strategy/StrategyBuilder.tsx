@@ -17,7 +17,7 @@ import { tr } from '../../i18n/tr';
 import { toDefinition, type UserSession } from '../../storage/sessions-repo';
 
 const b = tr.strategy.builder;
-const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '30m', '1h', '4h'];
+const TIMEFRAMES: Timeframe[] = ['1m', '5m', '15m', '30m', '1h', '4h', '1D'];
 const STEP_TYPES: StepType[] = [
   'LIQUIDITY_SWEEP',
   'STRUCTURE_BREAK',
@@ -28,6 +28,8 @@ const STEP_TYPES: StepType[] = [
   'BREAKER',
   'OTE',
   'PATTERN_EVENT',
+  'EMA_PULLBACK',
+  'DONCHIAN_BREAK',
 ];
 const STEP_BASE: Record<StepType, string> = {
   LIQUIDITY_SWEEP: 'sweep',
@@ -39,6 +41,8 @@ const STEP_BASE: Record<StepType, string> = {
   BREAKER: 'breaker',
   OTE: 'ote',
   PATTERN_EVENT: 'pattern',
+  EMA_PULLBACK: 'pullback',
+  DONCHIAN_BREAK: 'breakout',
 };
 const FIXED_LEVELS: LiquidityKind[] = [
   'SWING_HIGH',
@@ -69,7 +73,14 @@ function uniqueId(steps: readonly EventStep[], type: StepType): string {
 
 function blankStep(type: StepType, id: string, first: boolean): EventStep {
   const maxBars = first ? undefined : 12;
-  const extra = type === 'PATTERN_EVENT' ? { patternId: CHART_PATTERN_IDS[0]! } : {};
+  const extra =
+    type === 'PATTERN_EVENT'
+      ? { patternId: CHART_PATTERN_IDS[0]! }
+      : type === 'EMA_PULLBACK'
+        ? { period: 50 }
+        : type === 'DONCHIAN_BREAK'
+          ? { period: 20 }
+          : {};
   return { id, type, ...extra, ...(maxBars ? { maxBars } : {}) } as EventStep;
 }
 
@@ -385,6 +396,8 @@ export function StrategyBuilder({
                     </select>
                   </label>
                 )}
+                {(st.type === 'EMA_PULLBACK' || st.type === 'DONCHIAN_BREAK') &&
+                  numField(b.period, st.period, (period) => setStep(i, { ...st, period }))}
                 {i > 0 &&
                   numField(b.maxBars, st.maxBars ?? NaN, (n) => setStep(i, { ...st, maxBars: n }))}
               </div>
@@ -485,23 +498,26 @@ export function StrategyBuilder({
           <span>{b.stop}</span>
           <select
             value={spec.stop.type}
-            onChange={(e) =>
+            onChange={(e) => {
+              const t = e.target.value;
               patch({
                 stop:
-                  e.target.value === 'FIXED_PIPS'
+                  t === 'FIXED_PIPS'
                     ? { type: 'FIXED_PIPS', pips: 10 }
-                    : { type: 'BEYOND_REF', ref: refs[0] ?? '', bufferPips: 1 },
-              })
-            }
+                    : t === 'ATR_MULTIPLE'
+                      ? { type: 'ATR_MULTIPLE', period: 14, mult: 1.5 }
+                      : { type: 'BEYOND_REF', ref: refs[0] ?? '', bufferPips: 1 },
+              });
+            }}
           >
-            {(['BEYOND_REF', 'FIXED_PIPS'] as const).map((t) => (
+            {(['BEYOND_REF', 'FIXED_PIPS', 'ATR_MULTIPLE'] as const).map((t) => (
               <option key={t} value={t}>
                 {b.stopTypes[t]}
               </option>
             ))}
           </select>
         </label>
-        {spec.stop.type === 'BEYOND_REF' ? (
+        {spec.stop.type === 'BEYOND_REF' && (
           <>
             {refSelect(b.ref, spec.stop.ref, (ref) =>
               patch({ stop: { ...spec.stop, ref } as StrategySpec['stop'] }),
@@ -513,13 +529,26 @@ export function StrategyBuilder({
               0.1,
             )}
           </>
-        ) : (
+        )}
+        {spec.stop.type === 'FIXED_PIPS' &&
           numField(
             b.pips,
             spec.stop.pips,
             (n) => patch({ stop: { type: 'FIXED_PIPS', pips: n } }),
             0.1,
-          )
+          )}
+        {spec.stop.type === 'ATR_MULTIPLE' && (
+          <>
+            {numField(b.atrPeriod, spec.stop.period, (period) =>
+              patch({ stop: { ...spec.stop, period } as StrategySpec['stop'] }),
+            )}
+            {numField(
+              b.atrMult,
+              spec.stop.mult,
+              (mult) => patch({ stop: { ...spec.stop, mult } as StrategySpec['stop'] }),
+              0.1,
+            )}
+          </>
         )}
       </fieldset>
 
@@ -569,6 +598,30 @@ export function StrategyBuilder({
               0.1,
             )}
           </>
+        )}
+      </fieldset>
+
+      <fieldset>
+        <legend>{b.trendFilter}</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={spec.trendFilter !== undefined}
+            onChange={(e) =>
+              patch({ trendFilter: e.target.checked ? { fast: 50, slow: 200 } : undefined })
+            }
+          />
+          <span>{b.trendFilterOn}</span>
+        </label>
+        {spec.trendFilter && (
+          <div className="builder-grid">
+            {numField(b.trendFilterFast, spec.trendFilter.fast, (fast) =>
+              patch({ trendFilter: { ...spec.trendFilter!, fast } }),
+            )}
+            {numField(b.trendFilterSlow, spec.trendFilter.slow, (slow) =>
+              patch({ trendFilter: { ...spec.trendFilter!, slow } }),
+            )}
+          </div>
         )}
       </fieldset>
 

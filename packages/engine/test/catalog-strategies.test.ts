@@ -15,9 +15,36 @@ import { validateSpec } from '../src/strategy/schema';
 import { EUR, MIN, syntheticMinutes } from './helpers/synthetic-minutes';
 import { seriesFromRows } from '../src/data/columnar';
 import { resample } from '../src/data/resample';
-import { pathBars } from './helpers/synthetic-bars';
+import { bars, pathBars } from './helpers/synthetic-bars';
 
 const EMPTY_FEATURES: FeatureSet = { swings: [], fvgs: [], breaks: [], sweeps: [], periods: [] };
+
+/** SYNTHETIC: a steady uptrend with one deep-wick bullish-reversal bar inserted at `pullbackAt`. */
+function risingBarsWithPullback(n: number, pullbackAt: number) {
+  const rows: [number, number, number, number][] = [];
+  let prevClose = 1.0;
+  for (let i = 0; i < n; i++) {
+    const close = 1.0 + (0.3 * i) / (n - 1);
+    if (i === pullbackAt) rows.push([prevClose, close + 0.001, close - 0.05, close]);
+    else
+      rows.push([
+        prevClose,
+        Math.max(prevClose, close) + 0.0001,
+        Math.min(prevClose, close) - 0.0001,
+        close,
+      ]);
+    prevClose = close;
+  }
+  return bars(rows);
+}
+
+/** SYNTHETIC: a tight range, then one bar that clearly breaks above it at `breakoutAt`. */
+function rangeThenBreakout(n: number, breakoutAt: number) {
+  const rows: [number, number, number, number][] = [];
+  for (let i = 0; i < n; i++)
+    rows.push(i === breakoutAt ? [1.1, 1.2, 1.09, 1.18] : [1.1, 1.105, 1.095, 1.1]);
+  return bars(rows);
+}
 
 describe('CATALOG_STRATEGIES (D61)', () => {
   it('both london_asia_sweep versions are valid specs', () => {
@@ -81,5 +108,57 @@ describe('CATALOG_STRATEGIES: double_bottom_confirmed (D63)', () => {
       const setups = findSetups(c.spec, b, EMPTY_FEATURES, undefined, patterns);
       expect(setups.length).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('CATALOG_STRATEGIES: d1_trend_pullback (D65)', () => {
+  it('both versions are valid specs', () => {
+    const specs = CATALOG_STRATEGIES.filter((c) => c.catalogId === 'd1_trend_pullback');
+    expect(specs).toHaveLength(2);
+    expect(specs.map((c) => c.versionLabel)).toEqual(['long', 'short']);
+    for (const c of specs) expect(validateSpec(c.spec)).toEqual([]);
+  });
+
+  it('the long version chains a real EMA pullback in an established uptrend', () => {
+    const long = CATALOG_STRATEGIES.find(
+      (c) => c.catalogId === 'd1_trend_pullback' && c.versionLabel === 'long',
+    )!;
+    const b = risingBarsWithPullback(220, 210);
+    const setups = findSetups(long.spec, b, EMPTY_FEATURES);
+    expect(setups.length).toBeGreaterThan(0);
+  });
+
+  it('the long version finds nothing on a flat series (no pullback, no trend)', () => {
+    const flat = bars(Array.from({ length: 220 }, () => [1.1, 1.1001, 1.0999, 1.1] as const));
+    const long = CATALOG_STRATEGIES.find(
+      (c) => c.catalogId === 'd1_trend_pullback' && c.versionLabel === 'long',
+    )!;
+    expect(findSetups(long.spec, flat, EMPTY_FEATURES)).toEqual([]);
+  });
+});
+
+describe('CATALOG_STRATEGIES: donchian_breakout_d1 (D65)', () => {
+  it('both versions are valid specs', () => {
+    const specs = CATALOG_STRATEGIES.filter((c) => c.catalogId === 'donchian_breakout_d1');
+    expect(specs).toHaveLength(2);
+    expect(specs.map((c) => c.versionLabel)).toEqual(['long', 'short']);
+    for (const c of specs) expect(validateSpec(c.spec)).toEqual([]);
+  });
+
+  it('the long version chains a real Donchian breakout', () => {
+    const long = CATALOG_STRATEGIES.find(
+      (c) => c.catalogId === 'donchian_breakout_d1' && c.versionLabel === 'long',
+    )!;
+    const b = rangeThenBreakout(30, 25);
+    const setups = findSetups(long.spec, b, EMPTY_FEATURES);
+    expect(setups.length).toBeGreaterThan(0);
+  });
+
+  it('the long version finds nothing while price stays inside the range', () => {
+    const b = rangeThenBreakout(30, -1); // no breakout bar
+    const long = CATALOG_STRATEGIES.find(
+      (c) => c.catalogId === 'donchian_breakout_d1' && c.versionLabel === 'long',
+    )!;
+    expect(findSetups(long.spec, b, EMPTY_FEATURES)).toEqual([]);
   });
 });
