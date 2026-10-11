@@ -3,12 +3,17 @@ import {
   setVersionStatus,
   type AmbiguityRule,
   type BacktestCosts,
+  type ConceptExcursionReport,
+  type FeatureDirection,
   type Hypothesis,
   type LotRules,
+  type OutcomeConcept,
   type StoredBacktest,
   type Strategy,
   type StrategyStatus,
   type StrategyVersion,
+  type Timeframe,
+  type UtcMs,
 } from '@trw/engine';
 
 /** Strategy domain ("trw-strategy"): names and their immutable versions (D6). */
@@ -51,6 +56,34 @@ export interface ResearchRepo {
   saveHypothesis(h: Hypothesis): Promise<void>;
   listPaperSessions(): Promise<PaperSession[]>;
   savePaperSession(p: PaperSession): Promise<void>;
+  /** Newest-scanned first; `datasetId` narrows to one dataset+timeframe scan. */
+  listEvents(datasetId?: string): Promise<EventRecord[]>;
+  /** Upserts by id (deterministic per dataset+timeframe+detection, D66) - re-scanning replaces. */
+  saveEvents(events: readonly EventRecord[]): Promise<void>;
+}
+
+/**
+ * One detection's MFE/MAE scan result, kept so it survives a page reload (D66's "event store" -
+ * `research/excursion.ts`'s `detectionExcursions()` output plus enough metadata to display and
+ * re-find it). `id` is deterministic (`datasetId:timeframe:detectionId`) so re-scanning the same
+ * data upserts instead of accumulating duplicates.
+ */
+export interface EventRecord {
+  id: string;
+  datasetId: string;
+  instrument: string;
+  timeframe: Timeframe;
+  concept: OutcomeConcept;
+  direction: FeatureDirection;
+  formedAt: UtcMs;
+  confirmedAt: UtcMs;
+  horizons: number[];
+  excursions: ConceptExcursionReport['excursions'];
+  control: ConceptExcursionReport['control'];
+  /** The seed `batchExcursions` was run with for this scan (rule 5). */
+  controlSeed: number;
+  engineVersion: string;
+  scannedAt: UtcMs;
 }
 
 /**
@@ -97,6 +130,7 @@ class ResearchDb extends Dexie {
   runs!: Table<RunRow, string>;
   hypotheses!: Table<Hypothesis, string>;
   paperSessions!: Table<PaperSession, string>;
+  events!: Table<EventRecord, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
@@ -110,6 +144,13 @@ class ResearchDb extends Dexie {
       runs: 'id, strategyId, runAt, hypothesisId',
       hypotheses: 'id, strategyId',
       paperSessions: 'id',
+    });
+    // v4 (D66): event store - MFE/MAE scan results per detection.
+    this.version(4).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+      paperSessions: 'id',
+      events: 'id, datasetId, concept',
     });
   }
 }
@@ -227,6 +268,15 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async savePaperSession(p) {
       await db.paperSessions.put(p);
     },
+    async listEvents(datasetId) {
+      const rows = datasetId
+        ? await db.events.where('datasetId').equals(datasetId).toArray()
+        : await db.events.toArray();
+      return rows.sort((a, b) => b.scannedAt - a.scannedAt || a.id.localeCompare(b.id));
+    },
+    async saveEvents(events) {
+      await db.events.bulkPut(events as EventRecord[]);
+    },
   };
 }
 
@@ -285,6 +335,7 @@ export function createMemoryResearchRepo(): ResearchRepo {
   const runs = new Map<string, StoredBacktest>();
   const hypotheses = new Map<string, Hypothesis>();
   const papers = new Map<string, PaperSession>();
+  const events = new Map<string, EventRecord>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -313,6 +364,13 @@ export function createMemoryResearchRepo(): ResearchRepo {
       [...papers.values()].sort((a, b) => b.createdAt - a.createdAt || a.id.localeCompare(b.id)),
     savePaperSession: async (p) => {
       papers.set(p.id, p);
+    },
+    listEvents: async (datasetId) =>
+      [...events.values()]
+        .filter((e) => !datasetId || e.datasetId === datasetId)
+        .sort((a, b) => b.scannedAt - a.scannedAt || a.id.localeCompare(b.id)),
+    saveEvents: async (list) => {
+      for (const e of list) events.set(e.id, e);
     },
   };
 }

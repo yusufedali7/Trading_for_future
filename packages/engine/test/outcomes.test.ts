@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { sliceBars } from '../src/features/bars';
 import { detectFvgs } from '../src/features/fvg';
 import {
+  collectDetections,
   featureOutcomes,
   candidateOutcome,
   summarizeOutcomes,
@@ -171,6 +172,65 @@ describe('featureOutcomes', () => {
         }
       }
     }
+  });
+});
+
+describe('collectDetections (D66)', () => {
+  const b = randomWalk(400, 7);
+  const swings = detectSwings(b, { left: 3, right: 3 });
+  const features = {
+    swings,
+    fvgs: detectFvgs(b, EUR, { minSizePips: 1 }),
+    breaks: detectStructureBreaks(b, swings, { breakBy: 'CLOSE' }),
+    sweeps: [],
+  };
+
+  it('flattens every concept with the right count, id and direction', () => {
+    const refs = collectDetections(features);
+    expect(refs.filter((r) => r.concept === 'SWING')).toHaveLength(swings.length);
+    expect(refs.filter((r) => r.concept === 'FVG')).toHaveLength(features.fvgs.length);
+    expect(refs.filter((r) => r.concept === 'STRUCTURE_BREAK')).toHaveLength(
+      features.breaks.length,
+    );
+    const bySwingId = new Map(swings.map((s) => [s.id, s]));
+    for (const r of refs.filter((r) => r.concept === 'SWING')) {
+      const s = bySwingId.get(r.id)!;
+      expect(r.direction).toBe(s.kind === 'LOW' ? 'BULLISH' : 'BEARISH');
+      expect(r.confirmedIndex).toBe(s.confirmedIndex);
+    }
+  });
+
+  it('SMC concepts are empty without smc and populated with it', () => {
+    expect(collectDetections(features).filter((r) => r.concept === 'ORDER_BLOCK')).toEqual([]);
+    const orderBlock = {
+      id: 'ob1',
+      defVersion: 'v1' as const,
+      type: 'ORDER_BLOCK' as const,
+      direction: 'BULLISH' as const,
+      top: 1.1003,
+      bottom: 1.1001,
+      breakId: 'b',
+      formedAt: T0,
+      formedIndex: 0,
+      confirmedAt: end(1),
+      confirmedIndex: 1,
+    };
+    const refs = collectDetections(features, {
+      orderBlocks: [orderBlock],
+      ifvgs: [],
+      breakers: [],
+      ote: [],
+    });
+    expect(refs.filter((r) => r.concept === 'ORDER_BLOCK')).toEqual([
+      {
+        id: 'ob1',
+        concept: 'ORDER_BLOCK',
+        direction: 'BULLISH',
+        formedAt: T0,
+        confirmedAt: end(1),
+        confirmedIndex: 1,
+      },
+    ]);
   });
 });
 

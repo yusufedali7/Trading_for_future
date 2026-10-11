@@ -262,11 +262,13 @@ export {
   OUTCOME_DEFAULTS,
   OUTCOME_VERSION,
   candidateOutcome,
+  collectDetections,
   featureOutcomes,
   summarizeOutcomes,
 } from './features/outcomes';
 export type {
   CandidateOutcome,
+  DetectionRef,
   OutcomeConcept,
   OutcomeParams,
   OutcomeStatus,
@@ -372,8 +374,13 @@ export { randomEntryBaseline } from './backtest/random-baseline';
 export type { RandomBaselineInput } from './backtest/random-baseline';
 export { CATALOG_STRATEGIES } from './catalog/strategies';
 export type { CatalogStrategy } from './catalog/strategies';
-export { detectionExcursions, summarizeExcursions } from './research/excursion';
-export type { Excursion, ExcursionReport, ExcursionSummary } from './research/excursion';
+export { batchExcursions, detectionExcursions, summarizeExcursions } from './research/excursion';
+export type {
+  ConceptExcursionReport,
+  Excursion,
+  ExcursionReport,
+  ExcursionSummary,
+} from './research/excursion';
 export { rankCandidates } from './research/ranking';
 export type { RankCandidate, RankedCandidate } from './research/ranking';
 export { mulberry32, randomInt } from './core/rng';

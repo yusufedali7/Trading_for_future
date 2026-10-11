@@ -1,5 +1,6 @@
 import { randomInt, type Rng } from '../core/rng';
 import type { Bars } from '../features/bars';
+import type { DetectionRef, OutcomeConcept } from '../features/outcomes';
 import type { FeatureDirection } from '../features/types';
 
 /**
@@ -87,6 +88,25 @@ export function detectionExcursions(
     control = excursionFrom(b, controlIndex, b.c[controlIndex]!, controlDirection, horizons);
   }
   return { id: d.id, excursions, control };
+}
+
+/** D66: one `DetectionRef`'s excursion report, tagged with which concept it came from. */
+export interface ConceptExcursionReport extends ExcursionReport {
+  concept: OutcomeConcept;
+}
+
+/**
+ * `detectionExcursions` for every detection in `refs` (the event store's "scan a dataset" step,
+ * D66) - `rng` is shared and advances across calls, so the whole batch is deterministic for one
+ * seed (rule 5), not just each item in isolation.
+ */
+export function batchExcursions(
+  b: Bars,
+  refs: readonly DetectionRef[],
+  horizons: readonly number[],
+  rng: Rng,
+): ConceptExcursionReport[] {
+  return refs.map((d) => ({ ...detectionExcursions(b, d, horizons, rng), concept: d.concept }));
 }
 
 export interface ExcursionSummary {

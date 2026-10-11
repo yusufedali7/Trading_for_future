@@ -47,6 +47,7 @@ import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
 import { BackupDialog } from './features/backup/BackupDialog';
 import { ConceptsPage, type ShowTarget } from './features/concepts/ConceptsPage';
+import { EventsPage } from './features/events/EventsPage';
 import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
 import { useMt5Feed } from './features/paper/use-mt5-feed';
@@ -78,8 +79,16 @@ export interface AppProps {
   newId?: () => string;
 }
 
-type View = 'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER';
-const VIEWS: readonly View[] = ['CHART', 'CONCEPTS', 'JOURNAL', 'STRATEGY', 'RESEARCH', 'PAPER'];
+type View = 'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER' | 'EVENTS';
+const VIEWS: readonly View[] = [
+  'CHART',
+  'CONCEPTS',
+  'JOURNAL',
+  'STRATEGY',
+  'RESEARCH',
+  'PAPER',
+  'EVENTS',
+];
 
 const isTyping = (target: EventTarget | null) =>
   target instanceof HTMLElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName);
@@ -493,6 +502,17 @@ export function App({
             sessionNames={sessionNames}
             canShow={!trading.busy}
             onShow={showConcept}
+          />
+        )}
+        {view === 'EVENTS' && settings && (
+          <EventsPage
+            research={researchRepo}
+            data={active && instrument ? data : null}
+            meta={active}
+            instrument={instrument}
+            timeframe={data?.tf ?? timeframe}
+            displayTz={settings.displayTz}
+            now={now}
           />
         )}
         {view === 'PAPER' && settings && (

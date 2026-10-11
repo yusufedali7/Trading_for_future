@@ -2,7 +2,7 @@ import type { UtcMs } from '../core/types';
 import type { Bars } from './bars';
 import type { FeatureSet } from './compute';
 import type { SmcSet } from './smc';
-import type { Detection } from './types';
+import type { Detection, FeatureDirection } from './types';
 
 /**
  * What happened after a candidate (concept library, D40). Our own, versioned yardstick — not an
@@ -116,6 +116,50 @@ export interface OutcomeSummary {
   failureRate: number | null;
   /** Fewer than 30 decided candidates. */
   lowSample: boolean;
+}
+
+/**
+ * D66: a flat, direction-tagged reference to one detection of any of the 8 `OutcomeConcept`
+ * types - the input shape `research/excursion.ts`'s `batchExcursions()` needs to measure MFE/MAE
+ * across a whole dataset's candidates (the event store's "scan"). `SWING` has no `direction` of
+ * its own; it's read the same way `failureLine()` already does (a LOW is the support side, so
+ * BULLISH; a HIGH is BEARISH) - not a new interpretation, just reused.
+ */
+export interface DetectionRef {
+  id: string;
+  concept: OutcomeConcept;
+  direction: FeatureDirection;
+  formedAt: UtcMs;
+  confirmedAt: UtcMs;
+  confirmedIndex: number;
+}
+
+function ref(d: Detection, concept: OutcomeConcept, direction: FeatureDirection): DetectionRef {
+  return {
+    id: d.id,
+    concept,
+    direction,
+    formedAt: d.formedAt,
+    confirmedAt: d.confirmedAt,
+    confirmedIndex: d.confirmedIndex,
+  };
+}
+
+/** Every detection of the 8 `OutcomeConcept` types, flattened - same concept coverage as `featureOutcomes`. */
+export function collectDetections(
+  f: Pick<FeatureSet, 'swings' | 'fvgs' | 'breaks' | 'sweeps'>,
+  smc?: Pick<SmcSet, 'orderBlocks' | 'ifvgs' | 'breakers' | 'ote'>,
+): DetectionRef[] {
+  return [
+    ...f.swings.map((d) => ref(d, 'SWING', d.kind === 'LOW' ? 'BULLISH' : 'BEARISH')),
+    ...f.fvgs.map((d) => ref(d, 'FVG', d.direction)),
+    ...f.breaks.map((d) => ref(d, 'STRUCTURE_BREAK', d.direction)),
+    ...f.sweeps.map((d) => ref(d, 'LIQUIDITY_SWEEP', d.direction)),
+    ...(smc?.orderBlocks ?? []).map((d) => ref(d, 'ORDER_BLOCK', d.direction)),
+    ...(smc?.ifvgs ?? []).map((d) => ref(d, 'IFVG', d.direction)),
+    ...(smc?.breakers ?? []).map((d) => ref(d, 'BREAKER', d.direction)),
+    ...(smc?.ote ?? []).map((d) => ref(d, 'OTE', d.direction)),
+  ];
 }
 
 export function summarizeOutcomes(list: readonly CandidateOutcome[]): OutcomeSummary {

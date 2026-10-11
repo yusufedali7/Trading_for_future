@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { mulberry32 } from '../src/core/rng';
+import type { DetectionRef } from '../src/features/outcomes';
 import {
+  batchExcursions,
   detectionExcursions,
   summarizeExcursions,
   type ExcursionReport,
@@ -80,6 +82,47 @@ describe('detectionExcursions', () => {
     expect(a.control).toEqual(a2.control);
     const c = detectionExcursions(b, d, [5, 10], mulberry32(8));
     expect(c.control).not.toEqual(a.control);
+  });
+});
+
+describe('batchExcursions (D66)', () => {
+  it('tags each report with its concept and shares one advancing rng across the batch', () => {
+    const b = bars(
+      Array.from({ length: 50 }, (_, i) => {
+        const p = 1.1 + (i % 7) * 0.0002;
+        return [p, p + 0.0005, p - 0.0005, p] as const;
+      }),
+    );
+    const refs: DetectionRef[] = [
+      {
+        id: 'sw1',
+        concept: 'SWING',
+        direction: 'BULLISH',
+        formedAt: 0,
+        confirmedAt: 0,
+        confirmedIndex: 5,
+      },
+      {
+        id: 'fv1',
+        concept: 'FVG',
+        direction: 'BEARISH',
+        formedAt: 0,
+        confirmedAt: 0,
+        confirmedIndex: 10,
+      },
+    ];
+    const a = batchExcursions(b, refs, [5], mulberry32(3));
+    expect(a.map((r) => [r.id, r.concept])).toEqual([
+      ['sw1', 'SWING'],
+      ['fv1', 'FVG'],
+    ]);
+    // A shared, advancing rng: the second report's control differs from what it would be if it
+    // (wrongly) reused the first report's rng state from scratch.
+    const soloSecond = batchExcursions(b, [refs[1]!], [5], mulberry32(3));
+    expect(a[1]!.control).not.toEqual(soloSecond[0]!.control);
+    // Deterministic for the same seed.
+    const a2 = batchExcursions(b, refs, [5], mulberry32(3));
+    expect(a2).toEqual(a);
   });
 });
 

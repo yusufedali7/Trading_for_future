@@ -732,6 +732,32 @@ export const tr = {
     } as Record<string, string>,
     stepMaxBars: (stepId: string) => `${stepId}: en fazla mum`,
   },
+  events: {
+    title: 'Olaylar',
+    intro:
+      'Yüklü veri kümesindeki her adayın (M4 + SMC) onaydan sonra ne kadar lehine/aleyhine gittiğini (MFE/MAE), rastgele bir ana göre ölçer. Aday "kesin sinyal" değildir; bu sayfa yalnızca ölçülmüş geçmiş hareketi gösterir.',
+    noData: 'Veri yoksa sonuç yok: önce bir veri kümesi yükle.',
+    scan: (n: number) => `Bu veri kümesini tara (${n} aday)`,
+    scanning: 'Taranıyor…',
+    scanned: (n: number) => `${n} olay kaydedildi.`,
+    empty: 'Bu veri kümesi için henüz taranmış olay yok.',
+    filterConcept: 'Kavram',
+    allConcepts: 'Hepsi',
+    table: {
+      concept: 'Kavram',
+      direction: 'Yön',
+      confirmedAt: 'Onay',
+      horizon: (n: number) => `${n} mum sonra`,
+      mfe: 'Lehine (MFE)',
+      mae: 'Aleyhine (MAE)',
+      control: 'Rastgele kontrol',
+      pending: 'henüz bilinmiyor',
+    },
+    summaryTitle: (concept: string) => `${concept} özeti`,
+    summaryRow: (n: number, avgMfe: string, avgMae: string, controlMfe: string) =>
+      `${n} olay · ort. lehine ${avgMfe} · ort. aleyhine ${avgMae} · rastgele kontrol lehine ${controlMfe}`,
+    lowSample: '30’dan az örnek — yalnızca gözlem, sonuç değil.',
+  },
   backtest: {
     title: 'Backtest',
     noData: (inst: string) =>
@@ -853,6 +879,7 @@ export const tr = {
       RESEARCH: 'Araştırma',
       PAPER: 'Paper',
       CONCEPTS: 'Kavramlar',
+      EVENTS: 'Olaylar',
     },
     navLabel: 'Görünüm',
     title: 'İşlem günlüğü',
