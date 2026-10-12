@@ -48,9 +48,11 @@ import { ResearchPage } from './features/research/ResearchPage';
 import { BackupDialog } from './features/backup/BackupDialog';
 import { ConceptsPage, type ShowTarget } from './features/concepts/ConceptsPage';
 import { EventsPage } from './features/events/EventsPage';
+import { SignalsPage } from './features/live/SignalsPage';
 import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
 import { useMt5Feed } from './features/paper/use-mt5-feed';
+import { refreshDrafts } from './features/live/refresh-drafts';
 import { SessionManager } from './features/sessions/SessionManager';
 import {
   createMemorySessionsRepo,
@@ -79,7 +81,8 @@ export interface AppProps {
   newId?: () => string;
 }
 
-type View = 'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER' | 'EVENTS';
+type View =
+  'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER' | 'EVENTS' | 'SIGNALS';
 const VIEWS: readonly View[] = [
   'CHART',
   'CONCEPTS',
@@ -88,6 +91,7 @@ const VIEWS: readonly View[] = [
   'RESEARCH',
   'PAPER',
   'EVENTS',
+  'SIGNALS',
 ];
 
 const isTyping = (target: EventTarget | null) =>
@@ -186,15 +190,30 @@ export function App({
     void refresh();
   }, [refresh]);
 
-  // Only the dataset list: a background feed sync must not reload (and overwrite) preferences.
-  const refreshDatasets = useCallback(async () => setDatasets(await repo.listDatasets()), [repo]);
+  // A background feed sync must not reload (and overwrite) preferences - only the dataset list,
+  // plus (M11, D70) any signal drafts due for the instrument that just synced.
+  const paperFeedInstrument = settings?.paperFeed?.instrument;
+  const onMt5Synced = useCallback(async () => {
+    const list = await repo.listDatasets();
+    setDatasets(list);
+    if (!paperFeedInstrument) return;
+    const meta = list.find((d) => d.instrument === paperFeedInstrument);
+    if (!meta) return;
+    await refreshDrafts({
+      meta,
+      strategies: strategyRepo,
+      research: researchRepo,
+      source: candleSource,
+      now,
+    });
+  }, [repo, paperFeedInstrument, strategyRepo, researchRepo, candleSource, now]);
   const feed = useMt5Feed({
     client: mt5Client,
     repo,
     now,
     config: settings?.paperFeed ?? null,
     onConfig: (paperFeed) => update({ paperFeed }),
-    onSynced: refreshDatasets,
+    onSynced: onMt5Synced,
   });
 
   const active = datasets?.find((d) => d.id === settings?.datasetId) ?? datasets?.[0] ?? null;
@@ -514,6 +533,9 @@ export function App({
             displayTz={settings.displayTz}
             now={now}
           />
+        )}
+        {view === 'SIGNALS' && settings && (
+          <SignalsPage research={researchRepo} displayTz={settings.displayTz} now={now} />
         )}
         {view === 'PAPER' && settings && (
           <PaperPage

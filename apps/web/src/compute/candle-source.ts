@@ -1,5 +1,6 @@
 import {
   allSessionDefs,
+  atr,
   backtestStats,
   bucketStart,
   canonicalJson,
@@ -7,6 +8,7 @@ import {
   computeSmc,
   detectAllChartPatterns,
   detectSwings,
+  draftFor,
   findSetups,
   runBacktest,
   toBars,
@@ -28,11 +30,13 @@ import {
   type ChartPattern,
   type DataSetMeta,
   type FeatureSet,
+  type LotRules,
   type PeriodLevel,
   type ResampledCandle,
   type SessionDefinition,
   type SessionLevels,
   type Setup,
+  type SignalDraft,
   type SmcSet,
   type StrategySpec,
   type SimOptions,
@@ -72,6 +76,13 @@ export interface BacktestOutcome {
   stats: BacktestStats;
 }
 
+/** New signal drafts since a watch started (M11, D70): same setups the chart/backtest already see. */
+export interface DraftScan {
+  drafts: SignalDraft[];
+  /** Setups confirmed since `since` that didn't become a draft (invalid order / size too small). */
+  skipped: number;
+}
+
 /** Supplies chart data for a dataset; heavy work may run in a worker. */
 export interface CandleSource {
   /** `userSessions`: the user's own session definitions (D35), shown and used next to the built-in ones. */
@@ -87,6 +98,16 @@ export interface CandleSource {
   backtest(meta: DataSetMeta, spec: StrategySpec, config: BacktestConfig): Promise<BacktestOutcome>;
   /** Every setup of a strategy on the whole dataset (for the chart). */
   setups(meta: DataSetMeta, spec: StrategySpec): Promise<Setup[]>;
+  /** Signal drafts (M11, D70) for setups confirmed strictly after `since`. */
+  draftsSince(
+    meta: DataSetMeta,
+    spec: StrategySpec,
+    strategyId: string,
+    strategyVersion: number,
+    since: UtcMs,
+    equity: number,
+    lots: LotRules,
+  ): Promise<DraftScan>;
   dispose(): void;
 }
 
@@ -276,6 +297,33 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         patterns,
       );
     },
+    async draftsSince(meta, spec, strategyId, strategyVersion, since, equity, lots) {
+      const { candles, features, smc, patterns } = await forStrategy(meta, spec);
+      const inst = getInstrument(meta.instrument);
+      const b = toBars(candles, inst, spec.timeframe);
+      const all = findSetups(spec, b, features, smc, patterns);
+      const fresh = all.filter((s) => s.signalAt > since);
+      const atrSeries = spec.stop.type === 'ATR_MULTIPLE' ? atr(b, spec.stop.period) : null;
+      const drafts: SignalDraft[] = [];
+      let skipped = 0;
+      for (const s of fresh) {
+        const atrAtSignal = atrSeries ? (atrSeries[s.signalIndex] ?? null) : null;
+        const result = draftFor(
+          spec,
+          strategyId,
+          strategyVersion,
+          inst,
+          s,
+          b.c[s.signalIndex]!,
+          equity,
+          lots,
+          atrAtSignal,
+        );
+        if ('draft' in result) drafts.push(result.draft);
+        else skipped++;
+      }
+      return { drafts, skipped };
+    },
     dispose() {
       cached = null;
       strategyCache = null;
@@ -307,7 +355,18 @@ export type CandleRequest =
       spec: StrategySpec;
       config: BacktestConfig;
     }
-  | { id: number; method: 'setups'; meta: DataSetMeta; spec: StrategySpec };
+  | { id: number; method: 'setups'; meta: DataSetMeta; spec: StrategySpec }
+  | {
+      id: number;
+      method: 'draftsSince';
+      meta: DataSetMeta;
+      spec: StrategySpec;
+      strategyId: string;
+      strategyVersion: number;
+      since: UtcMs;
+      equity: number;
+      lots: LotRules;
+    };
 
 type Response =
   { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };
@@ -324,6 +383,16 @@ function dispatch(source: CandleSource, req: CandleRequest): Promise<unknown> {
       return source.backtest(req.meta, req.spec, req.config);
     case 'setups':
       return source.setups(req.meta, req.spec);
+    case 'draftsSince':
+      return source.draftsSince(
+        req.meta,
+        req.spec,
+        req.strategyId,
+        req.strategyVersion,
+        req.since,
+        req.equity,
+        req.lots,
+      );
   }
 }
 
@@ -366,6 +435,17 @@ export function createWorkerCandleSource(): CandleSource {
     backtest: (meta, spec, config) =>
       call<BacktestOutcome>({ method: 'backtest', meta, spec, config }),
     setups: (meta, spec) => call<Setup[]>({ method: 'setups', meta, spec }),
+    draftsSince: (meta, spec, strategyId, strategyVersion, since, equity, lots) =>
+      call<DraftScan>({
+        method: 'draftsSince',
+        meta,
+        spec,
+        strategyId,
+        strategyVersion,
+        since,
+        equity,
+        lots,
+      }),
     dispose: () => worker.terminate(),
   };
 }

@@ -438,6 +438,7 @@ export const tr = {
     validatedNote:
       '“Örneklemde doğrulandı” yalnızca “belirli veri ve koşullarda şu sonuç gözlendi” demektir; gelecek için garanti değildir. Bu proje gerçek parayla işlem yapmaz.',
     watch: 'İzlemeye al',
+    watchEquity: 'Hesap bakiyesi (USD, lot hesabı için)',
     unwatch: 'İzlemeyi bırak',
     watchNeedsStatus: 'İzlemeye almak için durum en az "Test ediliyor" olmalı.',
     watchedSince: (when: string) => `${when} tarihinden beri izleniyor`,
@@ -816,6 +817,26 @@ export const tr = {
       `${n} olay · ort. lehine ${avgMfe} · ort. aleyhine ${avgMae} · rastgele kontrol lehine ${controlMfe}`,
     lowSample: '30’dan az örnek — yalnızca gözlem, sonuç değil.',
   },
+  signals: {
+    title: 'Sinyaller',
+    intro:
+      'İzlenen stratejilerin ürettiği sinyal taslakları: yön, giriş, stop, hedef ve lot — her biri backtest ile aynı hesapla üretildi. Bunlar emir değil, "şu koşullar sağlandı" bilgisidir. Emri her zaman sen verirsin.',
+    empty:
+      'Henüz sinyal taslağı yok. Bir strateji izlemeye alındıktan sonra, MT5 verisi güncellendikçe burada görünür.',
+    expired: 'Süresi doldu',
+    active: 'Aktif',
+    conflict: 'Çakışan sinyal',
+    conflictWith: (name: string) => `${name} ile zıt yönde çakışıyor`,
+    direction: { LONG: 'Long', SHORT: 'Short' },
+    entry: 'Giriş',
+    stop: 'Stop',
+    target: 'Hedef',
+    lots: 'Lot',
+    risk: (usd: number) => `Risk ${usd.toLocaleString('tr-TR')} USD`,
+    createdAt: 'Oluşturuldu',
+    expiresAt: 'Geçerlilik',
+    conditions: 'Sağlanan koşullar',
+  },
   backtest: {
     title: 'Backtest',
     noData: (inst: string) =>
@@ -938,6 +959,7 @@ export const tr = {
       PAPER: 'Paper',
       CONCEPTS: 'Kavramlar',
       EVENTS: 'Olaylar',
+      SIGNALS: 'Sinyaller',
     },
     navLabel: 'Görünüm',
     title: 'İşlem günlüğü',

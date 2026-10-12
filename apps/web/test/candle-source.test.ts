@@ -183,6 +183,44 @@ describe('replay through the candle source', () => {
     await expect(src.backtest(meta2, { ...spec, instrument: 'XAUUSD' }, config)).rejects.toThrow();
   });
 
+  it('draftsSince (D70) only turns setups confirmed after the watch start into drafts', async () => {
+    const src = await source2();
+    const spec = {
+      ...defaultSpec(),
+      timeframe: '1m' as const,
+      steps: [{ id: 'low', type: 'SWING' as const, kind: 'LOW' as const }],
+      stop: { type: 'FIXED_PIPS' as const, pips: 3 },
+    };
+    const all = await src.setups(meta2, spec);
+    expect(all.length).toBeGreaterThan(1);
+    const lots = { lotStep: 0.01, minLot: 0.01 };
+
+    const fromStart = await src.draftsSince(meta2, spec, 'strat1', 1, 0, 10_000, lots);
+    expect(fromStart.drafts.length).toBeGreaterThan(0);
+    expect(fromStart.drafts.length + fromStart.skipped).toBe(all.length);
+    expect(
+      fromStart.drafts.every((d) => d.strategyId === 'strat1' && d.strategyVersion === 1),
+    ).toBe(true);
+
+    const afterAll = await src.draftsSince(
+      meta2,
+      spec,
+      'strat1',
+      1,
+      all[all.length - 1]!.signalAt,
+      10_000,
+      lots,
+    );
+    expect(afterAll.drafts).toEqual([]);
+    expect(afterAll.skipped).toBe(0);
+
+    if (all.length > 1) {
+      const midSince = all[0]!.signalAt;
+      const partial = await src.draftsSince(meta2, spec, 'strat1', 1, midSince, 10_000, lots);
+      expect(partial.drafts.length + partial.skipped).toBeLessThan(all.length);
+    }
+  });
+
   it('simulates a trade with the series it holds, never past the cursor', async () => {
     const src = await source2();
     const order = {

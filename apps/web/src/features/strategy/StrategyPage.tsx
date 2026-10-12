@@ -22,6 +22,8 @@ import { StrategyBuilder } from './StrategyBuilder';
 import { specSummary } from './spec-summary';
 
 const t = tr.strategy;
+/** Empty input → NaN, so a blank/garbled equity is rejected instead of silently treated as 0. */
+const num = (v: string) => (v.trim() === '' ? NaN : Number(v.replace(',', '.')));
 
 export interface StrategyPageProps {
   strategies: StrategyRepo;
@@ -127,6 +129,7 @@ export function StrategyPage(p: StrategyPageProps) {
     setVersions((vs) => vs.map((v) => (v.version === next.version ? next : v)));
   };
 
+  const [watchEquity, setWatchEquity] = useState('10000');
   const watchId = (strategyId: string, v: number) => `${strategyId}:${v}`;
   const activeWatch = (strategyId: string, v: number) =>
     watched.find((w) => w.id === watchId(strategyId, v) && w.stoppedAt === null) ?? null;
@@ -138,6 +141,8 @@ export function StrategyPage(p: StrategyPageProps) {
     if (current) {
       await p.research.unwatch(id, p.now());
     } else {
+      const startEquity = num(watchEquity);
+      if (!(startEquity > 0)) return;
       await p.research.watch({
         id,
         strategyId: strategy.id,
@@ -145,6 +150,7 @@ export function StrategyPage(p: StrategyPageProps) {
         instrument: version.spec.instrument,
         watchedSince: p.now(),
         stoppedAt: null,
+        startEquity,
         createdAt: p.now(),
       });
     }
@@ -298,10 +304,25 @@ export function StrategyPage(p: StrategyPageProps) {
                   </div>
                   <p className="hint">{t.validatedNote}</p>
                   <div className="field-row">
+                    {isWatchable(version.status) && !activeWatch(strategy.id, version.version) && (
+                      <label className="inline-field">
+                        <span>{t.watchEquity}</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step="any"
+                          value={watchEquity}
+                          onChange={(e) => setWatchEquity(e.target.value)}
+                        />
+                      </label>
+                    )}
                     <button
                       type="button"
                       className="btn"
-                      disabled={!isWatchable(version.status)}
+                      disabled={
+                        !isWatchable(version.status) ||
+                        (!activeWatch(strategy.id, version.version) && !(num(watchEquity) > 0))
+                      }
                       onClick={() => void toggleWatch()}
                     >
                       {activeWatch(strategy.id, version.version) ? t.unwatch : t.watch}

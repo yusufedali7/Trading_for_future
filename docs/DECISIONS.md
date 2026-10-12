@@ -536,6 +536,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 2 yeni depolama testi (`describe.each` ile hem Dexie hem bellek-içi repo - izleme/bırakma, aynı versiyonu tekrar izlemenin önceki kaydın üzerine yazması) + gömülü tarayıcıda canlı kontrol (durum "Fikir"ken düğme devre dışı ve doğru notu gösteriyor, "Test ediliyor"a geçince aktifleşiyor, tıklayınca "İzlemeyi bırak"a ve izleme zamanı notuna dönüyor, konsol hatasız). Tam paket 694/694 yeşil.
 ---
 
+## D70 — M11'in üçüncü dilimi: MT5 akışına bağlanma + "Sinyaller" arayüzü
+- **Tarih:** 2026-10-12 · **Durum:** Kabul edildi ("hadi yapalım")
+- **M11'in "canlı" kısmı burada tamamlandı:** D68'in saf hesaplama çekirdeği ve D69'un kalıcı izleme listesi artık gerçekten çalışıyor - M6.3'ün mevcut MT5 akışına (`useMt5Feed`'in `onSynced` kancası, daha önce yalnızca veri kümesi listesini tazeliyordu) bağlandı.
+- **`candle-source.ts`'e yeni `draftsSince()` metodu** (hem in-process hem worker sürümünde, `CandleRequest`/`dispatch` üzerinden - D32'den beri kurulu "her yeni işlem türü bu 5 yere eklenir" deseni): `forStrategy()`'nin zaten önbelleklediği bar/özellik/SMC/formasyon verisiyle `findSetups()` çalıştırıyor, `since`'ten sonraki kurulumları `draftFor()`'dan (D68) geçiriyor. ATR tabanlı stop'lar için `atr()` serisi de burada hesaplanıyor - D65'in `run.ts`'teki aynı deseni.
+- **`refresh-drafts.ts`** (yeni `features/live/` klasörü): bir enstrüman senkronize olunca, o enstrümandaki AKTİF izlemelerin hepsi için `draftsSince(..., watchedSince, ...)` çağrılıp sonuç kaydediliyor. **Bilerek "son görülen" durumu tutmuyor** - her senkronizasyonda `watchedSince`'ten itibaren YENİDEN hesaplanıyor; `StoredDraft.id` deterministik olduğu için bu çoğaltma değil upsert (D66/D61'in aynı deseni) - bir senkronizasyon atlanırsa ya da tekrarlanırsa sonuç yine doğru.
+- **Lot kuralları sabit tutuldu** (`{lotStep:0.01, minLot:0.01}`) - `PaperPage`'in yeni oturum formunun zaten yaptığı aynı sabitleme, yeni bir ayar yüzeyi açılmadı. **Hesap bakiyesi** izlemeye alırken tek bir sayı olarak soruluyor (`WatchedStrategy.startEquity`) - `PaperSession.startEquity`'nin aynısı.
+- **Tek-enstrümanlı kısıt, bilerek kabul edildi:** MT5 akışı (M6.3'ten beri) aynı anda yalnızca TEK enstrümanı senkronize ediyor (Paper sayfasındaki seçili enstrüman). Farklı bir enstrümanda izlenen bir strateji, akış o enstrümana çevrilene kadar güncellenmez - yeni bir kısıt değil, mevcut mimarinin zaten taşıdığı bir sınır; çoklu enstrüman akışı ayrı bir karar.
+- **"Sinyaller" sayfası** (`features/live/SignalsPage.tsx`): tüm kayıtlı taslakları listeliyor, 15 saniyede bir kendini tazeliyor (süresi dolanları "Süresi doldu" yapmak ve çakışmaları güncel tutmak için). `findConflicts()` (D68) her taslağa, çakışıyorsa karşı tarafın stratejisini adıyla gösteren bir uyarı ekliyor - hiçbir taslak gizlenmiyor/sıralanmıyor.
+- **Doğrulama:** 1 yeni `candle-source` testi (`draftsSince`'in `since`'ten önce/sonrasını doğru ayırdığı, gerçek `findSetups`/`draftFor` ile aynı sonucu verdiği) + gömülü tarayıcıda canlı kontrol (Sinyaller sekmesi boş durumda doğru mesajı gösteriyor, "İzlemeye al" artık hesap bakiyesi alanıyla birlikte çalışıyor, konsol hatasız). Tam paket 695/695 yeşil (95 dosya).
+- **Kalan (ayrı kararlar):** webhook (n8n tarafı netleşince), çoklu enstrüman akışı, 1. açık sorunun (`MIN_WATCHABLE_STATUS`) kullanıcı araştırması bitince güncellenmesi.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

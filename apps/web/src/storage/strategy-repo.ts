@@ -8,6 +8,7 @@ import {
   type Hypothesis,
   type LotRules,
   type OutcomeConcept,
+  type SignalDraft,
   type StoredBacktest,
   type Strategy,
   type StrategyStatus,
@@ -64,6 +65,10 @@ export interface ResearchRepo {
   listWatched(): Promise<WatchedStrategy[]>;
   watch(w: WatchedStrategy): Promise<void>;
   unwatch(id: string, stoppedAt: UtcMs): Promise<void>;
+  /** Signal drafts produced for watched strategies (M11, D70). */
+  listDrafts(): Promise<StoredDraft[]>;
+  /** Upserts by id (deterministic per strategy+version+setup, same shape as `saveEvents`). */
+  saveDrafts(drafts: readonly StoredDraft[]): Promise<void>;
 }
 
 /**
@@ -80,7 +85,18 @@ export interface WatchedStrategy {
   watchedSince: UtcMs;
   /** null while still being watched. */
   stoppedAt: UtcMs | null;
+  /** Account balance signal-draft lot sizing is computed from (same convention as `PaperSession`,
+   * which hardcodes `lots: { lotStep: 0.01, minLot: 0.01 }` - D70 does the same). */
+  startEquity: number;
   createdAt: UtcMs;
+}
+
+/** A `SignalDraft` (engine, D68) as stored, so it survives a page reload. */
+export interface StoredDraft {
+  id: string;
+  strategyName: string;
+  draft: SignalDraft;
+  savedAt: UtcMs;
 }
 
 /**
@@ -153,6 +169,7 @@ class ResearchDb extends Dexie {
   paperSessions!: Table<PaperSession, string>;
   events!: Table<EventRecord, string>;
   watched!: Table<WatchedStrategy, string>;
+  drafts!: Table<StoredDraft, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
@@ -181,6 +198,15 @@ class ResearchDb extends Dexie {
       paperSessions: 'id',
       events: 'id, datasetId, concept',
       watched: 'id, strategyId',
+    });
+    // v6 (M11/D70): the signal drafts themselves.
+    this.version(6).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+      paperSessions: 'id',
+      events: 'id, datasetId, concept',
+      watched: 'id, strategyId',
+      drafts: 'id',
     });
   }
 }
@@ -314,6 +340,13 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async unwatch(id, stoppedAt) {
       await db.watched.update(id, { stoppedAt });
     },
+    listDrafts: async () =>
+      (await db.drafts.toArray()).sort(
+        (a, b) => b.draft.createdAt - a.draft.createdAt || a.id.localeCompare(b.id),
+      ),
+    async saveDrafts(list) {
+      await db.drafts.bulkPut(list as StoredDraft[]);
+    },
   };
 }
 
@@ -374,6 +407,7 @@ export function createMemoryResearchRepo(): ResearchRepo {
   const papers = new Map<string, PaperSession>();
   const events = new Map<string, EventRecord>();
   const watched = new Map<string, WatchedStrategy>();
+  const drafts = new Map<string, StoredDraft>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -417,6 +451,13 @@ export function createMemoryResearchRepo(): ResearchRepo {
     unwatch: async (id, stoppedAt) => {
       const w = watched.get(id);
       if (w) watched.set(id, { ...w, stoppedAt });
+    },
+    listDrafts: async () =>
+      [...drafts.values()].sort(
+        (a, b) => b.draft.createdAt - a.draft.createdAt || a.id.localeCompare(b.id),
+      ),
+    saveDrafts: async (list) => {
+      for (const d of list) drafts.set(d.id, d);
     },
   };
 }

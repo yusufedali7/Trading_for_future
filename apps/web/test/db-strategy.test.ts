@@ -172,6 +172,7 @@ describe.each(repos)('%s research repo: watched strategies (M11/D69)', (_name, m
       instrument: 'EURUSD',
       watchedSince: 10,
       stoppedAt: null,
+      startEquity: 10_000,
       createdAt: 10,
     });
     expect(await r.listWatched()).toMatchObject([{ id: 's1:1', stoppedAt: null }]);
@@ -190,6 +191,7 @@ describe.each(repos)('%s research repo: watched strategies (M11/D69)', (_name, m
       instrument: 'EURUSD',
       watchedSince: 10,
       stoppedAt: null,
+      startEquity: 10_000,
       createdAt: 10,
     });
     await r.unwatch('s1:1', 20);
@@ -200,6 +202,7 @@ describe.each(repos)('%s research repo: watched strategies (M11/D69)', (_name, m
       instrument: 'EURUSD',
       watchedSince: 30,
       stoppedAt: null,
+      startEquity: 10_000,
       createdAt: 30,
     });
     const list = await r.listWatched();
