@@ -382,6 +382,8 @@ export { randomEntryBaseline } from './backtest/random-baseline';
 export type { RandomBaselineInput } from './backtest/random-baseline';
 export { CATALOG_STRATEGIES } from './catalog/strategies';
 export type { CatalogStrategy } from './catalog/strategies';
+export { draftFor, findConflicts, isWatchable, MIN_WATCHABLE_STATUS } from './live/signal-draft';
+export type { DraftConflict, DraftSkipReason, SignalDraft } from './live/signal-draft';
 export { batchExcursions, detectionExcursions, summarizeExcursions } from './research/excursion';
 export type {
   ConceptExcursionReport,

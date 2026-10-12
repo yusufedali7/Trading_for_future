@@ -22,11 +22,11 @@ Kaydedilmiş bir strateji versiyonunun koşullarını canlı ya da paper veride 
 
 ## Açık sorular — önce bunlar netleşmeli
 
-- Hangi stratejiler bu bota bağlanabilir? Yalnızca `VALIDATED_ON_SAMPLE` ve sonrası mı, yoksa `TESTING` de olur mu?
-- Bir strateji aynı anda birden fazla enstrümanda mı izlenecek?
-- Sinyal taslağı ne kadar süre geçerli kalır (stratejideki `expireBars` gibi)?
-- Bildirim kanalı yalnızca uygulama içi mi, yoksa n8n/Telegram gibi dışarı da mı?
-- İki strateji aynı anda çakışan (farklı yönde) sinyal verirse arayüzde nasıl gösterilir?
-- MT5 köprüsü salt okunur kalmaya devam mı edecek, yoksa ileride "bu taslağı MT5'e emir taslağı olarak gönder, kullanıcı MT5 içinde onaylamadan tetiklenmez" gibi yarı otomatik bir adım düşünülecek mi? (Bu sorunun cevabı CLAUDE.md'deki "gerçek emir yok" kuralını değiştirmez, yalnızca arayüz akışını netleştirir.)
+- **Hangi stratejiler bu bota bağlanabilir?** — **Açık, kullanıcı araştırıyor (2026-10-12).** Geçici/değiştirilebilir varsayım: yalnızca `TESTING` ve sonrası (`IDEA`/`RESEARCH` asla) — bu eşik kodda tek bir sabit olarak tutulacak, kullanıcı araştırmasını bitirince tek satırla değişebilir (örn. `VALIDATED_ON_SAMPLE`'a yükseltilebilir).
+- **Bir strateji aynı anda birden fazla enstrümanda mı izlenecek?** — **Cevaplandı:** Hayır, gerek yok. Bunun yerine birden fazla FARKLI strateji versiyonu (her biri kendi tek enstrümanıyla, backtest'i o enstrümanda yapılmış) aynı anda izlenebilir — bu zaten motorun doğal çalışma şekli, ekstra bir mekanizma gerektirmiyor. ("Aynı kuralı başka bir enstrümanda dene" istenirse, o enstrüman için ayrı bir versiyon oluşturup kendi verisiyle yeniden backtest etmek gerekir — kural 1 gereği, hiç ölçülmemiş bir enstrümana rastgele uygulanmaz.)
+- **Sinyal taslağı ne kadar süre geçerli kalır?** — **Cevaplandı (motor zaten çözüyor):** Stratejinin kendi `entry` kuralı zaten bunu taşıyor — `LIMIT_AT`/`STOP_AT` girişlerin `expireBars`'ı taslağın geçerlilik süresi; `MARKET` girişte taslak sinyal barının kapanışından hemen sonraki bar için geçerlidir (ek bir "taslak TTL" kavramı icat edilmedi).
+- **Bildirim kanalı** — **Cevaplandı:** Kullanıcı n8n → Telegram kurguluyor (kendi tarafında). Uygulama tarafı: her yeni sinyal taslağında kullanıcının verdiği bir URL'e JSON POST eden basit bir webhook.
+- **İki strateji aynı anda çakışan (farklı yönde) sinyal verirse arayüzde nasıl gösterilir?** — **Cevaplandı:** Hiçbir taslak gizlenmez/bastırılmaz (kural 6'nın ruhu — sistem "hangisi doğru" demez). Çakışma tanımı: aynı enstrüman + aynı anda aktif (süresi dolmamış) iki taslak + zıt yön. Her ikisine de "Çakışan sinyal" uyarısı + kısa açıklama eklenir; bu bilgi webhook'a da taşınır.
+- **MT5 köprüsü salt okunur mu kalacak?** — **Cevaplandı:** Evet, değişmiyor; yarı otomatik MT5 gönderimi gündemde değil ("otomatik emir gönderme işine daha çok var").
 
-Bu liste tam değil; başka soru çıkarsa buraya eklenir.
+Bu liste tam değil; başka soru çıkarsa buraya eklenir. **2026-10-12:** kullanıcı "1. soruyu araştıracağım, diğerlerine başla, sinyal taslağını istediğin gibi tasarla" dedi — bu yüzden aşağıdaki ilk dilim bu cevaplarla, 1. sorunun geçici varsayımıyla kuruldu (bkz. D68).
