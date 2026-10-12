@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   CATALOG_STRATEGIES,
+  isWatchable,
   STRATEGY_STATUSES,
   defaultSpec,
   newVersion,
@@ -15,7 +16,7 @@ import type { CandleSource } from '../../compute/candle-source';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
 import type { UserSession } from '../../storage/sessions-repo';
-import type { ResearchRepo, StrategyRepo } from '../../storage/strategy-repo';
+import type { ResearchRepo, StrategyRepo, WatchedStrategy } from '../../storage/strategy-repo';
 import { BacktestPanel } from '../backtest/BacktestPanel';
 import { StrategyBuilder } from './StrategyBuilder';
 import { specSummary } from './spec-summary';
@@ -51,14 +52,20 @@ export function StrategyPage(p: StrategyPageProps) {
   const [versionNo, setVersionNo] = useState<number | null>(null);
   const [mode, setMode] = useState<Mode>({ kind: 'VIEW' });
   const [statusNote, setStatusNote] = useState('');
+  const [watched, setWatched] = useState<WatchedStrategy[]>([]);
 
   const reload = useCallback(
     async () => setList(await p.strategies.listStrategies()),
     [p.strategies],
   );
+  const reloadWatched = useCallback(
+    async () => setWatched(await p.research.listWatched()),
+    [p.research],
+  );
   useEffect(() => {
     void reload();
-  }, [reload]);
+    void reloadWatched();
+  }, [reload, reloadWatched]);
   useEffect(() => {
     if (!selectedId) return;
     void p.strategies.listVersions(selectedId).then((vs) => {
@@ -118,6 +125,30 @@ export function StrategyPage(p: StrategyPageProps) {
     );
     setStatusNote('');
     setVersions((vs) => vs.map((v) => (v.version === next.version ? next : v)));
+  };
+
+  const watchId = (strategyId: string, v: number) => `${strategyId}:${v}`;
+  const activeWatch = (strategyId: string, v: number) =>
+    watched.find((w) => w.id === watchId(strategyId, v) && w.stoppedAt === null) ?? null;
+
+  const toggleWatch = async () => {
+    if (!strategy || !version) return;
+    const id = watchId(strategy.id, version.version);
+    const current = activeWatch(strategy.id, version.version);
+    if (current) {
+      await p.research.unwatch(id, p.now());
+    } else {
+      await p.research.watch({
+        id,
+        strategyId: strategy.id,
+        strategyVersion: version.version,
+        instrument: version.spec.instrument,
+        watchedSince: p.now(),
+        stoppedAt: null,
+        createdAt: p.now(),
+      });
+    }
+    await reloadWatched();
   };
 
   if (list === null) return <p className="muted">{tr.app.loading}</p>;
@@ -266,6 +297,29 @@ export function StrategyPage(p: StrategyPageProps) {
                     </label>
                   </div>
                   <p className="hint">{t.validatedNote}</p>
+                  <div className="field-row">
+                    <button
+                      type="button"
+                      className="btn"
+                      disabled={!isWatchable(version.status)}
+                      onClick={() => void toggleWatch()}
+                    >
+                      {activeWatch(strategy.id, version.version) ? t.unwatch : t.watch}
+                    </button>
+                    {!isWatchable(version.status) && (
+                      <span className="hint">{t.watchNeedsStatus}</span>
+                    )}
+                    {activeWatch(strategy.id, version.version) && (
+                      <span className="hint">
+                        {t.watchedSince(
+                          formatTime(
+                            activeWatch(strategy.id, version.version)!.watchedSince,
+                            p.displayTz,
+                          ),
+                        )}
+                      </span>
+                    )}
+                  </div>
                   <details>
                     <summary>{tr.levels.history}</summary>
                     <ul className="history">

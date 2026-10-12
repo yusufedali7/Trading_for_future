@@ -437,6 +437,10 @@ export const tr = {
     },
     validatedNote:
       '“Örneklemde doğrulandı” yalnızca “belirli veri ve koşullarda şu sonuç gözlendi” demektir; gelecek için garanti değildir. Bu proje gerçek parayla işlem yapmaz.',
+    watch: 'İzlemeye al',
+    unwatch: 'İzlemeyi bırak',
+    watchNeedsStatus: 'İzlemeye almak için durum en az "Test ediliyor" olmalı.',
+    watchedSince: (when: string) => `${when} tarihinden beri izleniyor`,
     hash: (h: string) => `içerik özeti ${h.slice(0, 10)}`,
     builder: {
       title: 'Kurallar',

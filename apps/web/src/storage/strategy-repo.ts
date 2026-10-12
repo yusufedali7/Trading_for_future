@@ -60,6 +60,27 @@ export interface ResearchRepo {
   listEvents(datasetId?: string): Promise<EventRecord[]>;
   /** Upserts by id (deterministic per dataset+timeframe+detection, D66) - re-scanning replaces. */
   saveEvents(events: readonly EventRecord[]): Promise<void>;
+  /** Strategy versions currently (or formerly) watched for signal drafts (M11, D69). */
+  listWatched(): Promise<WatchedStrategy[]>;
+  watch(w: WatchedStrategy): Promise<void>;
+  unwatch(id: string, stoppedAt: UtcMs): Promise<void>;
+}
+
+/**
+ * One strategy version marked "izlemeye al" (M11, D69): only setups confirmed after
+ * `watchedSince` should ever produce a signal draft - mirrors `PaperSession.startedAt`'s "nothing
+ * retroactive" rule. `id` is `strategyId:strategyVersion` (one watch per version at a time;
+ * watching again after unwatching overwrites the previous row via `watch()`'s upsert).
+ */
+export interface WatchedStrategy {
+  id: string;
+  strategyId: string;
+  strategyVersion: number;
+  instrument: string;
+  watchedSince: UtcMs;
+  /** null while still being watched. */
+  stoppedAt: UtcMs | null;
+  createdAt: UtcMs;
 }
 
 /**
@@ -131,6 +152,7 @@ class ResearchDb extends Dexie {
   hypotheses!: Table<Hypothesis, string>;
   paperSessions!: Table<PaperSession, string>;
   events!: Table<EventRecord, string>;
+  watched!: Table<WatchedStrategy, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
@@ -151,6 +173,14 @@ class ResearchDb extends Dexie {
       hypotheses: 'id, strategyId',
       paperSessions: 'id',
       events: 'id, datasetId, concept',
+    });
+    // v5 (M11/D69): watched strategies (signal drafts).
+    this.version(5).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+      paperSessions: 'id',
+      events: 'id, datasetId, concept',
+      watched: 'id, strategyId',
     });
   }
 }
@@ -277,6 +307,13 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async saveEvents(events) {
       await db.events.bulkPut(events as EventRecord[]);
     },
+    listWatched: async () => (await db.watched.toArray()).sort((a, b) => a.createdAt - b.createdAt),
+    async watch(w) {
+      await db.watched.put(w);
+    },
+    async unwatch(id, stoppedAt) {
+      await db.watched.update(id, { stoppedAt });
+    },
   };
 }
 
@@ -336,6 +373,7 @@ export function createMemoryResearchRepo(): ResearchRepo {
   const hypotheses = new Map<string, Hypothesis>();
   const papers = new Map<string, PaperSession>();
   const events = new Map<string, EventRecord>();
+  const watched = new Map<string, WatchedStrategy>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -371,6 +409,14 @@ export function createMemoryResearchRepo(): ResearchRepo {
         .sort((a, b) => b.scannedAt - a.scannedAt || a.id.localeCompare(b.id)),
     saveEvents: async (list) => {
       for (const e of list) events.set(e.id, e);
+    },
+    listWatched: async () => [...watched.values()].sort((a, b) => a.createdAt - b.createdAt),
+    watch: async (w) => {
+      watched.set(w.id, w);
+    },
+    unwatch: async (id, stoppedAt) => {
+      const w = watched.get(id);
+      if (w) watched.set(id, { ...w, stoppedAt });
     },
   };
 }

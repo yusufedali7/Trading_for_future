@@ -161,3 +161,49 @@ describe.each(repos)('%s research repo: hypotheses (v2)', (_name, make) => {
     ).toEqual([['x', { 'target.r': 3 }]]);
   });
 });
+
+describe.each(repos)('%s research repo: watched strategies (M11/D69)', (_name, make) => {
+  it('watches, lists, and unwatches by stamping stoppedAt instead of deleting', async () => {
+    const { r } = make();
+    await r.watch({
+      id: 's1:1',
+      strategyId: 's1',
+      strategyVersion: 1,
+      instrument: 'EURUSD',
+      watchedSince: 10,
+      stoppedAt: null,
+      createdAt: 10,
+    });
+    expect(await r.listWatched()).toMatchObject([{ id: 's1:1', stoppedAt: null }]);
+    await r.unwatch('s1:1', 20);
+    const after = await r.listWatched();
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ id: 's1:1', stoppedAt: 20 });
+  });
+
+  it('watching the same version again overwrites the previous row', async () => {
+    const { r } = make();
+    await r.watch({
+      id: 's1:1',
+      strategyId: 's1',
+      strategyVersion: 1,
+      instrument: 'EURUSD',
+      watchedSince: 10,
+      stoppedAt: null,
+      createdAt: 10,
+    });
+    await r.unwatch('s1:1', 20);
+    await r.watch({
+      id: 's1:1',
+      strategyId: 's1',
+      strategyVersion: 1,
+      instrument: 'EURUSD',
+      watchedSince: 30,
+      stoppedAt: null,
+      createdAt: 30,
+    });
+    const list = await r.listWatched();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject({ watchedSince: 30, stoppedAt: null });
+  });
+});

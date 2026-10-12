@@ -528,6 +528,14 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (M11'in geri kalanı, ayrı dilimler):** kalıcı izleme listesi (`trw-research`'e yeni bir alan - kendi küçük kararını hak ediyor), canlı/paper MT5 akışına bağlanıp yeni setup'ları artımlı yakalama, webhook teslimatı, "Sinyaller" arayüzü (taslak listesi + çakışma rozetleri), 1. açık sorunun kullanıcı araştırması bitince `MIN_WATCHABLE_STATUS`'un güncellenmesi.
 ---
 
+## D69 — M11'in ikinci dilimi: kalıcı izleme listesi + "İzlemeye al" düğmesi
+- **Tarih:** 2026-10-12 · **Durum:** Kabul edildi ("ardından işine devam et")
+- **Kapsam:** D68'in sinyal taslağı çekirdeğinin üstüne, hangi strateji versiyonlarının izlendiğini kalıcı tutan en küçük parça. `trw-research`'e v5 şema (`watched` tablosu, önceki versiyonlar değişmedi - D37/D39/D66'nın aynı artımlı-şema deseni). `WatchedStrategy`: `id = strategyId:version` (bir versiyon aynı anda yalnızca bir kez izlenebilir), `watchedSince`/`stoppedAt` - `PaperSession.startedAt`'ın "geriye dönük hiçbir şey saymaz" kuralının aynısı, ileride canlı akışa bağlanınca `watchedSince`'ten önceki hiçbir kurulum taslak üretmeyecek.
+- **Arayüz:** Strateji sayfasının versiyon görünümüne "İzlemeye al"/"İzlemeyi bırak" düğmesi eklendi, `isWatchable(status)` (D68) false iken devre dışı + açıklayıcı not. Yeni bir sayfa açılmadı - mevcut Strateji sayfası zaten versiyonun durumunu gösterdiği için en doğal yer burasıydı.
+- **Bilerek bu dilimde yapılmayan:** MT5 canlı/paper akışına bağlanıp `watchedSince`'ten sonraki yeni kurulumları otomatik `draftFor()`'dan geçirme, webhook teslimatı, taslakları listeleyen bir "Sinyaller" arayüzü - her biri kendi dilimi.
+- **Doğrulama:** 2 yeni depolama testi (`describe.each` ile hem Dexie hem bellek-içi repo - izleme/bırakma, aynı versiyonu tekrar izlemenin önceki kaydın üzerine yazması) + gömülü tarayıcıda canlı kontrol (durum "Fikir"ken düğme devre dışı ve doğru notu gösteriyor, "Test ediliyor"a geçince aktifleşiyor, tıklayınca "İzlemeyi bırak"a ve izleme zamanı notuna dönüyor, konsol hatasız). Tam paket 694/694 yeşil.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
