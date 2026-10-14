@@ -13,7 +13,8 @@ export type LessonAction =
   | { kind: 'OPEN_GLOSSARY'; term: string }
   | { kind: 'OPEN_CONCEPT'; concept: ConceptId }
   | { kind: 'OPEN_CHART_LAYER'; layer: FeatureLayer }
-  | { kind: 'OPEN_VIEW'; view: LessonView };
+  | { kind: 'OPEN_VIEW'; view: LessonView }
+  | { kind: 'OPEN_EXERCISE' };
 
 export interface Lesson {
   id: string;
@@ -112,6 +113,7 @@ Grafikte motorun bulduğu her swing bir **aday**dır ve oluştuğu mum ile onayl
         actions: [
           { kind: 'OPEN_CONCEPT', concept: 'SWING' },
           { kind: 'OPEN_CHART_LAYER', layer: 'SWING' },
+          { kind: 'OPEN_EXERCISE' },
         ],
       },
       {
@@ -173,6 +175,7 @@ FVG üçüncü mum kapanınca bilinir. Fiyat boşluğa geri dönüp onu doldurab
         actions: [
           { kind: 'OPEN_CONCEPT', concept: 'FVG' },
           { kind: 'OPEN_CHART_LAYER', layer: 'FVG' },
+          { kind: 'OPEN_EXERCISE' },
         ],
       },
       {

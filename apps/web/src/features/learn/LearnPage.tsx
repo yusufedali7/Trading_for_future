@@ -1,6 +1,7 @@
 import type { LessonAction } from '../../content/lessons';
 import { tr } from '../../i18n/tr';
 import { ConceptsPage, type ConceptsPageProps } from '../concepts/ConceptsPage';
+import { ExercisePage, type ExercisePageProps } from './ExercisePage';
 import { GlossaryPage } from './GlossaryPage';
 import { LearningPathPage } from './LearningPathPage';
 
@@ -15,6 +16,7 @@ export interface LearnPageProps {
   /** Glossary entry to highlight, set when a contextual term asked to open the glossary. */
   glossaryFocus: string | null;
   concepts: ConceptsPageProps;
+  exercise: ExercisePageProps;
   path: {
     completed: readonly string[];
     selectedId: string;
@@ -44,6 +46,7 @@ export function LearnPage(p: LearnPageProps) {
       {p.tab === 'PATH' && <LearningPathPage {...p.path} />}
       {p.tab === 'CONCEPTS' && <ConceptsPage {...p.concepts} />}
       {p.tab === 'GLOSSARY' && <GlossaryPage selectedId={p.glossaryFocus} />}
+      {p.tab === 'EXERCISE' && <ExercisePage {...p.exercise} />}
     </div>
   );
 }

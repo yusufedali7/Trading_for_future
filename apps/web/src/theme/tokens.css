@@ -1464,3 +1464,45 @@ input[type='number'] {
   border-bottom: 1px solid var(--border);
   background: var(--bg-panel);
 }
+
+/* --- D74: practice --- */
+.mini-candles {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.mini-candles .mini-up line,
+.mini-candles .mini-up rect {
+  stroke: var(--up);
+  fill: var(--up);
+}
+
+.mini-candles .mini-down line,
+.mini-candles .mini-down rect {
+  stroke: var(--down);
+  fill: var(--down);
+}
+
+.mini-subject {
+  fill: var(--accent);
+  opacity: 0.15;
+}
+
+.mini-cursor {
+  stroke: var(--text-muted);
+  stroke-dasharray: 4 3;
+}
+
+.mini-mark {
+  stroke: var(--accent);
+  stroke-width: 1.5;
+}
+
+.mini-zone {
+  fill: var(--accent);
+  opacity: 0.25;
+}

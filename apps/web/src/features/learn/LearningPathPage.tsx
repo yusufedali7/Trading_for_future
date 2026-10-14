@@ -17,6 +17,8 @@ function actionLabel(a: LessonAction): string {
       return t.action.layer(tr.features.layers[a.layer]);
     case 'OPEN_VIEW':
       return t.action.view(tr.journalPage.nav[a.view]);
+    case 'OPEN_EXERCISE':
+      return t.action.exercise;
   }
 }
 

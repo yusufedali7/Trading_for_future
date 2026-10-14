@@ -391,6 +391,8 @@ export type {
   ExcursionReport,
   ExcursionSummary,
 } from './research/excursion';
+export { buildQuiz } from './education/quiz';
+export type { QuizInput, QuizKind, QuizQuestion } from './education/quiz';
 export { rankCandidates } from './research/ranking';
 export type { RankCandidate, RankedCandidate } from './research/ranking';
 export {

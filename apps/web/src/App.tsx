@@ -33,7 +33,7 @@ import { isFinal, useReplayTrade } from './features/trade/use-replay-trade';
 import { Toolbar } from './features/workspace/Toolbar';
 import { tr } from './i18n/tr';
 import type { Importer } from './import/importer';
-import type { Prefs, PrefsRepo } from './storage/db-user';
+import { MAX_EXERCISE_ROUNDS, type Prefs, type PrefsRepo } from './storage/db-user';
 import type { DrawingsRepo } from './storage/drawings-repo';
 import type { JournalRepo } from './storage/journal-repo';
 import type { MarketRepo } from './storage/market-repo';
@@ -397,6 +397,9 @@ export function App({
       case 'OPEN_VIEW':
         setView(a.view);
         return;
+      case 'OPEN_EXERCISE':
+        setLearnTab('EXERCISE');
+        return;
     }
   };
 
@@ -571,6 +574,25 @@ export function App({
               tab={learnTab}
               onTab={setLearnTab}
               glossaryFocus={glossaryFocus}
+              exercise={{
+                data: active && instrument ? data : null,
+                meta: active,
+                instrument,
+                timeframe: data?.tf ?? timeframe,
+                displayTz: settings.displayTz,
+                history: settings.learning.exercises,
+                now,
+                onFinish: (round) =>
+                  update({
+                    learning: {
+                      ...settings.learning,
+                      exercises: [round, ...settings.learning.exercises].slice(
+                        0,
+                        MAX_EXERCISE_ROUNDS,
+                      ),
+                    },
+                  }),
+              }}
               path={{
                 completed: completedLessons,
                 selectedId: lessonId ?? upcoming?.id ?? LESSONS[0]!.id,

@@ -35,7 +35,21 @@ export interface LearningPrefs {
   completed: string[];
   /** The "next lesson" strip on the chart was dismissed. */
   hideHint: boolean;
+  /** Finished practice rounds (D74), newest first, at most `MAX_EXERCISE_ROUNDS`. */
+  exercises: ExerciseRound[];
 }
+
+export interface ExerciseRound {
+  at: number;
+  /** Rebuilds the same questions on the same data (rule 5). */
+  seed: number;
+  datasetId: string;
+  timeframe: Timeframe;
+  total: number;
+  correct: number;
+}
+
+export const MAX_EXERCISE_ROUNDS = 20;
 
 export interface PaperFeedPrefs {
   instrument: string;
@@ -52,7 +66,7 @@ export const DEFAULT_PREFS: Prefs = {
   paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
   lastBackupAt: null,
   indicators: DEFAULT_INDICATORS,
-  learning: { completed: [], hideHint: false },
+  learning: { completed: [], hideHint: false, exercises: [] },
 };
 
 export interface PrefsRepo {
@@ -105,11 +119,20 @@ class UserDb extends Dexie {
   }
 }
 
-function prefsRepo(db: UserDb): PrefsRepo {
-  const load = async (): Promise<Prefs> => ({
+/**
+ * Stored prefs over the defaults. `learning` is merged one level deeper: it grows fields over time
+ * (D74 added `exercises`), and prefs saved or restored from an older build must still load whole.
+ */
+function withDefaults(stored: Partial<Prefs> | undefined): Prefs {
+  return {
     ...DEFAULT_PREFS,
-    ...(await db.prefs.get('prefs'))?.value,
-  });
+    ...stored,
+    learning: { ...DEFAULT_PREFS.learning, ...stored?.learning },
+  };
+}
+
+function prefsRepo(db: UserDb): PrefsRepo {
+  const load = async (): Promise<Prefs> => withDefaults((await db.prefs.get('prefs'))?.value);
   return {
     load,
     async save(patch) {
@@ -224,7 +247,7 @@ export function createDexiePrefsRepo(options: { dbName?: string } = {}): PrefsRe
 export function createMemoryPrefsRepo(): PrefsRepo {
   let prefs = { ...DEFAULT_PREFS };
   return {
-    load: async () => ({ ...prefs }),
+    load: async () => withDefaults(prefs),
     save: async (patch) => {
       prefs = { ...prefs, ...patch };
     },

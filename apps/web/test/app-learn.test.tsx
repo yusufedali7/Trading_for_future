@@ -110,6 +110,9 @@ describe('learning path (D73)', () => {
     expect(screen.getByRole('article', { name: first!.title })).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: /FVG \(adil değer boşluğu\)/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Alıştırma yap' }));
+    expect(pressed('Alıştırma')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Öğrenme yolu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Grafikte aç: FVG' }));
     expect(pressed('Grafik')).toBe(true);
     await vi.waitFor(async () => expect((await prefs.load()).features).toContain('FVG'));
@@ -121,5 +124,46 @@ describe('learning path (D73)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ders önerisini gizle' }));
     expect(screen.queryByRole('button', { name: /Sıradaki ders/ })).toBeNull();
     await vi.waitFor(async () => expect((await prefs.load()).learning.hideHint).toBe(true));
+  });
+
+  it('runs a seeded practice round on the loaded data and keeps its score (D74)', async () => {
+    const { prefs } = await setup(true);
+    fireEvent.click(screen.getByRole('button', { name: '1m' }));
+    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('120'));
+    fireEvent.click(screen.getByRole('button', { name: 'Öğren' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Alıştırma' }));
+    fireEvent.click(screen.getByRole('button', { name: /Yeni tur başlat/ }));
+
+    let answered = 0;
+    let right = 0;
+    while (screen.queryByRole('button', { name: 'Evet' })) {
+      expect(screen.getByRole('img', { name: /Grafik/ })).toBeTruthy();
+      fireEvent.click(screen.getByRole('button', { name: 'Evet' }));
+      answered++;
+      if (screen.queryByText(/^Doğru/)) right++;
+      fireEvent.click(screen.getByRole('button', { name: /Sonraki soru|Turu bitir/ }));
+    }
+    expect(answered).toBeGreaterThan(0);
+    expect(
+      screen.getByText(`${answered} sorudan ${right} doğru (bu veride, bu turda).`),
+    ).toBeTruthy();
+    await vi.waitFor(async () => {
+      const [round] = (await prefs.load()).learning.exercises;
+      expect(round).toMatchObject({
+        datasetId: 'ds',
+        timeframe: '1m',
+        total: answered,
+        correct: right,
+      });
+      expect(Number.isInteger(round!.seed)).toBe(true);
+    });
+  });
+
+  it('asks nothing without real data (rule 1)', async () => {
+    await setup(false);
+    fireEvent.click(await screen.findByRole('button', { name: 'Öğren' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Alıştırma' }));
+    expect(screen.queryByRole('button', { name: /Yeni tur başlat/ })).toBeNull();
+    expect(screen.getByText(/gerçek veri/)).toBeTruthy();
   });
 });

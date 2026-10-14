@@ -230,7 +230,46 @@ export const tr = {
   },
   learn: {
     title: 'Öğren',
-    tabs: { PATH: 'Öğrenme yolu', CONCEPTS: 'Kavramlar', GLOSSARY: 'Sözlük' },
+    tabs: {
+      PATH: 'Öğrenme yolu',
+      CONCEPTS: 'Kavramlar',
+      GLOSSARY: 'Sözlük',
+      EXERCISE: 'Alıştırma',
+    },
+    exercise: {
+      title: 'Alıştırma',
+      intro:
+        'Motorun tanımlarını kendi verinde tanımayı dene. Her soru yalnızca o ana kadar kapanmış mumları gösterir; cevapladıktan sonra grafik, cevabın belli olduğu muma kadar ilerler. Skor bu verideki isabetindir, bir başarı tahmini değildir.',
+      noData:
+        'Alıştırma yalnızca yüklü gerçek veriyle yapılır: önce bir veri kümesi içe aktar ve grafikte aç.',
+      tooFew:
+        'Bu veride ve zaman diliminde soru üretecek kadar kapanmış mum yok; daha uzun bir veri ya da daha küçük bir zaman dilimi dene.',
+      source: (inst: string, tf: string) =>
+        `${inst} · ${tf} (grafikte seçili veri ve zaman dilimi)`,
+      start: (n: number) => `Yeni tur başlat (${n} soru)`,
+      progress: (i: number, n: number) => `Soru ${i} / ${n}`,
+      question: {
+        HIGH: 'İşaretli mum, sağındaki mumlar kapanınca swing tepe olarak onaylanacak mı?',
+        LOW: 'İşaretli mum, sağındaki mumlar kapanınca swing dip olarak onaylanacak mı?',
+        BULLISH: 'Son kapanan üç mumda (işaretli olan ortadaki) yükseliş yönlü bir FVG var mı?',
+        BEARISH: 'Son kapanan üç mumda (işaretli olan ortadaki) düşüş yönlü bir FVG var mı?',
+      },
+      yes: 'Evet',
+      no: 'Hayır',
+      revealSwing: (correct: boolean, yes: boolean, n: number) =>
+        `${correct ? 'Doğru' : 'Yanlış'}. ${yes ? `Sağındaki ${n} mum kapandı ve hiçbiri onu aşmadı: motor bu mumu swing olarak onayladı.` : `Sağındaki ${n} mum içinde onu aşan bir mum geldi (ya da solundakiler şartı karşılamadı): swing olarak onaylanmadı.`}`,
+      revealFvg: (correct: boolean, yes: boolean) =>
+        `${correct ? 'Doğru' : 'Yanlış'}. ${yes ? 'Birinci mumla üçüncü mum arasında boşluk kaldı: motor bunu aday FVG olarak işaretledi.' : 'Birinci ve üçüncü mumun fitilleri arasında bu yönde boşluk yok: FVG değil.'}`,
+      next: 'Sonraki soru',
+      finish: 'Turu bitir',
+      score: (n: number, right: number) => `${n} sorudan ${right} doğru (bu veride, bu turda).`,
+      seed: (seed: number) => `Tohum ${seed}: aynı veri ve tohum aynı soruları üretir.`,
+      again: 'Yeni tur',
+      history: 'Önceki turlar',
+      historyRow: (when: string, tf: string, right: number, n: number) =>
+        `${when} · ${tf} · ${n} sorudan ${right} doğru`,
+      chart: (n: number) => `Grafik: son ${n} kapanmış mum, sorulan mum işaretli`,
+    },
     path: {
       title: 'Öğrenme yolu',
       intro:
@@ -250,6 +289,7 @@ export const tr = {
         concept: (name: string) => `Kavram: ${name}`,
         layer: (name: string) => `Grafikte aç: ${name}`,
         view: (name: string) => `${name} sayfasını aç`,
+        exercise: 'Alıştırma yap',
       },
     },
     hint: {
