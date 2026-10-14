@@ -16,6 +16,7 @@ import { tr } from '../../i18n/tr';
 import type { ResearchRepo } from '../../storage/strategy-repo';
 import { formatR } from '../trade/TradePanel';
 import { BacktestReport } from './BacktestReport';
+import { compareWithRandom } from './compare-random';
 import { runAndStore } from './run-and-store';
 
 const t = tr.backtest;
@@ -128,6 +129,35 @@ export function BacktestPanel(p: BacktestPanelProps) {
   };
 
   const shown = runs.find((r) => r.run.id === shownId) ?? null;
+  // Runs are newest first: the first earlier in-sample run of the same rules pairs with an OOS run.
+  const inSample =
+    shown?.run.split.role === 'OUT_OF_SAMPLE'
+      ? (runs.find(
+          (r) =>
+            r.run.split.role === 'IN_SAMPLE' &&
+            r.run.strategy.specHash === shown.run.strategy.specHash &&
+            r.run.runAt <= shown.run.runAt,
+        ) ?? null)
+      : null;
+  // The random comparison needs the run's rules (direction, risk): the open version's, or the
+  // exact variant a research run stored.
+  const shownSpec =
+    shown?.run.research?.spec ??
+    (shown?.run.strategy.specHash === p.version.specHash ? spec : null);
+  const shownMeta = shown ? p.datasets.find((d) => d.id === shown.run.data.datasetId) : undefined;
+  const onCompareRandom =
+    shown && shownSpec && shownMeta
+      ? async () => {
+          await compareWithRandom({
+            source: p.source,
+            repo: p.repo,
+            meta: shownMeta,
+            b: shown,
+            spec: shownSpec,
+          });
+          setRuns(await p.repo.listRuns(p.strategy.id));
+        }
+      : undefined;
   const field = (
     label: string,
     value: string,
@@ -326,7 +356,14 @@ export function BacktestPanel(p: BacktestPanelProps) {
           displayTz={p.displayTz}
         />
       )}
-      {!comparing && shown && <BacktestReport b={shown} displayTz={p.displayTz} />}
+      {!comparing && shown && (
+        <BacktestReport
+          b={shown}
+          displayTz={p.displayTz}
+          inSample={inSample}
+          onCompareRandom={onCompareRandom}
+        />
+      )}
     </section>
   );
 }

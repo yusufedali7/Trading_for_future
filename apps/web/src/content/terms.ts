@@ -20,4 +20,6 @@ export const TERMS = {
   lotRisk: 'lot-ve-risk-yuzdesi',
   candidate: 'aday-candidate',
   confirmationDelay: 'onay-gecikmesi',
+  random: 'rastgele-giris-kiyasi',
+  ci: 'guven-araligi-bootstrap',
 } as const;

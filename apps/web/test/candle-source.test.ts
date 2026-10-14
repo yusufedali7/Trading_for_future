@@ -5,6 +5,7 @@ import {
   runBacktest,
   getInstrument,
   previousPeriods,
+  randomEntryBaseline,
   replayCandles,
   resample,
   seriesFromRows,
@@ -219,6 +220,28 @@ describe('replay through the candle source', () => {
       const partial = await src.draftsSince(meta2, spec, 'strat1', 1, midSince, 10_000, lots);
       expect(partial.drafts.length + partial.skipped).toBeLessThan(all.length);
     }
+  });
+
+  it('randomBaseline (D72) runs the seeded random-entry baseline on the dataset it holds', async () => {
+    const src = await source2();
+    const input = {
+      range: { from: many[0]!.t, to: many[many.length - 1]!.t + 60_000 },
+      direction: 'LONG' as const,
+      count: 5,
+      stopPips: 2,
+      targetR: 2,
+      risk: { percentPerTrade: 0.5 },
+      costs: { spreadPips: 0.1, slippagePips: 0, commissionPerLotPerSide: 0 },
+      ambiguity: 'STOP_FIRST' as const,
+      startEquity: 10_000,
+      lots: { lotStep: 0.01, minLot: 0.01 },
+      seed: 1,
+    };
+    const out = await src.randomBaseline(meta2, input);
+    expect(out).toEqual(
+      randomEntryBaseline({ ...input, inst: getInstrument('EURUSD'), series: s2, baseMs: 60_000 }),
+    );
+    expect(out.trades.length).toBeGreaterThan(0);
   });
 
   it('simulates a trade with the series it holds, never past the cursor', async () => {

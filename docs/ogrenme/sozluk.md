@@ -638,3 +638,11 @@ Kataloğun kendisi Shark formasyonunu "güvenilir bir kaynaktan oran alınmadan 
 ### Bağlamsal açıklama
 Ekranlarda altı noktalı çizgili terimler (örneğin backtest raporundaki "Kazanma oranı") tıklanabilir: bu sözlükteki açıklaması yerinde açılır. "Sözlükte aç" seni bu sayfada o terime götürür.
 *Uygulamada:* Öğren → Sözlük sekmesi bu dosyanın kendisini gösterir; dosya güncellendikçe arayüz de güncellenir.
+
+### Rastgele giriş kıyası
+Stratejinin işlemleriyle **aynı sayıda**, aynı ortalama stop mesafesi, aynı hedef (R), aynı maliyet ve risk ile ama giriş zamanı **rastgele** seçilmiş işlemler. Soru şu: "Kurallarım, rastgele bir zamanda girmekten daha iyi mi?" Rastgelelik sabit bir tohumla (seed) üretilir, aynı koşu her zaman aynı rastgele işlemleri verir.
+*Uygulamada:* Backtest raporundaki "Bu sonuç ne diyor?" panelinde "Rastgele girişle kıyasla" düğmesi.
+
+### Güven aralığı (bootstrap)
+Ölçülen bir farkın ne kadar "sallantılı" olduğunu gösteren aralık. İşlemler defalarca rastgele yeniden çekilip fark her seferinde yeniden hesaplanır; sonuçların ortadaki %95'i aralığı verir. Aralık **sıfırı içeriyorsa**, bu veride fark şanstan ayırt edilemiyor demektir. Bu bir olasılık tahmini değil, eldeki örneğin ne kadar oynak olduğunun ölçüsüdür.
+*Uygulamada:* Rastgele giriş kıyasında farkın yanında gösterilir.

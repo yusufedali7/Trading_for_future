@@ -393,10 +393,20 @@ export type {
 } from './research/excursion';
 export { rankCandidates } from './research/ranking';
 export type { RankCandidate, RankedCandidate } from './research/ranking';
+export {
+  AMBIGUOUS_SHARE_FROM,
+  COSTS_SHARE_FROM,
+  interpretRun,
+  MANY_TRIALS_FROM,
+  OOS_KEPT_SHARE,
+  randomBaselineParams,
+  randomComparison,
+} from './research/interpret';
+export type { Finding, FindingCode, InterpretInput } from './research/interpret';
 export { mulberry32, randomInt } from './core/rng';
 export type { Rng } from './core/rng';
 export { runRecord, splitRange } from './backtest/record';
-export type { BacktestRun, SplitRole, StoredBacktest } from './backtest/record';
+export type { BacktestRun, RandomComparison, SplitRole, StoredBacktest } from './backtest/record';
 export { MAX_SWEEP_COMBINATIONS, applyParam, sweepGrid, sweepableParams } from './research/sweep';
 export type { SweepAxis, SweepParam, SweepParamId, SweepVariant } from './research/sweep';
 export { conclude, oosState, recordOos, reopen, validateHypothesis } from './research/hypothesis';

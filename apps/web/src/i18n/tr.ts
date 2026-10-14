@@ -970,6 +970,39 @@ export const tr = {
       none: '—',
     },
   },
+  interpret: {
+    title: 'Bu sonuç ne diyor?',
+    intro:
+      'Aşağıdakiler bu koşunun kendi ölçtüğü sayılardan çıkan okuma notlarıdır; geleceğe dair bir tahmin ya da al/sat tavsiyesi değildir.',
+    severity: { INFO: 'Bilgi', CAUTION: 'Dikkat', WARN: 'Uyarı' },
+    NO_TRADES: () =>
+      'Bu aralıkta hiç işlem yok, okunacak bir sonuç yok. Kurallar bu veride hiç tetiklenmemiş.',
+    LOW_SAMPLE: (p: { trades: number }) =>
+      `Yalnızca ${p.trades} işlem var. 30’un altında sonuçlar büyük ölçüde şansla açıklanabilir: birkaç işlem kazanma oranını ve beklenen değeri tamamen değiştirebilir.`,
+    NO_OUT_OF_SAMPLE: () =>
+      'Bu koşu kuralları kurduğun ya da ayarladığın veride ölçüyor. Kuralların görmediği bir dönemde (out-of-sample) benzer sonuç alınana kadar bu sayılar iyimser kabul edilmeli.',
+    OOS_DEGRADATION: (p: { isAvgR: string; oosAvgR: string }) =>
+      `In-sample beklenen değer ${p.isAvgR}, out-of-sample ${p.oosAvgR}: görmediği veride sonuç yarıdan fazla düştü. Bu, kuralların geçmiş veriye fazla uydurulmuş olabileceğinin tipik işaretidir.`,
+    OOS_HELD: (p: { isAvgR: string; oosAvgR: string }) =>
+      `Out-of-sample beklenen değer (${p.oosAvgR}) in-sample’ın (${p.isAvgR}) en az yarısını korudu. Tek bir dönem için iyi bir işaret, yine de tek bir test.`,
+    MANY_TRIALS: (p: { trials: number }) =>
+      `Bu, bu stratejinin in-sample’daki ${p.trials}. denemesi. Ne kadar çok deneme yapılırsa, iyi görünen bir in-sample sonucunun şanstan gelmiş olması o kadar kolaylaşır.`,
+    AMBIGUOUS_SHARE: (p: { count: number; pct: number }) =>
+      `İşlemlerin %${p.pct}’inde (${p.count}) aynı mumda hem stop hem hedef görüldü; bu işlemlerin sonucu "önce stop" varsayımına bağlı.`,
+    COSTS_HEAVY: (p: { pct: number }) =>
+      `Maliyetler (spread, kayma, komisyon) brüt sonucun %${p.pct}’ini götürüyor. Maliyetteki küçük bir değişiklik sonucu tersine çevirebilir.`,
+    RANDOM_EDGE: (p: { edgeR: string; low: string; high: string }) =>
+      `Rastgele girişlere göre işlem başına ${p.edgeR} fark var ve %95 güven aralığı (${p.low} … ${p.high}) sıfırı içermiyor: bu veride kurallar rastgele girişten ayırt edilebiliyor. Bu bir gelecek garantisi değildir.`,
+    NO_EDGE_VS_RANDOM: (p: { edgeR: string; low: string; high: string }) =>
+      `Rastgele girişlere göre fark ${p.edgeR}, ama %95 güven aralığı (${p.low} … ${p.high}) sıfırı içeriyor: bu veride kurallar rastgele girişten ayırt edilemiyor.`,
+    WORSE_THAN_RANDOM: (p: { edgeR: string; low: string; high: string }) =>
+      `Rastgele girişler bu veride kurallardan daha iyi sonuç verdi (fark ${p.edgeR}, %95 güven aralığı ${p.low} … ${p.high}).`,
+    randomButton: 'Rastgele girişle kıyasla',
+    randomRunning: 'Rastgele girişler hesaplanıyor…',
+    randomNote: (n: number, real: number, seed: number, stopPips: number, targetR: number) =>
+      `Rastgele kıyas: ${n} rastgele işlem (gerçek koşuda ${real}), sabit tohum ${seed}, ortalama ${stopPips} pip stop, ${targetR}R hedef; maliyet ve risk gerçek koşuyla aynı.`,
+    randomFailed: (msg: string) => `Rastgele kıyas yapılamadı: ${msg}`,
+  },
   journalPage: {
     nav: {
       CHART: 'Grafik',

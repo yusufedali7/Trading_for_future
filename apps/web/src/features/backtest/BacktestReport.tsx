@@ -8,6 +8,7 @@ import { tr } from '../../i18n/tr';
 import { formatR } from '../trade/TradePanel';
 import { SESSION_NAMES } from '../journal/JournalForm';
 import { EquityChart, RHistogram } from './charts';
+import { InterpretPanel } from './InterpretPanel';
 
 const t = tr.backtest.report;
 const usd = (v: number) =>
@@ -74,7 +75,18 @@ function Breakdown({
 }
 
 /** One stored backtest: record, honesty indicators, measured results, charts and breakdowns. */
-export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz: IanaTz }) {
+export function BacktestReport({
+  b,
+  displayTz,
+  inSample,
+  onCompareRandom,
+}: {
+  b: StoredBacktest;
+  displayTz: IanaTz;
+  /** Latest in-sample run of the same rules (for an out-of-sample run's reading notes). */
+  inSample?: StoredBacktest | null;
+  onCompareRandom?: () => Promise<void>;
+}) {
   const { run, result, stats } = b;
   const s = stats.summary;
   const c = run.costs;
@@ -145,6 +157,8 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
           />
         </dl>
       </div>
+
+      <InterpretPanel b={b} inSample={inSample} onCompareRandom={onCompareRandom} />
 
       <h4>{t.results}</h4>
       <p className="hint">{t.measuredNote}</p>

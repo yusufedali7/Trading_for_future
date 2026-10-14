@@ -159,6 +159,27 @@ describe('strategy page', () => {
     );
   });
 
+  it('reads the run in plain words and compares it with seeded random entries (D72)', async () => {
+    const { research } = await setup();
+    await createSwingStrategy();
+    fireEvent.click(screen.getByRole('button', { name: 'Backtest çalıştır' }));
+    const notes = await waitLong(() => screen.getByRole('note', { name: 'Bu sonuç ne diyor?' }));
+    expect(within(notes).getByText(/işlem var\. 30’un altında/)).toBeTruthy();
+    expect(within(notes).getByText(/görmediği bir dönemde/)).toBeTruthy();
+    expect(within(notes).queryByText(/Rastgele girişlere göre/)).toBeNull();
+
+    fireEvent.click(within(notes).getByRole('button', { name: 'Rastgele girişle kıyasla' }));
+    await waitLong(() =>
+      expect(
+        within(notes).getByText(/Rastgele girişlere göre|Rastgele girişler bu veride/),
+      ).toBeTruthy(),
+    );
+    const [stored] = await research.listRuns();
+    expect(stored!.random).toMatchObject({ seed: 1 });
+    expect(stored!.random!.trades).toBeGreaterThan(0);
+    expect(within(notes).getByText(/sabit tohum 1/)).toBeTruthy();
+  });
+
   it('shows the setups of a version on the chart', async () => {
     await setup();
     await createSwingStrategy();

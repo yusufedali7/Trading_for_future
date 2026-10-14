@@ -15,6 +15,7 @@ import {
   computeFeatures,
   featuresAsOf,
   previousPeriods,
+  randomEntryBaseline,
   getInstrument,
   resample,
   seriesUpTo,
@@ -25,6 +26,7 @@ import {
   timeframeMs,
   type BacktestConfig,
   type BacktestResult,
+  type RandomBaselineInput,
   type BacktestStats,
   type CandleSeries,
   type ChartPattern,
@@ -108,8 +110,13 @@ export interface CandleSource {
     equity: number,
     lots: LotRules,
   ): Promise<DraftScan>;
+  /** Seeded random-entry baseline (D61) on this dataset's base series, for the D72 comparison. */
+  randomBaseline(meta: DataSetMeta, input: RandomRequest): Promise<BacktestResult>;
   dispose(): void;
 }
+
+/** `RandomBaselineInput` minus what the source supplies from the dataset itself. */
+export type RandomRequest = Omit<RandomBaselineInput, 'inst' | 'series' | 'baseMs'>;
 
 /** Chart data as known at the replay cursor (no bar or session level from after it). */
 export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs): ChartData {
@@ -324,6 +331,15 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       }
       return { drafts, skipped };
     },
+    async randomBaseline(meta, input) {
+      const c = await get(meta);
+      return randomEntryBaseline({
+        ...input,
+        inst: getInstrument(meta.instrument),
+        series: c.series,
+        baseMs: timeframeMs(meta.baseTimeframe),
+      });
+    },
     dispose() {
       cached = null;
       strategyCache = null;
@@ -366,7 +382,8 @@ export type CandleRequest =
       since: UtcMs;
       equity: number;
       lots: LotRules;
-    };
+    }
+  | { id: number; method: 'randomBaseline'; meta: DataSetMeta; input: RandomRequest };
 
 type Response =
   { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };
@@ -393,6 +410,8 @@ function dispatch(source: CandleSource, req: CandleRequest): Promise<unknown> {
         req.equity,
         req.lots,
       );
+    case 'randomBaseline':
+      return source.randomBaseline(req.meta, req.input);
   }
 }
 
@@ -446,6 +465,8 @@ export function createWorkerCandleSource(): CandleSource {
         equity,
         lots,
       }),
+    randomBaseline: (meta, input) =>
+      call<BacktestResult>({ method: 'randomBaseline', meta, input }),
     dispose: () => worker.terminate(),
   };
 }

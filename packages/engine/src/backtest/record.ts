@@ -65,10 +65,28 @@ export interface BacktestRun {
   };
 }
 
+/**
+ * The run's trades compared with random entries of the same count, stop distance and target R
+ * (D72). Seeded and stored with the run (rule 5), so the comparison is reproducible.
+ */
+export interface RandomComparison {
+  seed: number;
+  stopPips: number;
+  targetR: number;
+  /** Random trades actually produced. */
+  trades: number;
+  avgR: number | null;
+  /** Real avgR − random avgR; null without random trades. */
+  edgeR: number | null;
+  /** 95% bootstrap interval of the edge. */
+  edgeCI: { low: number; high: number } | null;
+}
+
 export interface StoredBacktest {
   run: BacktestRun;
   result: BacktestResult;
   stats: BacktestStats;
+  random?: RandomComparison;
 }
 
 export function runRecord(r: Omit<BacktestRun, 'engineVersion' | 'definitions'>): BacktestRun {

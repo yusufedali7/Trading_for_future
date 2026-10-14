@@ -1401,3 +1401,42 @@ input[type='number'] {
   margin: 0 0 4px;
   font-size: 13px;
 }
+
+/* --- D72: "Bu sonuç ne diyor?" --- */
+.interpret {
+  border-left: 3px solid var(--accent);
+  padding: 4px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+.interpret h4 {
+  margin: 0;
+}
+
+.findings {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.finding-severity {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--accent);
+}
+
+.finding-caution .finding-severity,
+.finding-warn .finding-severity {
+  color: var(--warn);
+  border-color: var(--warn);
+}
