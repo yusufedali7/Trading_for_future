@@ -268,6 +268,17 @@ describe('layoutSmc', () => {
         swingIds: ['s5', 's6', 's7'],
       },
     ],
+    cisds: [
+      {
+        ...timing(4, 4),
+        type: 'CISD',
+        direction: 'BULLISH',
+        level: 1.19,
+        seriesStartIndex: 2,
+        seriesStartAt: at(2),
+        seriesLength: 2,
+      },
+    ],
   };
   const SMC_LAYERS = new Set(FEATURE_LAYERS.filter((l) => l !== 'SWING'));
 
@@ -353,6 +364,16 @@ describe('layoutSmc', () => {
         tone: 'NEUTRAL',
         label: 'Denge (P/D)',
         dashed: true,
+      },
+      {
+        shape: 'LINE',
+        layer: 'CISD',
+        p1: 2,
+        p2: 4,
+        price: 1.19,
+        tone: 'UP',
+        label: 'CISD ↑',
+        dashed: false,
       },
     ]);
   });

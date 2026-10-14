@@ -207,6 +207,7 @@ export function ChartView(props: ChartViewProps) {
       premiumDiscount: [],
       ote: [],
       candidateSr: [],
+      cisds: [],
     };
     // A setup mark sits beside the chart bar that contains the signal bar.
     const barAt = (t: number) => {

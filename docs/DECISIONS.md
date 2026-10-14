@@ -615,6 +615,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 8 webhook testi (URL doğrulama, yük biçimi ve uyarı metni, test yükünde fiyat olmaması, istek başına POST ve hata sayımı, ağ hatası, yalnızca yeni+geçerli taslakların gönderimi ve çakışma adları), 1 `refreshDrafts` testi (ilk senkronda hepsi yeni, tekrar senkronda hiçbiri), 3 arayüz testi. Canlı: gömülü tarayıcıdan yerel bir alıcıya test bildirimi ulaştı (Türkçe metin bozulmadan), kapalı porta gönderimde "0 gönderildi, 1 başarısız · Son hata: Failed to fetch" görüldü; ayar sonra kapatıldı.
 ---
 
+## D77 — CISD (Change in State of Delivery) — yeni SMC kavramı, v1
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (onaylı plan; parametreler kullanıcıya soruldu)
+- **Kaynak:** Dış kaynak araştırmasında kütüphanemizde olmayan tek isimlendirilebilir kavram olarak bulundu: MrOwl1011/Smc_ZOB_CISD (MIT) `DESIGN.md`. Kod alınmadı; kavram sadeleştirildi. Tek kaynak, bir EA yorumu — her yerde "doğrulanmadı" etiketli.
+- **Kullanıcı seçimleri:** likidite süpürmesi şartı **yok** (istenirse strateji adımı olarak eklenir); kırılan seviye = ters serinin **ilk mumunun açılışı**; seri **1–5** mum (`maxSeries` parametresi).
+- **Tanım (`features/cisd.ts`):** ardışık düşüş kapanışları (doji seriyi bitirir, dahil değil) 1–5 mumsa ilk açılış yükseliş seviyesi olur; daha uzun seri trend sayılır ve bekleyen seviyeyi siler. Düşüş kapanışı olmayan ilk mumun seviyenin kesinlikle üzerinde kapanması = BULLISH CISD; arada yeni düşüş kapanışı bekleyen seviyeyi iptal eder. Düşüş aynası. `formedIndex = confirmedIndex =` onaylayan mum (gecikme yok, sonradan değişmez).
+- **Bilerek yapılmayan:** kaynaktaki 4. aşama (seviyeye geri çekilme = giriş) — bu bir strateji giriş kuralı; çoklu zaman dilimi eşlemesi; "beklendiği gibi gitmedi" ölçümü ve strateji adımı (v1'de geçersizleşme fiyatı tanımlanmadı — `Displacement` gibi `Detection` birleşiminin dışında).
+- **Bağlantılar:** `SmcSet.cisds` (`computeSmc`/`smcAsOf`), grafikte "CISD" katmanı (serinin ilk mumundan onay mumuna seviye çizgisi), Kavramlar'da CISD (gerçek veriden örnekler), sözlükte girdi, öğrenme yolunda "CISD: teslimat yönünde değişim" dersi, `catalog/patterns/smc.json` (`IMPLEMENTED`, kaynak notuyla), `docs/definitions/cisd-v1.md`.
+- **Gerçek veride sıklık:** kullanıcının 582 mumluk EURUSD 1m dosyasında 1m/5m/15m'de 135/27/11 aday — kabaca her 4 mumdan biri. Tanım seçici değil; bir eşik (v2) kullanıcının kararı.
+- **Doğrulama:** 8 motor testi (pozitif, gecikmeli onay, iptal, seri sınırı, düşüş aynası, doji, varsayılanlar, kesme değişmezliği), grafik yerleşim testi, ders/sözlük tutarlılık testleri. Testlerden biri ilk yazıldığında yanlıştı: ara bir düşüş mumu tanım gereği kendi başına bir düşüş CISD'si üretiyordu — senaryo düzeltildi (davranış doğru, beklenti yanlıştı).
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

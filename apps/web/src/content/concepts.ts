@@ -17,7 +17,8 @@ export type ConceptId =
   | 'EQUAL_LEVELS'
   | 'PREMIUM_DISCOUNT'
   | 'OTE'
-  | 'CANDIDATE_SR';
+  | 'CANDIDATE_SR'
+  | 'CISD';
 
 export interface Concept {
   id: ConceptId;
@@ -449,5 +450,34 @@ export const CONCEPTS: readonly Concept[] = [
       'Bu seviyeler için "beklendiği gibi gitmedi" ölçüsü v1\'de yok.',
     ],
     doc: 'docs/definitions/session-v1.md',
+  },
+  {
+    id: 'CISD',
+    name: 'CISD (teslimat yönünde değişim)',
+    short: 'Ters yönlü kısa bir serinin ilk açılışının ötesinde kapanış.',
+    what: [
+      'Fiyat birkaç mum boyunca bir yönde kapanış yaparken ("teslimat" o yöndeyken), ters yönde gelen bir kapanış bu serinin başladığı seviyeyi geçerse, ICT anlatımlarında bu "teslimat yönünün değişmesi" (Change in State of Delivery) olarak okunur.',
+      'Bu motor bunu yalnızca bir seviye ve kapanış ölçümü olarak ele alır: ardışık düşüş kapanışlarından oluşan kısa bir serinin ilk mumunun açılışının üzerinde kapanış = yükseliş yönlü aday (tersi düşüş).',
+      "Tanım resmi bir ICT kuralı değil; açık kaynak bir MT5 Expert Advisor'ının (MrOwl1011/Smc_ZOB_CISD) yorumundan sadeleştirildi ve senin seçimlerinle sabitlendi: süpürme şartı yok, seviye = serinin ilk açılışı, seri 1–5 mum.",
+    ],
+    onChart:
+      'Serinin ilk mumundan onay mumuna kadar, seviyede kısa bir çizgi ve "CISD ↑ / ↓" etiketi (CISD katmanı).',
+    rule: [
+      'Ardışık düşüş kapanışları (kapanış < açılış) bir seri oluşturur; doji (kapanış = açılış) seriyi bitirir ama seriye dahil değildir.',
+      'Seri 1–5 mumsa, ilk mumunun açılışı yükseliş seviyesi olur; daha uzun seriler trend sayılır ve seviye üretmez.',
+      'Sonraki, düşüş kapanışı olmayan ilk mum bu seviyenin kesinlikle üzerinde kapanırsa: yükseliş yönlü CISD adayı.',
+      'Arada yeni bir düşüş kapanışı gelirse bekleyen seviye iptal olur; yeni seri bittiğinde yeni seviye onun ilk açılışıdır.',
+      'Düşüş yönlü CISD bunun aynasıdır (yükseliş kapanışları serisi, ilk açılışın altında kapanış).',
+    ],
+    params: [{ name: 'maxSeries', value: '5', meaning: 'Sayılan en uzun ters yönlü seri (mum)' }],
+    delay: 'Onaylayan mumun kapanışında bilinir; sonradan değişmez.',
+    limits: [
+      'Likidite süpürmesi şartı tanımın içinde yok; istenirse strateji oluşturucuda "önce süpürme, sonra CISD" adımları olarak kurulmalı (CISD henüz bir strateji adımı değil).',
+      'Çok kısa zaman dilimlerinde sık ve gürültülü aday üretir; tek mumluk seriler de sayılır.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok — v1 bir geçersizleşme fiyatı tanımlamıyor.',
+      'Kaynak tek bir EA yorumu; bağımsız ikinci bir kaynakla doğrulanmadı.',
+    ],
+    layer: 'CISD',
+    doc: 'docs/definitions/cisd-v1.md',
   },
 ];

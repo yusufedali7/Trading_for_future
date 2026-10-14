@@ -22,7 +22,8 @@
     "breaker",
     "premium_discount",
     "ote",
-    "candidate_sr"
+    "candidate_sr",
+    "cisd"
   ],
   "concepts": [
     {
@@ -294,6 +295,21 @@
       "family": "structure_liquidity",
       "status": "IMPLEMENTED",
       "implementation_note": "packages/engine/src/features/candidate-sr.ts, docs/definitions/candidate-sr-v1.md (2026-10-08). Tepe+dip birlikte kümelenir; her swing en yakın tek kümeye katılır (küme birleştirme yok); bir küme min_touches'a ilk eriştiğinde bir kez kayıt üretir. atr_period katalogda yok, bizim seçimimiz (14). Oracle doğrulaması yok (resmi tanım yok)."
+    },
+    {
+      "id": "cisd",
+      "name_tr": "CISD (teslimat yönünde değişim)",
+      "params": {
+        "max_series": 5
+      },
+      "definition": "Ardışık ters yönlü kısa bir mum serisinin (1–max_series) ilk açılışının ötesinde, seriyle aynı yönde olmayan bir mumun kapanışı. Likidite süpürmesi şartı yok (D77 kullanıcı seçimi).",
+      "known_at": "onaylayan mumun kapanışı",
+      "depends_on": [],
+      "version": "1.0.0",
+      "family": "structure_liquidity",
+      "status": "IMPLEMENTED",
+      "source": "MrOwl1011/Smc_ZOB_CISD DESIGN.md (MIT) — tek kaynak, bir EA yorumu, bağımsız doğrulanmadı",
+      "implementation_note": "packages/engine/src/features/cisd.ts, docs/definitions/cisd-v1.md (2026-10-15, D77). Oracle doğrulaması yok; geçersizleşme/outcome ölçümü ve strateji adımı v1'de yok."
     }
   ]
 }

@@ -134,6 +134,26 @@ export interface Displacement extends DetectionTiming {
   atr: number;
 }
 
+export interface CisdParams {
+  /** Longest opposite-coloured series that still counts (longer runs are a trend, not a pullback). */
+  maxSeries: number;
+}
+
+/**
+ * Change in State of Delivery, v1 (docs/definitions/cisd-v1.md, D77): a close beyond the open of
+ * the series of opposite-coloured candles just before it. Like `Displacement`, not part of
+ * `Detection` in v1: no outcome-tracking failure line is defined for it yet.
+ */
+export interface Cisd extends DetectionTiming {
+  type: 'CISD';
+  direction: FeatureDirection;
+  /** Open of the series' first candle - the level the close went beyond. */
+  level: number;
+  seriesStartIndex: number;
+  seriesStartAt: UtcMs;
+  seriesLength: number;
+}
+
 export interface OrderBlockParams {
   /** BODY: the candle's open-close range; RANGE: its full high-low range. */
   zone: 'BODY' | 'RANGE';

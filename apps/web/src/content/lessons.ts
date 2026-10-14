@@ -193,6 +193,20 @@ Order block kapanışla geçersizleşirse ters yönde bir **breaker** adayına d
         ],
       },
       {
+        id: 'cisd',
+        title: 'CISD: teslimat yönünde değişim',
+        goal: 'Kısa bir ters serinin başladığı seviyenin kapanışla geçilmesini tanıyabilmek.',
+        body: `Fiyat birkaç mum boyunca aşağı kapanış yaparken, sonra gelen bir mum bu kısa serinin **ilk mumunun açılışının** üzerinde kapanırsa, ICT anlatımlarında buna CISD denir: "teslimat" aşağıdan yukarıya dönmüş olabilir (tersi düşüş için).
+Bu projedeki tanım bir MT5 Expert Advisor'ının yorumundan sadeleştirildi ve senin seçimlerinle sabitlendi: süpürme şartı yok, seri en fazla 5 mum.
+- Tek mumluk seriler de sayıldığı için kısa zaman dilimlerinde çok sık görülür; bir CISD tek başına bir yön bilgisi değil, bir **aday**dır.`,
+        terms: ['cisd-teslimat-yonunde-degisim', 'aday-candidate'],
+        concepts: ['CISD'],
+        actions: [
+          { kind: 'OPEN_CONCEPT', concept: 'CISD' },
+          { kind: 'OPEN_CHART_LAYER', layer: 'CISD' },
+        ],
+      },
+      {
         id: 'premium-discount',
         title: 'Premium/discount ve OTE',
         goal: 'Bir hareketin hangi bölgesinde olunduğunu tarif edebilmek.',

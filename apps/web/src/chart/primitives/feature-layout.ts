@@ -16,6 +16,7 @@ export const FEATURE_LAYERS = [
   'PREMIUM_DISCOUNT',
   'OTE',
   'CANDIDATE_SR',
+  'CISD',
 ] as const;
 export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 
@@ -230,6 +231,7 @@ export interface SmcLabels {
   premiumDiscount: string;
   ote: (up: boolean) => string;
   candidateSr: string;
+  cisd: (up: boolean) => string;
 }
 
 /**
@@ -361,6 +363,22 @@ export function layoutSmc(
         tone: 'NEUTRAL',
         label: labels.premiumDiscount,
         dashed: true,
+      });
+    }
+
+  // D77: the level from the series' first candle to the bar that closed beyond it.
+  if (layers.has('CISD'))
+    for (const c of s.cisds) {
+      const up = c.direction === 'BULLISH';
+      out.push({
+        shape: 'LINE',
+        layer: 'CISD',
+        p1: bar(c.seriesStartAt),
+        p2: bar(c.formedAt),
+        price: c.level,
+        tone: up ? 'UP' : 'DOWN',
+        label: labels.cisd(up),
+        dashed: false,
       });
     }
 

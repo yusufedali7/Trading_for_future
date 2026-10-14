@@ -69,6 +69,8 @@ function examplesOf(
   switch (c.id) {
     case 'DISPLACEMENT':
       return smc.displacements.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]! }));
+    case 'CISD':
+      return smc.cisds.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]!, layer }));
     case 'ORDER_BLOCK':
       return smc.orderBlocks.map((d) => ({
         id: d.id,

@@ -646,3 +646,11 @@ Stratejinin işlemleriyle **aynı sayıda**, aynı ortalama stop mesafesi, aynı
 ### Güven aralığı (bootstrap)
 Ölçülen bir farkın ne kadar "sallantılı" olduğunu gösteren aralık. İşlemler defalarca rastgele yeniden çekilip fark her seferinde yeniden hesaplanır; sonuçların ortadaki %95'i aralığı verir. Aralık **sıfırı içeriyorsa**, bu veride fark şanstan ayırt edilemiyor demektir. Bu bir olasılık tahmini değil, eldeki örneğin ne kadar oynak olduğunun ölçüsüdür.
 *Uygulamada:* Rastgele giriş kıyasında farkın yanında gösterilir.
+
+## D77'de eklenenler: CISD
+
+### CISD (teslimat yönünde değişim)
+"Change in State of Delivery." Fiyat birkaç mum boyunca bir yönde kapanış yaparken, ters yönde gelen bir kapanış bu kısa serinin **başladığı mumun açılışını** geçerse, ICT anlatımlarında bu "teslimat yönü değişti" diye okunur. Örnek: üç düşüş mumu 1.1012, 1.1008, 1.1004'ten açılmış; ardından bir mum 1.1015'te kapanırsa (1.1012'nin üzeri) yükseliş yönlü CISD adayı.
+Bu bir **aday**dır; resmi tek bir tanımı yoktur. Buradaki tanım bir MT5 Expert Advisor'ının yorumundan sadeleştirildi (süpürme şartı yok, seri 1–5 mum).
+*Uygulamada:* Grafikte CISD katmanı ve Öğren → Kavramlar'da "CISD".
+

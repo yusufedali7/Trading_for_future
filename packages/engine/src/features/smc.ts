@@ -3,6 +3,7 @@ import type { Instrument } from '../instruments/registry';
 import type { Bars } from './bars';
 import { detectBreakers } from './breaker';
 import { CANDIDATE_SR_DEFAULTS, detectCandidateSr } from './candidate-sr';
+import { CISD_DEFAULTS, detectCisd } from './cisd';
 import { DISPLACEMENT_DEFAULTS, detectDisplacement } from './displacement';
 import { EQUAL_LEVELS_DEFAULTS, detectEqualLevels } from './equal-levels';
 import { FVG_DEFAULTS, detectFvgs } from './fvg';
@@ -16,6 +17,8 @@ import type {
   Breaker,
   CandidateSr,
   CandidateSrParams,
+  Cisd,
+  CisdParams,
   Displacement,
   DisplacementParams,
   EqualLevels,
@@ -40,6 +43,7 @@ export interface SmcParams {
   equalLevels: EqualLevelsParams;
   ote: OteParams;
   candidateSr: CandidateSrParams;
+  cisd: CisdParams;
 }
 
 export const SMC_DEFAULTS: SmcParams = {
@@ -51,6 +55,7 @@ export const SMC_DEFAULTS: SmcParams = {
   equalLevels: EQUAL_LEVELS_DEFAULTS,
   ote: OTE_DEFAULTS,
   candidateSr: CANDIDATE_SR_DEFAULTS,
+  cisd: CISD_DEFAULTS,
 };
 
 export interface SmcSet {
@@ -62,6 +67,8 @@ export interface SmcSet {
   premiumDiscount: PremiumDiscountZone[];
   ote: OteZone[];
   candidateSr: CandidateSr[];
+  /** D77: change in state of delivery (not part of the original 8 catalog sub-concepts). */
+  cisds: Cisd[];
 }
 
 /**
@@ -88,6 +95,7 @@ export function computeSmc(b: Bars, inst: Instrument, p: SmcParams = SMC_DEFAULT
     premiumDiscount: detectPremiumDiscount(swings),
     ote: detectOte(swings, p.ote),
     candidateSr: detectCandidateSr(b, swings, p.candidateSr),
+    cisds: detectCisd(b, p.cisd),
   };
 }
 
@@ -105,5 +113,6 @@ export function smcAsOf(s: SmcSet, cutoff: UtcMs): SmcSet {
     premiumDiscount: known(s.premiumDiscount, cutoff),
     ote: known(s.ote, cutoff),
     candidateSr: known(s.candidateSr, cutoff),
+    cisds: known(s.cisds, cutoff),
   };
 }

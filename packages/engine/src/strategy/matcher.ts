@@ -58,6 +58,7 @@ const EMPTY_SMC: SmcSet = {
   premiumDiscount: [],
   ote: [],
   candidateSr: [],
+  cisds: [],
 };
 /** D63: `findSetups` callers that don't use any PATTERN_EVENT step can omit `patterns` entirely. */
 const EMPTY_PATTERNS: readonly ChartPattern[] = [];

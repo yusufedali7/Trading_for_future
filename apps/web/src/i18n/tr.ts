@@ -347,6 +347,7 @@ export const tr = {
       PREMIUM_DISCOUNT: 'Premium/Discount',
       OTE: 'OTE',
       CANDIDATE_SR: 'Aday S/D',
+      CISD: 'CISD',
     },
     layerHints: {
       SWING: 'Aday tepe ve dipler (sağda 3 mum oluşunca onaylanır)',
@@ -362,6 +363,7 @@ export const tr = {
       PREMIUM_DISCOUNT: 'Son swing aralığının ortası (denge); üstü premium, altı discount',
       OTE: 'Bir hareketin %62-79 geri çekilme bölgesi (Optimal Trade Entry)',
       CANDIDATE_SR: 'En az 3 kez dönülen seviyelerden türetilen aday destek/direnç',
+      CISD: 'Aday CISD: ters yönlü kısa bir mum serisinin ilk açılışının ötesinde kapanış (bir EA yorumu, doğrulanmadı)',
     },
     candidateNote: 'Motor adayları kesin sinyal değildir; tanımlar docs/definitions içinde.',
     labels: {
@@ -381,6 +383,7 @@ export const tr = {
       premiumDiscount: 'Denge (P/D)',
       ote: (up: boolean) => `OTE ${up ? '↑' : '↓'}`,
       candidateSr: 'Aday S/D',
+      cisd: (up: boolean) => `CISD ${up ? '↑' : '↓'}`,
     },
   },
   replay: {

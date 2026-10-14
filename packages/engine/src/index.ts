@@ -236,6 +236,7 @@ export {
   detectDeepCrab,
   detectGartley,
 } from './patterns/harmonic';
+export { CISD_DEFAULTS, detectCisd } from './features/cisd';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';
 export { detectIfvg } from './features/ifvg';
@@ -288,6 +289,8 @@ export type {
   BreakBy,
   CandidateSr,
   CandidateSrParams,
+  Cisd,
+  CisdParams,
   Detection,
   DetectionTiming,
   Displacement,

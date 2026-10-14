@@ -74,6 +74,7 @@ const emptySmc = (p: Partial<SmcSet>): SmcSet => ({
   premiumDiscount: [],
   ote: [],
   candidateSr: [],
+  cisds: [],
   ...p,
 });
 const orderBlock = (id: string, formed: number, confirmed: number): OrderBlock => ({
