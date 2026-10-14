@@ -226,6 +226,26 @@ export const tr = {
       WEEK: 'önceki hafta',
     } as Record<string, string>,
   },
+  learn: {
+    title: 'Öğren',
+    tabs: { CONCEPTS: 'Kavramlar', GLOSSARY: 'Sözlük' },
+    term: {
+      inApp: 'Uygulamada:',
+      openGlossary: 'Sözlükte aç',
+      close: 'Kapat',
+    },
+    glossary: {
+      title: 'Sözlük',
+      intro:
+        'Projede karşına çıkan terimlerin sade Türkçe açıklamaları. Örneklerdeki sayılar kavramı anlatmak için uydurulmuş hesap örnekleridir; piyasa verisi ya da tahmin değildir.',
+      search: 'Terim ara',
+      allSections: 'Tüm bölümler',
+      section: 'Bölüm',
+      count: (n: number) => `${n} terim`,
+      none: 'Aramaya uyan terim yok.',
+      source: 'Kaynak: docs/ogrenme/sozluk.md',
+    },
+  },
   indicators: {
     groupLabel: (active: number) => `İndikatörler (${active})`,
     sma: 'SMA',
@@ -957,7 +977,7 @@ export const tr = {
       STRATEGY: 'Strateji',
       RESEARCH: 'Araştırma',
       PAPER: 'Paper',
-      CONCEPTS: 'Kavramlar',
+      LEARN: 'Öğren',
       EVENTS: 'Olaylar',
       SIGNALS: 'Sinyaller',
     },

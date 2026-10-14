@@ -1329,3 +1329,75 @@ input[type='number'] {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* --- D71: Learn page, glossary, contextual terms --- */
+.term-link {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: help;
+  text-decoration: underline dotted var(--text-muted);
+  text-underline-offset: 3px;
+}
+
+.term-link[aria-expanded='true'] {
+  text-decoration-color: var(--accent);
+}
+
+.term-pop {
+  position: fixed;
+  z-index: 50;
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  max-width: calc(100vw - 16px);
+  max-height: 60vh;
+  overflow: auto;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.45);
+}
+
+.md p,
+.md ul {
+  margin: 4px 0;
+}
+
+.md ul {
+  padding-left: 18px;
+}
+
+.learn-page {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.learn-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.learn-tabs button[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.glossary-entry {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.glossary-entry[data-selected='true'] {
+  box-shadow: inset 3px 0 0 var(--accent);
+  padding-left: 8px;
+}
+
+.glossary-entry h4 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}

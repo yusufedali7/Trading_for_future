@@ -14,6 +14,8 @@ import {
   type StrategySpec,
   type Timeframe,
 } from '@trw/engine';
+import { Term } from '../../components/Term';
+import { TERMS } from '../../content/terms';
 import { tr } from '../../i18n/tr';
 import { toDefinition, type UserSession } from '../../storage/sessions-repo';
 
@@ -513,7 +515,9 @@ export function StrategyBuilder({
       </fieldset>
 
       <fieldset>
-        <legend>{b.stop}</legend>
+        <legend>
+          <Term id={TERMS.slTp}>{b.stop}</Term>
+        </legend>
         <label className="inline-field">
           <span>{b.stop}</span>
           <select
@@ -573,7 +577,9 @@ export function StrategyBuilder({
       </fieldset>
 
       <fieldset>
-        <legend>{b.target}</legend>
+        <legend>
+          <Term id={TERMS.r}>{b.target}</Term>
+        </legend>
         <label className="inline-field">
           <span>{b.target}</span>
           <select
@@ -646,7 +652,9 @@ export function StrategyBuilder({
       </fieldset>
 
       <fieldset>
-        <legend>{b.risk}</legend>
+        <legend>
+          <Term id={TERMS.lotRisk}>{b.risk}</Term>
+        </legend>
         {numField(
           b.risk,
           spec.risk.percentPerTrade,

@@ -46,7 +46,9 @@ import {
 import { StrategyPage } from './features/strategy/StrategyPage';
 import { ResearchPage } from './features/research/ResearchPage';
 import { BackupDialog } from './features/backup/BackupDialog';
-import { ConceptsPage, type ShowTarget } from './features/concepts/ConceptsPage';
+import type { ShowTarget } from './features/concepts/ConceptsPage';
+import { LearnPage, type LearnTab } from './features/learn/LearnPage';
+import { GlossaryNav } from './components/Term';
 import { EventsPage } from './features/events/EventsPage';
 import { SignalsPage } from './features/live/SignalsPage';
 import { PaperPage } from './features/paper/PaperPage';
@@ -82,10 +84,10 @@ export interface AppProps {
 }
 
 type View =
-  'CHART' | 'CONCEPTS' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER' | 'EVENTS' | 'SIGNALS';
+  'CHART' | 'LEARN' | 'JOURNAL' | 'STRATEGY' | 'RESEARCH' | 'PAPER' | 'EVENTS' | 'SIGNALS';
 const VIEWS: readonly View[] = [
   'CHART',
-  'CONCEPTS',
+  'LEARN',
   'JOURNAL',
   'STRATEGY',
   'RESEARCH',
@@ -126,6 +128,8 @@ export function App({
   const [hideAll, setHideAll] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<View>('CHART');
+  const [learnTab, setLearnTab] = useState<LearnTab>('CONCEPTS');
+  const [glossaryFocus, setGlossaryFocus] = useState<string | null>(null);
   // Concept library: a moment to bring into view on the chart.
   const [focus, setFocus] = useState<{ at: number; seq: number } | null>(null);
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
@@ -346,6 +350,12 @@ export function App({
     void prefs.save(patch);
   };
 
+  const openGlossary = useCallback((id: string) => {
+    setGlossaryFocus(id);
+    setLearnTab('GLOSSARY');
+    setView('LEARN');
+  }, []);
+
   const showConcept = (target: ShowTarget) => {
     if (!settings || trading.busy) return;
     if (inReplay) replay.exit();
@@ -420,368 +430,375 @@ export function App({
   const lastClose = chartData?.candles[chartData.candles.length - 1]?.c ?? null;
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>{tr.app.title}</h1>
-        {datasets && (
-          <div className="segmented" role="group" aria-label={tr.journalPage.navLabel}>
-            {VIEWS.map((v) => (
-              <button
-                key={v}
-                type="button"
-                className="seg"
-                aria-pressed={view === v}
-                onClick={() => {
-                  replay.pause();
-                  setView(v);
-                }}
-              >
-                {tr.journalPage.nav[v]}
-              </button>
-            ))}
-          </div>
-        )}
-        {settings && (
-          <BackupButton
-            lastBackupAt={settings.lastBackupAt}
-            hasWork={hasWork}
-            now={now()}
-            onOpen={() => setBackupOpen(true)}
-          />
-        )}
-        {feed?.config.auto && (
-          <span
-            className={`feed-indicator ${feed.problem ? 'warn-text' : ''}`}
-            title={feed.problem ? tr.paper.problems[feed.problem] : tr.paper.liveTitle}
-          >
-            {feed.problem ? tr.paper.liveProblem : tr.paper.live}
-          </span>
-        )}
-        {active && settings && datasets && (
-          <Toolbar
-            datasets={datasets}
-            active={active}
-            timeframe={timeframe}
-            displayTz={settings.displayTz}
-            onDataset={(id) => {
-              setSelectedId(null);
-              update({ datasetId: id });
-            }}
-            onTimeframe={(tf) => update({ timeframe: tf })}
-            onDisplayTz={(tz) => update({ displayTz: tz })}
-            userSessions={userSessions}
-            onManageSessions={() => setManagingSessions(true)}
-            visibleSessions={settings.sessions}
-            onToggleSession={(id) =>
-              update({
-                sessions: settings.sessions.includes(id)
-                  ? settings.sessions.filter((s) => s !== id)
-                  : [...settings.sessions, id],
-              })
-            }
-            visibleFeatures={settings.features}
-            onToggleFeature={(layer) =>
-              update({
-                features: settings.features.includes(layer)
-                  ? settings.features.filter((l) => l !== layer)
-                  : [...settings.features, layer],
-              })
-            }
-            indicators={settings.indicators}
-            onIndicators={(indicators) => update({ indicators })}
-            onImport={() => setImporting(true)}
-          />
-        )}
-      </header>
-
-      <main className="app-main">
-        {datasets === null && <p className="muted">{tr.app.loading}</p>}
-        {view === 'CHART' && datasets?.length === 0 && (
-          <EmptyState onImport={() => setImporting(true)} />
-        )}
-        {error && (
-          <p className="blocker" role="alert">
-            {tr.app.loadError}: {error}
-          </p>
-        )}
-        {view === 'JOURNAL' && settings && (
-          <JournalPage
-            repo={journalRepo}
-            displayTz={settings.displayTz}
-            sessionNames={sessionNames}
-          />
-        )}
-        {view === 'CONCEPTS' && settings && (
-          <ConceptsPage
-            data={active && instrument ? data : null}
-            meta={active}
-            instrument={instrument}
-            timeframe={data?.tf ?? timeframe}
-            displayTz={settings.displayTz}
-            sessionNames={sessionNames}
-            canShow={!trading.busy}
-            onShow={showConcept}
-          />
-        )}
-        {view === 'EVENTS' && settings && (
-          <EventsPage
-            research={researchRepo}
-            data={active && instrument ? data : null}
-            meta={active}
-            instrument={instrument}
-            timeframe={data?.tf ?? timeframe}
-            displayTz={settings.displayTz}
-            now={now}
-          />
-        )}
-        {view === 'SIGNALS' && settings && (
-          <SignalsPage research={researchRepo} displayTz={settings.displayTz} now={now} />
-        )}
-        {view === 'PAPER' && settings && (
-          <PaperPage
-            research={researchRepo}
-            strategies={strategyRepo}
-            source={candleSource}
-            market={repo}
-            feed={feed!}
-            displayTz={settings.displayTz}
-            now={now}
-            newId={newId}
-          />
-        )}
-        {view === 'RESEARCH' && settings && datasets && (
-          <ResearchPage
-            research={researchRepo}
-            strategies={strategyRepo}
-            source={candleSource}
-            datasets={datasets}
-            displayTz={settings.displayTz}
-            now={now}
-            newId={newId}
-          />
-        )}
-        {view === 'STRATEGY' && settings && datasets && (
-          <StrategyPage
-            strategies={strategyRepo}
-            research={researchRepo}
-            source={candleSource}
-            datasets={datasets}
-            defaultInstrument={active?.instrument ?? 'EURUSD'}
-            displayTz={settings.displayTz}
-            now={now}
-            newId={newId}
-            onShowOnChart={(s, v) => void showOnChart(s, v)}
-            userSessions={userSessions}
-          />
-        )}
-        {view === 'CHART' && active && settings && data && instrument && (
-          <>
-            <div className="tool-row">
-              <span className="hint tool-hint">{tr.drawings.hints[tool]}</span>
-              {shownStrategy && (
-                <div className="strategy-badge" role="status">
-                  <span>
-                    {tr.strategyChart.badge(
-                      shownStrategy.name,
-                      shownStrategy.version,
-                      setupMarks?.signalBarsAt.length ?? 0,
-                    )}
-                  </span>
-                  <button type="button" className="btn" onClick={() => setChartStrategy(null)}>
-                    {tr.strategyChart.hide}
-                  </button>
-                </div>
-              )}
-              <ReplayBar
-                cursor={replay.cursor}
-                displayTz={settings.displayTz}
-                playing={replay.playing}
-                speedMs={replay.speedMs}
-                atEnd={replay.atEnd}
-                busy={trading.busy}
-                onStart={replay.start}
-                onStep={replay.step}
-                onTogglePlay={replay.togglePlay}
-                onSpeed={replay.setSpeed}
-                onExit={replay.exit}
-              />
-            </div>
-            <div className="workspace">
-              <DrawingTools
-                tool={tool}
-                onTool={(t) => {
-                  setTool(t);
-                  if (t !== 'SELECT') setSelectedId(null);
-                }}
-                magnet={magnet}
-                onMagnet={() => setMagnet((x) => !x)}
-                keep={keepDrawing}
-                onKeep={() => setKeepDrawing((x) => !x)}
-                lockAll={lockAll}
-                onLockAll={() => setLockAll((x) => !x)}
-                hideAll={hideAll}
-                onHideAll={() => {
-                  setHideAll((x) => !x);
-                  setSelectedId(null);
-                }}
-                count={store.drawings.length}
-                onRemoveAll={() => {
-                  setSelectedId(null);
-                  void store.deleteDrawings(store.drawings.map((d) => d.id));
-                }}
-                canUndo={store.canUndo}
-                onUndo={() => void store.undo()}
-                canRedo={store.canRedo}
-                onRedo={() => void store.redo()}
-              />
-              {chartData ? (
-                <ChartComponent
-                  sessionStyles={sessionStyles}
-                  candles={chartData.candles}
-                  sessions={chartData.sessions.filter((s) =>
-                    settings.sessions.includes(s.sessionId),
-                  )}
-                  instrument={instrument}
-                  timeframe={data.tf}
-                  baseTimeframe={active.baseTimeframe}
-                  displayTz={settings.displayTz}
-                  followLatest={inReplay}
-                  features={chartData.features}
-                  smc={chartData.smc}
-                  featureLayers={settings.features}
-                  indicators={settings.indicators}
-                  setups={setupMarks}
-                  tradeLines={tradeLines}
-                  screenshotRef={screenshotRef}
-                  focus={focus}
-                  drawings={visibleDrawings}
-                  levels={store.levels}
-                  selectedId={selectedId}
-                  tool={tool}
-                  onDrawn={onDrawn}
-                  onSelect={setSelectedId}
-                  magnet={magnet}
-                  onErase={eraseDrawing}
-                  onChange={(d) => void store.saveDrawing(d)}
-                />
-              ) : (
-                <p className="muted chart-wrap">{tr.app.loading}</p>
-              )}
-              <aside className="side">
-                <TradePanel
-                  instrument={instrument}
-                  displayTz={settings.displayTz}
-                  cursor={replay.cursor}
-                  lastClose={inReplay ? lastClose : null}
-                  baseMs={timeframeMs(active.baseTimeframe)}
-                  trade={trading.trade}
-                  onPlace={trading.place}
-                  onClose={trading.close}
-                  onDismiss={trading.dismiss}
-                  onNoTrade={() => {
-                    if (replay.cursor === null) return;
+    <GlossaryNav.Provider value={openGlossary}>
+      <div className="app">
+        <header className="app-header">
+          <h1>{tr.app.title}</h1>
+          {datasets && (
+            <div className="segmented" role="group" aria-label={tr.journalPage.navLabel}>
+              {VIEWS.map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  className="seg"
+                  aria-pressed={view === v}
+                  onClick={() => {
                     replay.pause();
-                    journal.open(noTradeDraft(instrument, replay.cursor, timeframe, allDefs));
+                    setView(v);
                   }}
-                  onWriteJournal={() =>
-                    settled && journal.open(draftFromTrade(settled, instrument, baseMs, allDefs))
-                  }
+                >
+                  {tr.journalPage.nav[v]}
+                </button>
+              ))}
+            </div>
+          )}
+          {settings && (
+            <BackupButton
+              lastBackupAt={settings.lastBackupAt}
+              hasWork={hasWork}
+              now={now()}
+              onOpen={() => setBackupOpen(true)}
+            />
+          )}
+          {feed?.config.auto && (
+            <span
+              className={`feed-indicator ${feed.problem ? 'warn-text' : ''}`}
+              title={feed.problem ? tr.paper.problems[feed.problem] : tr.paper.liveTitle}
+            >
+              {feed.problem ? tr.paper.liveProblem : tr.paper.live}
+            </span>
+          )}
+          {active && settings && datasets && (
+            <Toolbar
+              datasets={datasets}
+              active={active}
+              timeframe={timeframe}
+              displayTz={settings.displayTz}
+              onDataset={(id) => {
+                setSelectedId(null);
+                update({ datasetId: id });
+              }}
+              onTimeframe={(tf) => update({ timeframe: tf })}
+              onDisplayTz={(tz) => update({ displayTz: tz })}
+              userSessions={userSessions}
+              onManageSessions={() => setManagingSessions(true)}
+              visibleSessions={settings.sessions}
+              onToggleSession={(id) =>
+                update({
+                  sessions: settings.sessions.includes(id)
+                    ? settings.sessions.filter((s) => s !== id)
+                    : [...settings.sessions, id],
+                })
+              }
+              visibleFeatures={settings.features}
+              onToggleFeature={(layer) =>
+                update({
+                  features: settings.features.includes(layer)
+                    ? settings.features.filter((l) => l !== layer)
+                    : [...settings.features, layer],
+                })
+              }
+              indicators={settings.indicators}
+              onIndicators={(indicators) => update({ indicators })}
+              onImport={() => setImporting(true)}
+            />
+          )}
+        </header>
+
+        <main className="app-main">
+          {datasets === null && <p className="muted">{tr.app.loading}</p>}
+          {view === 'CHART' && datasets?.length === 0 && (
+            <EmptyState onImport={() => setImporting(true)} />
+          )}
+          {error && (
+            <p className="blocker" role="alert">
+              {tr.app.loadError}: {error}
+            </p>
+          )}
+          {view === 'JOURNAL' && settings && (
+            <JournalPage
+              repo={journalRepo}
+              displayTz={settings.displayTz}
+              sessionNames={sessionNames}
+            />
+          )}
+          {view === 'LEARN' && settings && (
+            <LearnPage
+              tab={learnTab}
+              onTab={setLearnTab}
+              glossaryFocus={glossaryFocus}
+              concepts={{
+                data: active && instrument ? data : null,
+                meta: active,
+                instrument,
+                timeframe: data?.tf ?? timeframe,
+                displayTz: settings.displayTz,
+                sessionNames,
+                canShow: !trading.busy,
+                onShow: showConcept,
+              }}
+            />
+          )}
+          {view === 'EVENTS' && settings && (
+            <EventsPage
+              research={researchRepo}
+              data={active && instrument ? data : null}
+              meta={active}
+              instrument={instrument}
+              timeframe={data?.tf ?? timeframe}
+              displayTz={settings.displayTz}
+              now={now}
+            />
+          )}
+          {view === 'SIGNALS' && settings && (
+            <SignalsPage research={researchRepo} displayTz={settings.displayTz} now={now} />
+          )}
+          {view === 'PAPER' && settings && (
+            <PaperPage
+              research={researchRepo}
+              strategies={strategyRepo}
+              source={candleSource}
+              market={repo}
+              feed={feed!}
+              displayTz={settings.displayTz}
+              now={now}
+              newId={newId}
+            />
+          )}
+          {view === 'RESEARCH' && settings && datasets && (
+            <ResearchPage
+              research={researchRepo}
+              strategies={strategyRepo}
+              source={candleSource}
+              datasets={datasets}
+              displayTz={settings.displayTz}
+              now={now}
+              newId={newId}
+            />
+          )}
+          {view === 'STRATEGY' && settings && datasets && (
+            <StrategyPage
+              strategies={strategyRepo}
+              research={researchRepo}
+              source={candleSource}
+              datasets={datasets}
+              defaultInstrument={active?.instrument ?? 'EURUSD'}
+              displayTz={settings.displayTz}
+              now={now}
+              newId={newId}
+              onShowOnChart={(s, v) => void showOnChart(s, v)}
+              userSessions={userSessions}
+            />
+          )}
+          {view === 'CHART' && active && settings && data && instrument && (
+            <>
+              <div className="tool-row">
+                <span className="hint tool-hint">{tr.drawings.hints[tool]}</span>
+                {shownStrategy && (
+                  <div className="strategy-badge" role="status">
+                    <span>
+                      {tr.strategyChart.badge(
+                        shownStrategy.name,
+                        shownStrategy.version,
+                        setupMarks?.signalBarsAt.length ?? 0,
+                      )}
+                    </span>
+                    <button type="button" className="btn" onClick={() => setChartStrategy(null)}>
+                      {tr.strategyChart.hide}
+                    </button>
+                  </div>
+                )}
+                <ReplayBar
+                  cursor={replay.cursor}
+                  displayTz={settings.displayTz}
+                  playing={replay.playing}
+                  speedMs={replay.speedMs}
+                  atEnd={replay.atEnd}
+                  busy={trading.busy}
+                  onStart={replay.start}
+                  onStep={replay.step}
+                  onTogglePlay={replay.togglePlay}
+                  onSpeed={replay.setSpeed}
+                  onExit={replay.exit}
                 />
-                {selected ? (
-                  <DrawingPanel
-                    drawing={selected}
-                    level={store.levels.find((l) => l.drawingId === selected.id)}
+              </div>
+              <div className="workspace">
+                <DrawingTools
+                  tool={tool}
+                  onTool={(t) => {
+                    setTool(t);
+                    if (t !== 'SELECT') setSelectedId(null);
+                  }}
+                  magnet={magnet}
+                  onMagnet={() => setMagnet((x) => !x)}
+                  keep={keepDrawing}
+                  onKeep={() => setKeepDrawing((x) => !x)}
+                  lockAll={lockAll}
+                  onLockAll={() => setLockAll((x) => !x)}
+                  hideAll={hideAll}
+                  onHideAll={() => {
+                    setHideAll((x) => !x);
+                    setSelectedId(null);
+                  }}
+                  count={store.drawings.length}
+                  onRemoveAll={() => {
+                    setSelectedId(null);
+                    void store.deleteDrawings(store.drawings.map((d) => d.id));
+                  }}
+                  canUndo={store.canUndo}
+                  onUndo={() => void store.undo()}
+                  canRedo={store.canRedo}
+                  onRedo={() => void store.redo()}
+                />
+                {chartData ? (
+                  <ChartComponent
+                    sessionStyles={sessionStyles}
+                    candles={chartData.candles}
+                    sessions={chartData.sessions.filter((s) =>
+                      settings.sessions.includes(s.sessionId),
+                    )}
                     instrument={instrument}
-                    timeframe={timeframe}
+                    timeframe={data.tf}
+                    baseTimeframe={active.baseTimeframe}
                     displayTz={settings.displayTz}
-                    lastClose={lastClose}
-                    now={now}
-                    newId={newId}
-                    onSave={(d) => void store.saveDrawing(d)}
-                    onDelete={(id) => {
-                      void store.deleteDrawing(id);
-                      setSelectedId(null);
-                    }}
-                    onSaveLevel={(l) => void store.saveLevel(l)}
-                    onDeleteLevel={(id) => void store.deleteLevel(id)}
+                    followLatest={inReplay}
+                    features={chartData.features}
+                    smc={chartData.smc}
+                    featureLayers={settings.features}
+                    indicators={settings.indicators}
+                    setups={setupMarks}
+                    tradeLines={tradeLines}
+                    screenshotRef={screenshotRef}
+                    focus={focus}
+                    drawings={visibleDrawings}
+                    levels={store.levels}
+                    selectedId={selectedId}
+                    tool={tool}
+                    onDrawn={onDrawn}
+                    onSelect={setSelectedId}
+                    magnet={magnet}
+                    onErase={eraseDrawing}
+                    onChange={(d) => void store.saveDrawing(d)}
                   />
                 ) : (
-                  <p className="hint panel">{tr.drawings.noSelection}</p>
+                  <p className="muted chart-wrap">{tr.app.loading}</p>
                 )}
-                <LevelsPanel
-                  levels={store.levels}
-                  drawings={store.drawings}
-                  instrument={instrument}
-                  selectedId={selectedId}
-                  onSelect={setSelectedId}
-                />
-              </aside>
-            </div>
-          </>
+                <aside className="side">
+                  <TradePanel
+                    instrument={instrument}
+                    displayTz={settings.displayTz}
+                    cursor={replay.cursor}
+                    lastClose={inReplay ? lastClose : null}
+                    baseMs={timeframeMs(active.baseTimeframe)}
+                    trade={trading.trade}
+                    onPlace={trading.place}
+                    onClose={trading.close}
+                    onDismiss={trading.dismiss}
+                    onNoTrade={() => {
+                      if (replay.cursor === null) return;
+                      replay.pause();
+                      journal.open(noTradeDraft(instrument, replay.cursor, timeframe, allDefs));
+                    }}
+                    onWriteJournal={() =>
+                      settled && journal.open(draftFromTrade(settled, instrument, baseMs, allDefs))
+                    }
+                  />
+                  {selected ? (
+                    <DrawingPanel
+                      drawing={selected}
+                      level={store.levels.find((l) => l.drawingId === selected.id)}
+                      instrument={instrument}
+                      timeframe={timeframe}
+                      displayTz={settings.displayTz}
+                      lastClose={lastClose}
+                      now={now}
+                      newId={newId}
+                      onSave={(d) => void store.saveDrawing(d)}
+                      onDelete={(id) => {
+                        void store.deleteDrawing(id);
+                        setSelectedId(null);
+                      }}
+                      onSaveLevel={(l) => void store.saveLevel(l)}
+                      onDeleteLevel={(id) => void store.deleteLevel(id)}
+                    />
+                  ) : (
+                    <p className="hint panel">{tr.drawings.noSelection}</p>
+                  )}
+                  <LevelsPanel
+                    levels={store.levels}
+                    drawings={store.drawings}
+                    instrument={instrument}
+                    selectedId={selectedId}
+                    onSelect={setSelectedId}
+                  />
+                </aside>
+              </div>
+            </>
+          )}
+        </main>
+
+        {journal.draft && settings && (
+          <div className="overlay">
+            <JournalForm
+              key={`${journal.draft.tradeId ?? 'none'}-${journal.draft.decidedAt}`}
+              draft={journal.draft}
+              displayTz={settings.displayTz}
+              sessionNames={sessionNames}
+              onSave={async (fields) => {
+                const d = journal.draft!;
+                const id = await journal.save(d, fields);
+                if (d.tradeId && d.tradeId === trading.trade?.id) await trading.attachJournal(id);
+              }}
+              onSkip={journal.close}
+            />
+          </div>
         )}
-      </main>
 
-      {journal.draft && settings && (
-        <div className="overlay">
-          <JournalForm
-            key={`${journal.draft.tradeId ?? 'none'}-${journal.draft.decidedAt}`}
-            draft={journal.draft}
-            displayTz={settings.displayTz}
-            sessionNames={sessionNames}
-            onSave={async (fields) => {
-              const d = journal.draft!;
-              const id = await journal.save(d, fields);
-              if (d.tradeId && d.tradeId === trading.trade?.id) await trading.attachJournal(id);
-            }}
-            onSkip={journal.close}
-          />
-        </div>
-      )}
-
-      {backupOpen && settings && (
-        <BackupDialog
-          repos={backupRepos}
-          now={now}
-          displayTz={settings.displayTz}
-          lastBackupAt={settings.lastBackupAt}
-          onBackedUp={(at) => update({ lastBackupAt: at })}
-          onClose={() => setBackupOpen(false)}
-        />
-      )}
-      {managingSessions && (
-        <div className="overlay">
-          <SessionManager
-            sessions={userSessions}
+        {backupOpen && settings && (
+          <BackupDialog
+            repos={backupRepos}
             now={now}
-            onSave={(s, isNew) =>
-              void sessionsRepo.save(s).then(async () => {
-                setUserSessions(await sessionsRepo.list());
-                if (isNew && settings && !settings.sessions.includes(s.id))
-                  update({ sessions: [...settings.sessions, s.id] });
-              })
-            }
-            onDelete={(id) =>
-              void sessionsRepo.delete(id).then(async () => {
-                setUserSessions(await sessionsRepo.list());
-                if (settings) update({ sessions: settings.sessions.filter((x) => x !== id) });
-              })
-            }
-            onClose={() => setManagingSessions(false)}
+            displayTz={settings.displayTz}
+            lastBackupAt={settings.lastBackupAt}
+            onBackedUp={(at) => update({ lastBackupAt: at })}
+            onClose={() => setBackupOpen(false)}
           />
-        </div>
-      )}
+        )}
+        {managingSessions && (
+          <div className="overlay">
+            <SessionManager
+              sessions={userSessions}
+              now={now}
+              onSave={(s, isNew) =>
+                void sessionsRepo.save(s).then(async () => {
+                  setUserSessions(await sessionsRepo.list());
+                  if (isNew && settings && !settings.sessions.includes(s.id))
+                    update({ sessions: [...settings.sessions, s.id] });
+                })
+              }
+              onDelete={(id) =>
+                void sessionsRepo.delete(id).then(async () => {
+                  setUserSessions(await sessionsRepo.list());
+                  if (settings) update({ sessions: settings.sessions.filter((x) => x !== id) });
+                })
+              }
+              onClose={() => setManagingSessions(false)}
+            />
+          </div>
+        )}
 
-      {importing && (
-        <div className="overlay">
-          <ImportWizard
-            createImporter={createImporter}
-            save={(meta, series) => repo.saveDataset(meta, series)}
-            onSaved={(meta) => void onSaved(meta)}
-            onClose={() => setImporting(false)}
-          />
-        </div>
-      )}
-    </div>
+        {importing && (
+          <div className="overlay">
+            <ImportWizard
+              createImporter={createImporter}
+              save={(meta, series) => repo.saveDataset(meta, series)}
+              onSaved={(meta) => void onSaved(meta)}
+              onClose={() => setImporting(false)}
+            />
+          </div>
+        )}
+      </div>
+    </GlossaryNav.Provider>
   );
 }
 

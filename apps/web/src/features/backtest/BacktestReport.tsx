@@ -2,6 +2,8 @@ import { SKIP_REASONS, type BreakdownRow, type IanaTz, type StoredBacktest } fro
 import { backtestTradesCsv } from '../../backup/csv';
 import { saveFile } from '../../backup/download';
 import { formatTime } from '../../format';
+import { Term } from '../../components/Term';
+import { TERMS } from '../../content/terms';
 import { tr } from '../../i18n/tr';
 import { formatR } from '../trade/TradePanel';
 import { SESSION_NAMES } from '../journal/JournalForm';
@@ -13,10 +15,20 @@ const usd = (v: number) =>
 const pct = (v: number) => `%${v.toLocaleString('tr-TR', { maximumFractionDigits: 2 })}`;
 const date = (ms: number, tz: IanaTz) => formatTime(ms, tz).slice(0, 10);
 
-function Row({ label, value, warn }: { label: string; value: string; warn?: boolean }) {
+function Row({
+  label,
+  value,
+  warn,
+  term,
+}: {
+  label: string;
+  value: string;
+  warn?: boolean;
+  term?: string;
+}) {
   return (
     <div className={`kv-row${warn ? ' warn' : ''}`}>
-      <dt>{label}</dt>
+      <dt>{term ? <Term id={term}>{label}</Term> : label}</dt>
       <dd>{value}</dd>
     </div>
   );
@@ -108,6 +120,7 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
           <Row label={t.setups} value={String(result.setupsFound)} />
           <Row
             label={t.skipped}
+            term={TERMS.skipped}
             value={
               skippedTotal === 0
                 ? '0'
@@ -119,6 +132,7 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
           />
           <Row
             label={t.ambiguous}
+            term={TERMS.ambiguous}
             value={String(result.ambiguousTrades)}
             warn={result.ambiguousTrades > 0}
           />
@@ -126,6 +140,7 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
           <Row label={t.unfilled} value={String(result.unfilledAtEnd)} />
           <Row
             label={t.totalCosts}
+            term={TERMS.costs}
             value={`${usd(result.costs.total)} USD (spread ${usd(result.costs.spread)}, kayma ${usd(result.costs.slippage)}, komisyon ${usd(result.costs.commission)})`}
           />
         </dl>
@@ -134,25 +149,39 @@ export function BacktestReport({ b, displayTz }: { b: StoredBacktest; displayTz:
       <h4>{t.results}</h4>
       <p className="hint">{t.measuredNote}</p>
       <dl className="kv stat-grid">
-        <Row label={t.trades} value={String(s.trades)} />
+        <Row label={t.trades} term={TERMS.sample} value={String(s.trades)} />
         <Row label={t.winLoss} value={`${s.wins} / ${s.losses} / ${s.breakeven}`} />
-        <Row label={t.winRate} value={s.winRate === null ? t.none : pct(s.winRate * 100)} />
-        <Row label={t.expectancy} value={s.avgR === null ? t.none : formatR(s.avgR)} />
-        <Row label={t.totalR} value={formatR(s.totalR)} />
+        <Row
+          label={t.winRate}
+          term={TERMS.winRate}
+          value={s.winRate === null ? t.none : pct(s.winRate * 100)}
+        />
+        <Row
+          label={t.expectancy}
+          term={TERMS.expectancy}
+          value={s.avgR === null ? t.none : formatR(s.avgR)}
+        />
+        <Row label={t.totalR} term={TERMS.r} value={formatR(s.totalR)} />
         <Row
           label={t.profitFactor}
+          term={TERMS.profitFactor}
           value={
             s.profitFactor === null
               ? t.none
               : s.profitFactor.toLocaleString('tr-TR', { maximumFractionDigits: 2 })
           }
         />
-        <Row label={t.maxDdR} value={formatR(-s.maxDrawdownR)} />
+        <Row label={t.maxDdR} term={TERMS.drawdownR} value={formatR(-s.maxDrawdownR)} />
         <Row
           label={t.maxDd}
+          term={TERMS.drawdown}
           value={`${usd(stats.maxDrawdownUsd)} / ${pct(stats.maxDrawdownPct)}`}
         />
-        <Row label={t.streaks} value={`${s.longestWinStreak} / ${s.longestLossStreak}`} />
+        <Row
+          label={t.streaks}
+          term={TERMS.streaks}
+          value={`${s.longestWinStreak} / ${s.longestLossStreak}`}
+        />
         <Row
           label={t.largest}
           value={`${s.largestWinR === null ? t.none : formatR(s.largestWinR)} / ${s.largestLossR === null ? t.none : formatR(s.largestLossR)}`}

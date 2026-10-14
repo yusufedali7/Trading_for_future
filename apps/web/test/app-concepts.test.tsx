@@ -58,7 +58,10 @@ async function setup(withData: boolean) {
     />,
   );
   if (withData) await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
-  fireEvent.click(await screen.findByRole('button', { name: 'Kavramlar' }));
+  fireEvent.click(await screen.findByRole('button', { name: 'Öğren' }));
+  expect(screen.getByRole('button', { name: 'Kavramlar' }).getAttribute('aria-pressed')).toBe(
+    'true',
+  );
   return { prefs };
 }
 

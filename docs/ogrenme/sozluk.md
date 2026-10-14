@@ -632,3 +632,9 @@ En basit harmonik şekil — X yok, sadece A-B-C-D dört nokta. Adından da anla
 
 ### Shark neden yok
 Kataloğun kendisi Shark formasyonunu "güvenilir bir kaynaktan oran alınmadan uygulanmayacak" diye işaretlemiş. Güvenilir bir kaynak bulunana kadar bu formasyon motora eklenmiyor — tahmin yürütmek yerine, kuralın kendisine uyuldu.
+
+## Eğitim fazında eklenenler: Öğren sayfası
+
+### Bağlamsal açıklama
+Ekranlarda altı noktalı çizgili terimler (örneğin backtest raporundaki "Kazanma oranı") tıklanabilir: bu sözlükteki açıklaması yerinde açılır. "Sözlükte aç" seni bu sayfada o terime götürür.
+*Uygulamada:* Öğren → Sözlük sekmesi bu dosyanın kendisini gösterir; dosya güncellendikçe arayüz de güncellenir.

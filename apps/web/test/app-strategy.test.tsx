@@ -139,6 +139,26 @@ describe('strategy page', () => {
     expect(screen.getByRole('img', { name: 'Bakiye eğrisi (USD)' })).toBeTruthy();
   });
 
+  it('explains report terms in place and opens them in the glossary (D71)', async () => {
+    await setup();
+    await createSwingStrategy();
+    fireEvent.click(screen.getByRole('button', { name: 'Backtest çalıştır' }));
+    await waitLong(() =>
+      expect(screen.getByRole('note', { name: 'Dürüstlük göstergeleri' })).toBeTruthy(),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Kazanma oranı' }));
+    const pop = screen.getByRole('dialog', { name: 'Kazanma oranı ve beklenen değer' });
+    fireEvent.click(within(pop).getByRole('button', { name: 'Sözlükte aç' }));
+    expect(screen.getByRole('button', { name: 'Öğren' }).getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Sözlük' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    const selected = document.querySelector('[data-selected="true"]') as HTMLElement;
+    expect(within(selected).getByRole('heading').textContent).toBe(
+      'Kazanma oranı ve beklenen değer',
+    );
+  });
+
   it('shows the setups of a version on the chart', async () => {
     await setup();
     await createSwingStrategy();

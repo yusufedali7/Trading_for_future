@@ -548,6 +548,19 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kalan (ayrı kararlar):** webhook (n8n tarafı netleşince), çoklu enstrüman akışı, 1. açık sorunun (`MIN_WATCHABLE_STATUS`) kullanıcı araştırması bitince güncellenmesi.
 ---
 
+## D71 — Eğitim fazının ilk dilimi: "Öğren" sayfası, uygulama içi sözlük, bağlamsal açıklamalar
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (plan onayı: "eğitim önce", dört eğitim türünün hepsi)
+- **Neden:** `docs/ogrenme/sozluk.md` her taşta güncellenen 140 terimlik bir sözlük ama arayüzde hiç görünmüyordu; tek eğitim sayfası Kavramlar'dı ve backtest raporu gibi ekranlardaki terimlerin (R, beklenen değer, drawdown, belirsiz mum…) yerinde açıklaması yoktu.
+- **Tek kaynak:** Sözlük kopyalanmadı. `content/glossary.ts` dosyayı Vite `?raw` ile içe alıp saf `parseGlossary()` ile girdilere çeviriyor (`##` bölüm, `###` terim, `*Uygulamada:*` satırı ayrı alan, `---` gövdeyi bitirir). Aynı başlık iki kez geçerse (`Aday (candidate)`, `CSV`) ikincisi `-2` ekiyle benzersiz id alıyor. Sözlük düzenlendikçe arayüz kendiliğinden güncelleniyor (D40'ın "eğitim içeriği repoda statik" ilkesiyle aynı).
+- **Güvenli markdown alt kümesi** (`components/Markdown.tsx`): paragraf, `- ` liste, kalın, italik, `kod` — hepsi React elemanı, ham HTML hiç yorumlanmıyor (`dangerouslySetInnerHTML` yok, yeni bağımlılık yok).
+- **`<Term id>`** (`components/Term.tsx`): tıklayınca sözlük girdisini yerinde açan noktalı-altı-çizili terim; "Sözlükte aç" ile Öğren → Sözlük'e gidip girdiyi işaretliyor. Kutu `body`'ye portal'lanıyor (girdideki paragraf/listeler nerede olursa olsun geçerli HTML kalsın), ekranın alt yarısındaysa yukarı açılıyor, sayfa kayınca kapanıyor (sabit konumlu kutu terimden kopmasın). Bilinmeyen id düz metin olarak çiziliyor.
+- **Id'ler tek yerde** (`content/terms.ts`): bir test her id'nin sözlükte hâlâ var olduğunu kanıtlıyor — sözlükte bir başlık değişirse test kırılıyor.
+- **Nav:** "Kavramlar" düğmesi "Öğren" oldu (view sayısı değişmedi); Öğren sekmeli — Kavramlar (mevcut sayfa aynen) | Sözlük (arama + bölüm filtresi). Öğrenme yolu (D73) ve Alıştırma (D74) aynı yere sekme olarak eklenecek.
+- **İlk kullanım yerleri:** backtest raporu (işlem sayısı, kazanma oranı, beklenen değer, toplam R, profit factor, iki drawdown, seriler, belirsiz mum, atlanan kurulum, maliyet) ve strateji oluşturucunun Stop/Hedef/Risk bölüm başlıkları.
+- **Bilerek yapılmayan:** Araç çubuğundaki katman düğmeleri zaten birer buton; içine `<Term>` butonu koymak geçersiz HTML olacağı için oradaki yerel `title` ipuçları korundu. Strateji oluşturucuda alan etiketleri `<label>` içinde (buton orada da geçersiz) — Term bölüm başlıklarına (`<legend>`) kondu.
+- **Doğrulama:** 6 yeni test dosyası (`glossary`, `markdown`, `term`, `glossary-page`, `terms` + `app-strategy`'de raporlardan sözlüğe atlama testi), `app-concepts` nav'ı güncellendi. Gömülü tarayıcıda canlı kontrol: Öğren → Sözlük 140 terim, arama, strateji oluşturucuda açıklama kutusu ve "Sözlükte aç". Canlı kontrol bir hatayı yakaladı (kutunun arka planı saydamdı, ekranın altında taşıyordu) — düzeltildi. Tam paket 732/732 yeşil.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
