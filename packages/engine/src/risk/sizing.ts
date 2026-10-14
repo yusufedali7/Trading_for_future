@@ -25,6 +25,11 @@ export interface LotRules {
 
 export const DEFAULT_LOT_RULES: LotRules = { lotStep: 0.01, minLot: 0.01 };
 
+/** The instrument's own lot rules (D75): metadata lives in one place (CLAUDE.md). */
+export function lotRules(inst: Instrument): LotRules {
+  return { lotStep: inst.lotStep, minLot: inst.minLot };
+}
+
 export type SizeResult =
   | { ok: true; lots: number; riskAmount: number }
   | { ok: false; reason: 'CROSS_PAIR' | 'SIZE_TOO_SMALL' | 'NO_RISK' };

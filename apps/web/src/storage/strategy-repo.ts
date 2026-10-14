@@ -85,8 +85,8 @@ export interface WatchedStrategy {
   watchedSince: UtcMs;
   /** null while still being watched. */
   stoppedAt: UtcMs | null;
-  /** Account balance signal-draft lot sizing is computed from (same convention as `PaperSession`,
-   * which hardcodes `lots: { lotStep: 0.01, minLot: 0.01 }` - D70 does the same). */
+  /** Account balance signal-draft lot sizing is computed from (same convention as `PaperSession`);
+   * lot rules come from the instrument's metadata (D75). */
   startEquity: number;
   createdAt: UtcMs;
 }

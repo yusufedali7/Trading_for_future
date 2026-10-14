@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getInstrument, withOverrides } from '../src/instruments/registry';
-import { pipValuePerLot, positionSize, tradePnl } from '../src/risk/sizing';
+import { lotRules, pipValuePerLot, positionSize, tradePnl } from '../src/risk/sizing';
 
 const EUR = getInstrument('EURUSD');
 const JPY = getInstrument('USDJPY');
@@ -67,5 +67,15 @@ describe('tradePnl', () => {
     expect(tradePnl(EUR, 'SHORT', 0.25, 1.1, 1.104)).toBe(-100);
     expect(tradePnl(XAU, 'LONG', 1, 2650, 2652)).toBe(200);
     expect(tradePnl(JPY, 'LONG', 1, 150, 150.3)).toBeCloseTo(199.6, 1);
+  });
+});
+
+describe('lotRules', () => {
+  it('reads the lot step and minimum lot from the instrument', () => {
+    expect(lotRules(EUR)).toEqual({ lotStep: 0.01, minLot: 0.01 });
+    expect(lotRules(withOverrides(XAU, { lotStep: 0.1, minLot: 0.1 }))).toEqual({
+      lotStep: 0.1,
+      minLot: 0.1,
+    });
   });
 });

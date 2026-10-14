@@ -1,8 +1,6 @@
-import type { DataSetMeta, LotRules } from '@trw/engine';
+import { getInstrument, lotRules, type DataSetMeta } from '@trw/engine';
 import type { CandleSource } from '../../compute/candle-source';
 import type { ResearchRepo, StoredDraft, StrategyRepo } from '../../storage/strategy-repo';
-
-const LOTS: LotRules = { lotStep: 0.01, minLot: 0.01 };
 
 /**
  * After an MT5 sync lands new bars for `meta.instrument` (M11, D70): recompute signal drafts for
@@ -39,7 +37,7 @@ export async function refreshDrafts(p: {
       w.strategyVersion,
       w.watchedSince,
       w.startEquity,
-      LOTS,
+      lotRules(getInstrument(p.meta.instrument)),
     );
     for (const draft of drafts) {
       toSave.push({

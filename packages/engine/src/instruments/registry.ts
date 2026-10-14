@@ -23,6 +23,9 @@ export interface Instrument {
   pricePrecision: number;
   /** Units of base per 1.0 lot. */
   contractSize: number;
+  /** Smallest lot increment and smallest tradable lot (D75). Common retail defaults; broker-specific. */
+  lotStep: number;
+  minLot: number;
   tradingHours: TradingHours;
   /** Optional daily maintenance break inside trading hours. */
   dailyBreak?: { start: LocalTime; end: LocalTime; tz: IanaTz };
@@ -52,9 +55,11 @@ function fxPair(symbol: string, pipSize: number, tickSize: number, precision: nu
     pipSize,
     pricePrecision: precision,
     contractSize: 100_000,
+    lotStep: 0.01,
+    minLot: 0.01,
     tradingHours: FX_HOURS,
     dailyClose: NY_CLOSE,
-    metaVersion: 1,
+    metaVersion: 2,
   };
 }
 
@@ -75,10 +80,12 @@ const REGISTRY: readonly Instrument[] = [
     pipSize: 0.1,
     pricePrecision: 3,
     contractSize: 100,
+    lotStep: 0.01,
+    minLot: 0.01,
     tradingHours: FX_HOURS,
     dailyBreak: { start: '17:00', end: '18:00', tz: NY },
     dailyClose: NY_CLOSE,
-    metaVersion: 1,
+    metaVersion: 2,
   },
 ];
 
@@ -115,7 +122,9 @@ export function roundToTick(i: Instrument, price: number): number {
   return Math.round(price * ticksPerUnit(i)) / ticksPerUnit(i);
 }
 
-export type InstrumentOverrides = Partial<Pick<Instrument, 'pipSize' | 'contractSize'>>;
+export type InstrumentOverrides = Partial<
+  Pick<Instrument, 'pipSize' | 'contractSize' | 'lotStep' | 'minLot'>
+>;
 
 /** Returns a copy with user overrides applied; the registry itself is never mutated. */
 export function withOverrides(i: Instrument, o: InstrumentOverrides): Instrument {
@@ -127,5 +136,7 @@ export function withOverrides(i: Instrument, o: InstrumentOverrides): Instrument
     );
   }
   if (!(next.contractSize > 0)) throw new Error('contractSize must be positive');
+  if (!(next.lotStep > 0) || !(next.minLot >= next.lotStep))
+    throw new Error(`minLot ${next.minLot} must be at least lotStep ${next.lotStep} (> 0)`);
   return next;
 }

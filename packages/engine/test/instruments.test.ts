@@ -37,6 +37,23 @@ describe('instrument registry', () => {
     });
   });
 
+  it('keeps lot rules with every instrument (D75), not scattered in the app', () => {
+    for (const i of listInstruments()) {
+      expect(i.lotStep).toBeGreaterThan(0);
+      expect(i.minLot).toBeGreaterThanOrEqual(i.lotStep);
+    }
+    expect(getInstrument('EURUSD')).toMatchObject({ lotStep: 0.01, minLot: 0.01, metaVersion: 2 });
+  });
+
+  it('lets lot rules be overridden for a broker, rejecting a minimum below the step', () => {
+    const eu = getInstrument('EURUSD');
+    expect(withOverrides(eu, { lotStep: 0.1, minLot: 0.1 })).toMatchObject({
+      lotStep: 0.1,
+      minLot: 0.1,
+    });
+    expect(() => withOverrides(eu, { lotStep: 0.1, minLot: 0.01 })).toThrow(/minLot/);
+  });
+
   it('defines USDJPY with a 0.01 pip', () => {
     expect(getInstrument('USDJPY').pipSize).toBe(0.01);
   });

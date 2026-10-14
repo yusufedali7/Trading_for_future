@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
+  getInstrument,
   timeframeMs,
   type AmbiguityRule,
   type DataSetMeta,
@@ -53,8 +54,9 @@ export function BacktestPanel(p: BacktestPanelProps) {
   const [slippage, setSlippage] = useState('0');
   const [commission, setCommission] = useState('0');
   const [equity, setEquity] = useState('10000');
-  const [lotStep, setLotStep] = useState('0.01');
-  const [minLot, setMinLot] = useState('0.01');
+  // Defaults from the instrument's metadata (D75); editable for a broker with other rules.
+  const [lotStep, setLotStep] = useState(() => String(getInstrument(spec.instrument).lotStep));
+  const [minLot, setMinLot] = useState(() => String(getInstrument(spec.instrument).minLot));
   const [ambiguity, setAmbiguity] = useState<AmbiguityRule>('STOP_FIRST');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

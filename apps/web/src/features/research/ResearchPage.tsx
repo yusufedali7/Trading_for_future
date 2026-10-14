@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import {
+  getInstrument,
+  lotRules,
   conclude,
   newVersion,
   oosState,
@@ -190,7 +192,7 @@ function HypothesisForm(
             },
             ambiguity,
             startEquity: num(equity),
-            lots: { lotStep: 0.01, minLot: 0.01 },
+            lots: lotRules(getInstrument(meta.instrument)),
           },
           status: 'OPEN',
           conclusion: '',

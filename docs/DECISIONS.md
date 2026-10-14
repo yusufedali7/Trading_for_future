@@ -594,6 +594,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 8 motor testi (determinizm, sayı/sıra, tür içi denge, bağlam, swing cevabının ileriye bakmadan kurulması ve dedektörle tutarlılığı, FVG cevabı, kısa veri), 2 uygulama testi (tam tur + skorun kaydı, veri yokken soru yok), 1 tercih regresyon testi. Gerçek EURUSD 1m verisiyle canlı: 10 soruluk tur, her türde 3/2 denge, 32 mum bağlam, skor ve tohum kaydı.
 ---
 
+## D75 — Lot kuralları enstrüman tanımına taşındı (Faz B'nin ilk dilimi)
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (onaylı plan, D71–D78)
+- **Neden:** Dış kaynak araştırmasında QuantConnect Lean'in `SymbolProperties` deseniyle karşılaştırma (`docs/arastirma/entegrasyon-bulgulari-2026-10-14.md`) bizde lot adımı ve en küçük lotun enstrüman tanımında olmadığını, uygulamada dört ayrı yerde `{ lotStep: 0.01, minLot: 0.01 }` olarak sabit kodlandığını gösterdi (sinyal taslakları, paper oturumu, araştırma hipotezi, backtest formu). CLAUDE.md: "enstrüman metadata'sı kodda dağınık değil, tek bir yerde".
+- **Değişiklik:** `Instrument`'a `lotStep` ve `minLot` eklendi (EURUSD/GBPUSD/USDJPY/XAUUSD için yaygın perakende varsayılanı 0.01/0.01; broker'a göre değişebilir), `metaVersion` 1→2. `withOverrides` artık bu ikisini de kabul ediyor ve `minLot ≥ lotStep > 0` şartını doğruluyor. Yeni `lotRules(inst)` yardımcısı; dört sabit kodlu yer artık enstrümandan okuyor. Backtest formundaki lot alanları varsayılanını enstrümandan alıyor, kullanıcı yine değiştirebiliyor.
+- **Davranış değişmedi:** dört enstrümanın değerleri önceki sabitlerle aynı, sonuçlar birebir aynı.
+- **Lean karşılaştırmasının geri kalanı:** tick değeri (point value) ayrı bir alan olarak eklenmedi — `pipValuePerLot` zaten `contractSize × pipSize` (+ kote para dönüşümü) ile hesaplanıyor; ayrı saklamak ikinci bir doğruluk kaynağı yaratırdı.
+- **Doğrulama:** 3 yeni motor testi (her enstrümanda lot kuralları, override ve doğrulaması, `lotRules`). Tam paket 789 test; bir aralıklı zaman aşımı (çizim testi) tek başına yeşil — bkz. test kararlılığı için önerilen ayrı görev.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

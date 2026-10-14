@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
+  getInstrument,
+  lotRules,
   listInstruments,
   timeframeMs,
   type DataSetMeta,
@@ -244,7 +246,7 @@ function NewSession(
           costs,
           ambiguity: 'STOP_FIRST',
           startEquity: num(equity),
-          lots: { lotStep: 0.01, minLot: 0.01 },
+          lots: lotRules(getInstrument(chosen.v.spec.instrument)),
           createdAt: at,
         });
         await p.onStarted();

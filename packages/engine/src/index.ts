@@ -359,6 +359,7 @@ export { findSetups, inWindow } from './strategy/matcher';
 export type { Setup, StepMatch } from './strategy/matcher';
 export {
   DEFAULT_LOT_RULES,
+  lotRules,
   pipValuePerLot,
   positionSize,
   quoteToUsd,
