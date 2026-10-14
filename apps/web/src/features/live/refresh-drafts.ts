@@ -9,6 +9,9 @@ import type { ResearchRepo, StoredDraft, StrategyRepo } from '../../storage/stra
  * deterministic per setup, so this is an idempotent upsert, not a duplicate, and stays correct if
  * a sync is ever missed or retried (same reasoning as the backtest/setups layer recomputing the
  * whole dataset rather than keeping incremental state).
+ *
+ * Returns the drafts that were not stored before this sync (D76), so a notification is sent
+ * once per draft however often the data syncs.
  */
 export async function refreshDrafts(p: {
   meta: DataSetMeta;
@@ -16,10 +19,11 @@ export async function refreshDrafts(p: {
   research: ResearchRepo;
   source: CandleSource;
   now: () => number;
-}): Promise<void> {
+}): Promise<{ fresh: StoredDraft[] }> {
   const watched = await p.research.listWatched();
   const active = watched.filter((w) => w.stoppedAt === null && w.instrument === p.meta.instrument);
-  if (active.length === 0) return;
+  if (active.length === 0) return { fresh: [] };
+  const known = new Set((await p.research.listDrafts()).map((d) => d.id));
 
   const allStrategies = await p.strategies.listStrategies();
   const nameById = new Map(allStrategies.map((s) => [s.id, s.name]));
@@ -49,4 +53,5 @@ export async function refreshDrafts(p: {
     }
   }
   if (toSave.length > 0) await p.research.saveDrafts(toSave);
+  return { fresh: toSave.filter((d) => !known.has(d.id)) };
 }

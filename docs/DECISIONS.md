@@ -603,6 +603,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 3 yeni motor testi (her enstrümanda lot kuralları, override ve doğrulaması, `lotRules`). Tam paket 789 test; bir aralıklı zaman aşımı (çizim testi) tek başına yeşil — bkz. test kararlılığı için önerilen ayrı görev.
 ---
 
+## D76 — Sinyal taslakları için webhook bildirimi (M11'in açık parçası)
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (onaylı plan; AI-BOT-TASLAK 4. soru: "n8n → Telegram, uygulama URL'e JSON POST eder")
+- **Ne yapıyor:** Sinyaller sayfasında kullanıcının girdiği adrese (yalnızca http/https; tercihlerde `signalWebhookUrl`, yedeğe dahil) her **yeni ve hâlâ geçerli** taslak için bir JSON `POST` (`signal-draft-notice/v1`). Biçim `docs/AI-BOT-TASLAK.md`'de; n8n tarafı buna göre kurulur. Taslak başına bir istek (Telegram'da taslak başına bir mesaj).
+- **"Yeni" nasıl belirleniyor:** `refreshDrafts` her senkronda baştan hesaplamaya devam ediyor (D70), ama artık kaydetmeden önce mevcut taslak kimliklerini okuyup daha önce olmayanları döndürüyor. Kimlikler deterministik olduğu için aynı taslak bir daha bildirilmiyor; tekrarlanan/atlanan senkronlar çift bildirim üretmiyor.
+- **Süresi geçmişler bildirilmiyor:** Uzun bir kopukluktan sonra ilk senkronda bulunan ama artık geçerli olmayan taslaklar kaydediliyor (Sinyaller sayfasında "Süresi doldu") ama gönderilmiyor — geçmiş bir taslağı anlık bildirim gibi göstermek yanıltıcı olurdu.
+- **Çakışmalar yükte:** `findConflicts` (D68) aynen kullanılıyor; `conflictsWith` karşı stratejilerin adlarını taşıyor. Hiçbir taslak gizlenmiyor.
+- **Dil ve sınırlar:** Yükte "AL/SAT" yok (testle kontrol), sabit bir uyarı metni var. Uygulama yalnızca bildirir; emir göndermez (Kural 7). Arayüz ve belge "yalnızca kendine gönder; başkalarına iletmek SPK kurallarına tabi olabilir (doğrulanmadı)" diyor (Kural 9).
+- **Hatalar görünür:** her gönderimin sonucu (gönderilen/başarısız, son hata) Sinyaller sayfasında gösteriliyor; sessiz yeniden deneme yok. "Test bildirimi gönder" fiyat içermeyen bir bağlantı testi yolluyor (sahte taslak verisi üretilmiyor — Kural 2). Ağ isteği motor yerine uygulamada (`features/live/webhook.ts`); motor saf kalıyor.
+- **Doğrulanmadı:** n8n Webhook düğümünün tarayıcıdan gelen istekler için CORS ayarı — belgede işaretli, test düğmesi bunu denemek için var.
+- **Doğrulama:** 8 webhook testi (URL doğrulama, yük biçimi ve uyarı metni, test yükünde fiyat olmaması, istek başına POST ve hata sayımı, ağ hatası, yalnızca yeni+geçerli taslakların gönderimi ve çakışma adları), 1 `refreshDrafts` testi (ilk senkronda hepsi yeni, tekrar senkronda hiçbiri), 3 arayüz testi. Canlı: gömülü tarayıcıdan yerel bir alıcıya test bildirimi ulaştı (Türkçe metin bozulmadan), kapalı porta gönderimde "0 gönderildi, 1 başarısız · Son hata: Failed to fetch" görüldü; ayar sonra kapatıldı.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

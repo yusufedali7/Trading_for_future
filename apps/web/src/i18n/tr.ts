@@ -923,6 +923,24 @@ export const tr = {
     createdAt: 'Oluşturuldu',
     expiresAt: 'Geçerlilik',
     conditions: 'Sağlanan koşullar',
+    webhook: {
+      title: 'Bildirim (webhook)',
+      intro:
+        'Yeni ve hâlâ geçerli her taslak, buraya yazdığın adrese JSON olarak gönderilir (örneğin kendi n8n "Webhook" düğümün, oradan Telegram). Uygulama yalnızca bildirir; emir göndermez.',
+      share:
+        'Bildirimleri yalnızca kendine gönder. Başkalarına (grup, kanal) iletmek sinyal paylaşımı sayılabilir ve SPK kurallarına tabi olabilir (doğrulanmadı).',
+      url: 'Webhook adresi',
+      save: 'Kaydet',
+      clear: 'Kapat',
+      invalid: 'Yalnızca http:// ya da https:// ile başlayan bir adres girilebilir.',
+      on: (url: string) => `Açık: ${url}`,
+      off: 'Kapalı: bildirim gönderilmiyor.',
+      test: 'Test bildirimi gönder',
+      cors: 'Tarayıcıdan gönderildiği için alıcı tarafın bu uygulamanın adresine izin vermesi (CORS) gerekebilir; önce test bildirimiyle dene.',
+      result: (when: string, sent: number, failed: number) =>
+        `${when}: ${sent} gönderildi${failed > 0 ? `, ${failed} başarısız` : ''}`,
+      error: (msg: string) => `Son hata: ${msg}`,
+    },
   },
   backtest: {
     title: 'Backtest',

@@ -20,6 +20,7 @@ describe('user preferences repo', () => {
       paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
       lastBackupAt: null,
       learning: { completed: [], hideHint: false, exercises: [] },
+      signalWebhookUrl: null,
       indicators: {
         sma: { on: false, period: 20 },
         ema: { on: false, period: 20 },

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { isWebhookUrl, type NotifyResult } from './webhook';
 import { findConflicts, type DraftConflict, type IanaTz } from '@trw/engine';
 import { formatTime } from '../../format';
 import { tr } from '../../i18n/tr';
@@ -10,6 +11,63 @@ export interface SignalsPageProps {
   research: ResearchRepo;
   displayTz: IanaTz;
   now: () => number;
+  /** D76: where new drafts are POSTed; null = off. */
+  webhookUrl: string | null;
+  onWebhookUrl: (url: string | null) => void;
+  /** Last delivery (draft notices or a test), shown so failures are never silent. */
+  notify: (NotifyResult & { at: number }) | null;
+  onTest: () => Promise<void>;
+}
+
+function WebhookSettings(p: SignalsPageProps) {
+  const w = t.webhook;
+  const [url, setUrl] = useState(p.webhookUrl ?? '');
+  const valid = isWebhookUrl(url.trim());
+  return (
+    <section className="panel stack" aria-labelledby="webhook-title">
+      <h3 id="webhook-title">{w.title}</h3>
+      <p className="hint">{w.intro}</p>
+      <p className="hint">{w.share}</p>
+      <p>{p.webhookUrl ? w.on(p.webhookUrl) : w.off}</p>
+      <div className="field-row">
+        <label className="inline-field">
+          <span>{w.url}</span>
+          <input
+            type="url"
+            value={url}
+            placeholder="http://localhost:5678/webhook/..."
+            onChange={(e) => setUrl(e.target.value)}
+          />
+        </label>
+        <button
+          type="button"
+          className="btn"
+          disabled={!valid}
+          onClick={() => p.onWebhookUrl(url.trim())}
+        >
+          {w.save}
+        </button>
+        {p.webhookUrl && (
+          <>
+            <button type="button" className="btn" onClick={() => void p.onTest()}>
+              {w.test}
+            </button>
+            <button type="button" className="btn" onClick={() => p.onWebhookUrl(null)}>
+              {w.clear}
+            </button>
+          </>
+        )}
+      </div>
+      {url.trim() !== '' && !valid && <p className="warn-text">{w.invalid}</p>}
+      <p className="hint">{w.cors}</p>
+      {p.notify && (
+        <p className="muted-inline">
+          {w.result(formatTime(p.notify.at, p.displayTz), p.notify.sent, p.notify.failed)}
+        </p>
+      )}
+      {p.notify?.error && <p className="warn-text">{w.error(p.notify.error)}</p>}
+    </section>
+  );
 }
 
 /** Live-refreshes itself so "expired" status and conflicts stay current while the page is open. */
@@ -52,6 +110,7 @@ export function SignalsPage(p: SignalsPageProps) {
     <div className="signals-page stack">
       <h2>{t.title}</h2>
       <p className="hint">{t.intro}</p>
+      <WebhookSettings {...p} />
       {drafts === null && <p className="muted">{tr.app.loading}</p>}
       {drafts !== null && drafts.length === 0 && <p className="muted">{t.empty}</p>}
       <ul className="levels">

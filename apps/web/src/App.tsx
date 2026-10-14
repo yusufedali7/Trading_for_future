@@ -57,6 +57,12 @@ import { PaperPage } from './features/paper/PaperPage';
 import { createMt5Client, type Mt5Client } from './features/paper/mt5-feed';
 import { useMt5Feed } from './features/paper/use-mt5-feed';
 import { refreshDrafts } from './features/live/refresh-drafts';
+import {
+  notifyNewDrafts,
+  postNotices,
+  testNotice,
+  type NotifyResult,
+} from './features/live/webhook';
 import { SessionManager } from './features/sessions/SessionManager';
 import {
   createMemorySessionsRepo,
@@ -201,20 +207,31 @@ export function App({
   // A background feed sync must not reload (and overwrite) preferences - only the dataset list,
   // plus (M11, D70) any signal drafts due for the instrument that just synced.
   const paperFeedInstrument = settings?.paperFeed?.instrument;
+  const webhookUrl = settings?.signalWebhookUrl ?? null;
+  const [notify, setNotify] = useState<(NotifyResult & { at: number }) | null>(null);
   const onMt5Synced = useCallback(async () => {
     const list = await repo.listDatasets();
     setDatasets(list);
     if (!paperFeedInstrument) return;
     const meta = list.find((d) => d.instrument === paperFeedInstrument);
     if (!meta) return;
-    await refreshDrafts({
+    const { fresh } = await refreshDrafts({
       meta,
       strategies: strategyRepo,
       research: researchRepo,
       source: candleSource,
       now,
     });
-  }, [repo, paperFeedInstrument, strategyRepo, researchRepo, candleSource, now]);
+    if (!webhookUrl || fresh.length === 0) return;
+    const at = now();
+    const result = await notifyNewDrafts({
+      url: webhookUrl,
+      fresh,
+      all: await researchRepo.listDrafts(),
+      now: at,
+    });
+    if (result.sent + result.failed > 0) setNotify({ ...result, at });
+  }, [repo, paperFeedInstrument, strategyRepo, researchRepo, candleSource, now, webhookUrl]);
   const feed = useMt5Feed({
     client: mt5Client,
     repo,
@@ -625,7 +642,22 @@ export function App({
             />
           )}
           {view === 'SIGNALS' && settings && (
-            <SignalsPage research={researchRepo} displayTz={settings.displayTz} now={now} />
+            <SignalsPage
+              research={researchRepo}
+              displayTz={settings.displayTz}
+              now={now}
+              webhookUrl={settings.signalWebhookUrl}
+              onWebhookUrl={(signalWebhookUrl) => update({ signalWebhookUrl })}
+              notify={notify}
+              onTest={async () => {
+                if (!settings.signalWebhookUrl) return;
+                const at = now();
+                setNotify({
+                  ...(await postNotices(settings.signalWebhookUrl, [testNotice(at)])),
+                  at,
+                });
+              }}
+            />
           )}
           {view === 'PAPER' && settings && (
             <PaperPage

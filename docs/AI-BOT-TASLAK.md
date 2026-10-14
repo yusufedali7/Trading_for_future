@@ -30,3 +30,33 @@ Kaydedilmiş bir strateji versiyonunun koşullarını canlı ya da paper veride 
 - **MT5 köprüsü salt okunur mu kalacak?** — **Cevaplandı:** Evet, değişmiyor; yarı otomatik MT5 gönderimi gündemde değil ("otomatik emir gönderme işine daha çok var").
 
 Bu liste tam değil; başka soru çıkarsa buraya eklenir. **2026-10-12:** kullanıcı "1. soruyu araştıracağım, diğerlerine başla, sinyal taslağını istediğin gibi tasarla" dedi — bu yüzden aşağıdaki ilk dilim bu cevaplarla, 1. sorunun geçici varsayımıyla kuruldu (bkz. D68).
+
+## Bildirim biçimi (D76 — uygulandı)
+
+Sinyaller sayfasında bir webhook adresi girildiğinde (yalnızca `http://` / `https://`), MT5 senkronizasyonundan sonra **daha önce kaydedilmemiş ve hâlâ geçerli** her taslak için bu adrese bir `POST` gönderilir (gövde `application/json`, taslak başına bir istek). Yeniden bağlanınca süresi geçmiş eski taslaklar gönderilmez. Aynı taslak ikinci kez gönderilmez (taslak kimliği deterministik).
+
+```json
+{
+  "schema": "signal-draft-notice/v1",
+  "kind": "SIGNAL_DRAFT",
+  "id": "s1:2:SETUP-...",
+  "strategy": { "id": "s1", "name": "Londra süpürme", "version": 2 },
+  "instrument": "EURUSD",
+  "direction": "LONG",
+  "order": { "type": "LIMIT", "entry": 1.0995, "stop": 1.098, "target": 1.102 },
+  "lots": 0.33,
+  "riskAmount": 50,
+  "conditions": ["sweep", "fvg"],
+  "createdAt": "2026-10-15T09:00:00.000Z",
+  "expiresAt": "2026-10-15T10:00:00.000Z",
+  "conflictsWith": ["Asya kırılımı"],
+  "disclaimer": "Araştırma taslağı: bir strateji kuralının eşleştiğini gösterir; al/sat tavsiyesi değildir. Emri yalnızca sen verirsin."
+}
+```
+
+- `MARKET` taslaklarda `entry` son kapanış (referans fiyat), `LIMIT`/`STOP`'ta tetik fiyatıdır. Zaman damgaları UTC (ISO 8601).
+- `conflictsWith`: aynı enstrümanda aynı anda geçerli, zıt yönlü taslakların strateji adları (boşsa çakışma yok).
+- "Test bildirimi gönder" düğmesi fiyat içermeyen bir bağlantı testi gönderir: `{ "schema": "signal-draft-notice/v1", "kind": "TEST", "message": "...", "sentAt": "..." }`. n8n'de `kind` alanına göre ayırabilirsin.
+- **n8n tarafı (önerilen en küçük akış):** Webhook (POST) → alanları seç/biçimlendir → Telegram. Emir gönderen hiçbir düğüm eklenmez (Kural 7).
+- **CORS (doğrulanmadı):** İstek tarayıcıdan gittiği için alıcı tarafın bu uygulamanın adresine izin vermesi gerekebilir; n8n Webhook düğümünün izinli kaynak (allowed origins) ayarı bunun için kullanılır. Önce test bildirimiyle dene; başarısız gönderimler Sinyaller sayfasında "Son hata" olarak görünür.
+- **Paylaşım sınırı (Kural 9):** Bildirimleri yalnızca kendine gönder. Bir gruba/kanala iletmek sinyal paylaşımı sayılabilir; SPK kuralları doğrulanmadan yapılmamalı.

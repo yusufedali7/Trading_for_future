@@ -29,6 +29,8 @@ export interface Prefs {
   indicators: IndicatorSettings;
   /** Learning path progress (D73); part of the backup like every other preference. */
   learning: LearningPrefs;
+  /** Where new signal drafts are POSTed (D76), e.g. the user's own n8n webhook; null = off. */
+  signalWebhookUrl: string | null;
 }
 
 export interface LearningPrefs {
@@ -67,6 +69,7 @@ export const DEFAULT_PREFS: Prefs = {
   lastBackupAt: null,
   indicators: DEFAULT_INDICATORS,
   learning: { completed: [], hideHint: false, exercises: [] },
+  signalWebhookUrl: null,
 };
 
 export interface PrefsRepo {
