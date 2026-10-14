@@ -28,6 +28,8 @@ export const tr = {
     title: 'Henüz veri yok',
     body: 'Grafik, backtest ve istatistikler yalnızca gerçek geçmiş veriyle çalışır. Başlamak için bir CSV dosyası içe aktar.',
     importButton: 'CSV içe aktar',
+    learnFirst: 'Kavramları önce öğrenmek istersen veri gerekmez:',
+    learnButton: 'Öğrenme yoluna başla',
   },
   toolbar: {
     dataset: 'Veri kümesi',
@@ -228,7 +230,32 @@ export const tr = {
   },
   learn: {
     title: 'Öğren',
-    tabs: { CONCEPTS: 'Kavramlar', GLOSSARY: 'Sözlük' },
+    tabs: { PATH: 'Öğrenme yolu', CONCEPTS: 'Kavramlar', GLOSSARY: 'Sözlük' },
+    path: {
+      title: 'Öğrenme yolu',
+      intro:
+        'Temellerden backtest okumaya kadar sıralı dersler. Her ders sözlüğe, kavram kütüphanesine ve uygulamanın ilgili ekranına bağlanır; örnekler yalnızca yüklediğin gerçek veriden gösterilir.',
+      progress: (done: number, all: number) => `${done} / ${all} ders tamamlandı`,
+      modules: 'Dersler',
+      goal: 'Hedef',
+      terms: 'Terimler',
+      concepts: 'İlgili kavramlar',
+      actions: 'Uygulamada dene',
+      complete: 'Tamamladım',
+      undo: 'Tamamlanmadı olarak işaretle',
+      done: 'Tamamlandı',
+      allDone: 'Öğrenme yolunun hepsini tamamladın. Dersleri istediğin zaman tekrar açabilirsin.',
+      action: {
+        glossary: (term: string) => `Sözlükte: ${term}`,
+        concept: (name: string) => `Kavram: ${name}`,
+        layer: (name: string) => `Grafikte aç: ${name}`,
+        view: (name: string) => `${name} sayfasını aç`,
+      },
+    },
+    hint: {
+      next: (title: string) => `Sıradaki ders: ${title}`,
+      hide: 'Ders önerisini gizle',
+    },
     term: {
       inApp: 'Uygulamada:',
       openGlossary: 'Sözlükte aç',

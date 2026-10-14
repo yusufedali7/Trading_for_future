@@ -1,6 +1,8 @@
+import type { LessonAction } from '../../content/lessons';
 import { tr } from '../../i18n/tr';
 import { ConceptsPage, type ConceptsPageProps } from '../concepts/ConceptsPage';
 import { GlossaryPage } from './GlossaryPage';
+import { LearningPathPage } from './LearningPathPage';
 
 const t = tr.learn;
 
@@ -13,9 +15,16 @@ export interface LearnPageProps {
   /** Glossary entry to highlight, set when a contextual term asked to open the glossary. */
   glossaryFocus: string | null;
   concepts: ConceptsPageProps;
+  path: {
+    completed: readonly string[];
+    selectedId: string;
+    onSelect: (id: string) => void;
+    onToggleComplete: (id: string) => void;
+    onAction: (a: LessonAction) => void;
+  };
 }
 
-/** The education hub (D71): concept library and glossary under one roof. */
+/** The education hub (D71, D73): learning path, concept library and glossary under one roof. */
 export function LearnPage(p: LearnPageProps) {
   return (
     <div className="learn-page">
@@ -32,6 +41,7 @@ export function LearnPage(p: LearnPageProps) {
           </button>
         ))}
       </div>
+      {p.tab === 'PATH' && <LearningPathPage {...p.path} />}
       {p.tab === 'CONCEPTS' && <ConceptsPage {...p.concepts} />}
       {p.tab === 'GLOSSARY' && <GlossaryPage selectedId={p.glossaryFocus} />}
     </div>

@@ -572,6 +572,17 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 14 motor testi (her bulgu kodu pozitif/negatif, determinizm, parametre türetme, limit emir girişi), 1 candle-source testi, 1 uygulama testi (panel + kıyas + kayıt). Tam paket yeşil.
 ---
 
+## D73 — Eğitim fazının üçüncü dilimi: öğrenme yolu ve ilk kullanım yönlendirmesi
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (onaylı plan, D71–D78)
+- **Neden:** Uygulamada "nereden başlamalıyım, sırada ne var?" sorusunun cevabı yoktu; kavramlar, sözlük ve ekranlar birbirinden kopuktu.
+- **İçerik (`content/lessons.ts`, D40'ın statik eğitim alanı):** 5 modül, 16 ders — Temeller (fiyat/pip/spread, lot/risk/R, mum ve günlük kapanış, seanslar) → Piyasa yapısı (swing ve onay gecikmesi, BOS/CHoCH, önceki dönem seviyeleri ve aday S/D) → Likidite ve boşluklar (süpürme, FVG, displacement/OB/breaker, premium-discount/OTE) → Kuraldan teste (fikri kurala dökmek, backtest okumak, in/out-of-sample ve deneme sayısı) → Pratik ve disiplin (replay, paper + günlük). Her ders: hedef, kısa metin, sözlük terimleri (`<Term>`), ilgili kavramlar ve eylemler (`OPEN_GLOSSARY`, `OPEN_CONCEPT`, `OPEN_CHART_LAYER`, `OPEN_VIEW`).
+- **Tutarlılık testi:** her dersin işaret ettiği sözlük id'si, kavram ve grafik katmanı gerçekten var mı — sözlük/kavram/katman yeniden adlandırılırsa test kırılıyor. Ayrıca ders metinlerinde al/sat sinyali, garanti, kazanma olasılığı gibi ifadeler olmadığını kontrol eden bir test (Kural 6/9).
+- **İlerleme:** `Prefs.learning = { completed, hideHint }` (tek satır, şema sürümü gerekmedi — `paperFeed` deseni). Tercihler bütün olarak yedeklendiği için ilerleme de yedeğe giriyor; eski yedekler varsayılanla birleşiyor.
+- **Yönlendirme:** Öğren artık "Öğrenme yolu" sekmesiyle açılıyor (Kavramlar | Sözlük yanında). Veri yokken boş ekranda "Öğrenme yoluna başla"; veri varken grafiğin üstünde "Sıradaki ders: …" şeridi ("Ders önerisini gizle" ile kalıcı olarak kapatılabiliyor). Bir ders tamamlanınca sıradaki ders açılıyor.
+- **Plandan sapma:** Plandaki `OPEN_STRATEGY_TEMPLATE` (belirli bir katalog stratejisini doğrudan açmak) yerine şimdilik `OPEN_VIEW: STRATEGY` kullanıldı — strateji sayfasının bir katalog girdisini önceden seçebilmesi ayrı bir değişiklik; ders metni "Katalogdan ekle"ye yönlendiriyor.
+- **Doğrulama:** 20 içerik testi + 5 uygulama testi (boş ekrandan başlama, ders eylemleriyle sözlük/kavrama gitme, tamamlamanın kalıcılığı ve sıradaki derse geçiş, şeritten derse gitme ve katman açma, şeridi gizleme). Gömülü tarayıcıda gerçek veriyle canlı kontrol (şerit, ders, tamamla → yenile → 1/16 korunuyor, "Grafikte aç: FVG" katmanı açıp grafiğe geçiyor). Yeni şeritte `role="status"` ilk denemede grafikteki strateji rozetiyle çakıştı, "Gizle" adı da rozetin düğmesiyle — ikisi düzeltildi. Tam paket 775/775.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

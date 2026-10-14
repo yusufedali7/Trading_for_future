@@ -48,6 +48,8 @@ import { ResearchPage } from './features/research/ResearchPage';
 import { BackupDialog } from './features/backup/BackupDialog';
 import type { ShowTarget } from './features/concepts/ConceptsPage';
 import { LearnPage, type LearnTab } from './features/learn/LearnPage';
+import { LESSONS, nextLesson, type LessonAction } from './content/lessons';
+import type { ConceptId } from './content/concepts';
 import { GlossaryNav } from './components/Term';
 import { EventsPage } from './features/events/EventsPage';
 import { SignalsPage } from './features/live/SignalsPage';
@@ -128,8 +130,10 @@ export function App({
   const [hideAll, setHideAll] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [view, setView] = useState<View>('CHART');
-  const [learnTab, setLearnTab] = useState<LearnTab>('CONCEPTS');
+  const [learnTab, setLearnTab] = useState<LearnTab>('PATH');
   const [glossaryFocus, setGlossaryFocus] = useState<string | null>(null);
+  const [lessonId, setLessonId] = useState<string | null>(null);
+  const [conceptFocus, setConceptFocus] = useState<ConceptId | null>(null);
   // Concept library: a moment to bring into view on the chart.
   const [focus, setFocus] = useState<{ at: number; seq: number } | null>(null);
   const [strategyRepo] = useState(() => givenStrategies ?? createMemoryStrategyRepo());
@@ -356,6 +360,46 @@ export function App({
     setView('LEARN');
   }, []);
 
+  const completedLessons = settings?.learning.completed ?? [];
+  const upcoming = nextLesson(completedLessons);
+
+  const openLesson = (id: string | null) => {
+    setLessonId(id);
+    setLearnTab('PATH');
+    setView('LEARN');
+  };
+
+  const toggleLesson = (id: string) => {
+    if (!settings) return;
+    const wasDone = completedLessons.includes(id);
+    const completed = wasDone
+      ? completedLessons.filter((x) => x !== id)
+      : [...completedLessons, id];
+    update({ learning: { ...settings.learning, completed } });
+    if (!wasDone) setLessonId(nextLesson(completed)?.id ?? id);
+  };
+
+  const onLessonAction = (a: LessonAction) => {
+    if (!settings) return;
+    switch (a.kind) {
+      case 'OPEN_GLOSSARY':
+        openGlossary(a.term);
+        return;
+      case 'OPEN_CONCEPT':
+        setConceptFocus(a.concept);
+        setLearnTab('CONCEPTS');
+        return;
+      case 'OPEN_CHART_LAYER':
+        if (!settings.features.includes(a.layer))
+          update({ features: [...settings.features, a.layer] });
+        setView('CHART');
+        return;
+      case 'OPEN_VIEW':
+        setView(a.view);
+        return;
+    }
+  };
+
   const showConcept = (target: ShowTarget) => {
     if (!settings || trading.busy) return;
     if (inReplay) replay.exit();
@@ -508,7 +552,7 @@ export function App({
         <main className="app-main">
           {datasets === null && <p className="muted">{tr.app.loading}</p>}
           {view === 'CHART' && datasets?.length === 0 && (
-            <EmptyState onImport={() => setImporting(true)} />
+            <EmptyState onImport={() => setImporting(true)} onLearn={() => openLesson(null)} />
           )}
           {error && (
             <p className="blocker" role="alert">
@@ -527,7 +571,15 @@ export function App({
               tab={learnTab}
               onTab={setLearnTab}
               glossaryFocus={glossaryFocus}
+              path={{
+                completed: completedLessons,
+                selectedId: lessonId ?? upcoming?.id ?? LESSONS[0]!.id,
+                onSelect: setLessonId,
+                onToggleComplete: toggleLesson,
+                onAction: onLessonAction,
+              }}
               concepts={{
+                focus: conceptFocus,
                 data: active && instrument ? data : null,
                 meta: active,
                 instrument,
@@ -592,6 +644,20 @@ export function App({
           )}
           {view === 'CHART' && active && settings && data && instrument && (
             <>
+              {upcoming && !settings.learning.hideHint && (
+                <div className="learn-hint">
+                  <button type="button" className="link" onClick={() => openLesson(upcoming.id)}>
+                    {tr.learn.hint.next(upcoming.title)}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => update({ learning: { ...settings.learning, hideHint: true } })}
+                  >
+                    {tr.learn.hint.hide}
+                  </button>
+                </div>
+              )}
               <div className="tool-row">
                 <span className="hint tool-hint">{tr.drawings.hints[tool]}</span>
                 {shownStrategy && (

@@ -27,6 +27,14 @@ export interface Prefs {
   lastBackupAt: number | null;
   /** Chart overlays and oscillator (M8). */
   indicators: IndicatorSettings;
+  /** Learning path progress (D73); part of the backup like every other preference. */
+  learning: LearningPrefs;
+}
+
+export interface LearningPrefs {
+  completed: string[];
+  /** The "next lesson" strip on the chart was dismissed. */
+  hideHint: boolean;
 }
 
 export interface PaperFeedPrefs {
@@ -44,6 +52,7 @@ export const DEFAULT_PREFS: Prefs = {
   paperFeed: { instrument: 'EURUSD', brokerSymbol: '', auto: false },
   lastBackupAt: null,
   indicators: DEFAULT_INDICATORS,
+  learning: { completed: [], hideHint: false },
 };
 
 export interface PrefsRepo {

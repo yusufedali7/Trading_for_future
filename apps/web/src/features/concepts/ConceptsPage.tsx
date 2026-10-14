@@ -44,6 +44,8 @@ export interface ConceptsPageProps {
   sessionNames: Record<string, string>;
   canShow: boolean;
   onShow: (target: ShowTarget) => void;
+  /** Concept to open first (a learning-path lesson asked for it). */
+  focus?: ConceptId | null;
 }
 
 interface Example {
@@ -137,7 +139,7 @@ function examplesOf(
 }
 
 export function ConceptsPage(p: ConceptsPageProps) {
-  const [id, setId] = useState<ConceptId>('SWING');
+  const [id, setId] = useState<ConceptId>(p.focus ?? 'SWING');
   const c = CONCEPTS.find((x) => x.id === id)!;
 
   return (
