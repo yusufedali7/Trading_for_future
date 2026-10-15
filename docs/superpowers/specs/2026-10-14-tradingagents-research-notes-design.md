@@ -1,7 +1,7 @@
 # tradingagents Araştırma Notu Entegrasyonu — Tasarım
 
 Tarih: 2026-10-14
-Durum: Onaylandı; uygulama planı `docs/superpowers/plans/2026-10-15-tradingagents-research-notes.md`.
+Durum: **Uygulandı — D79 (Python tarafı) + D80 (TypeScript tarafı) tamamlandı, bkz. `docs/DECISIONS.md`.**
 D79 Görev 1'de fizibilite doğrulandı (bkz. "Fizibilite sonucu" ve "Açık riskler").
 
 ## Bağlam ve motivasyon

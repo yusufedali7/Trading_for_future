@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
-import { isWebhookUrl, type NotifyResult } from './webhook';
+import { useCallback, useEffect, useState } from 'react';
 import { findConflicts, type DraftConflict, type IanaTz } from '@trw/engine';
 import { formatTime } from '../../format';
+import { NoteError, parseResearchNote, type ResearchNote } from '../research-notes/parse';
+import { ResearchNotePanel } from '../research-notes/ResearchNotePanel';
 import { tr } from '../../i18n/tr';
-import type { ResearchRepo, StoredDraft } from '../../storage/strategy-repo';
+import type { ResearchRepo, StoredDraft, StoredResearchNote } from '../../storage/strategy-repo';
+import { isWebhookUrl, type NotifyResult } from './webhook';
 
 const t = tr.signals;
+const rt = tr.researchNotes;
 
 export interface SignalsPageProps {
   research: ResearchRepo;
@@ -70,11 +73,80 @@ function WebhookSettings(p: SignalsPageProps) {
   );
 }
 
+/** JSON file picker for a research-note/v1 (D80): rejects by name, never saves on failure. */
+function NoteImport({ onImport }: { onImport: (note: ResearchNote) => Promise<void> }) {
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <section className="panel stack" aria-labelledby="note-import-title">
+      <h3 id="note-import-title">{rt.importLabel}</h3>
+      <p className="hint">{rt.importHint}</p>
+      <input
+        type="file"
+        accept="application/json"
+        aria-label={rt.importLabel}
+        data-testid="import-note-file"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (!file) return;
+          void file
+            .text()
+            .then((text) => parseResearchNote(text))
+            .then((note) => {
+              setError(null);
+              return onImport(note);
+            })
+            .catch((err: unknown) => {
+              setError(
+                err instanceof NoteError
+                  ? (rt.errors[err.code]?.(err.field) ?? err.code)
+                  : String(err),
+              );
+            });
+        }}
+      />
+      {error && (
+        <p className="blocker" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** The note for `instrument` with the latest `asOf` that is not after `atMs` (UTC date-only). */
+function nearestNote(
+  notes: readonly StoredResearchNote[],
+  instrument: string,
+  atMs: number,
+): StoredResearchNote | null {
+  const cutoff = new Date(atMs).toISOString().slice(0, 10);
+  let best: StoredResearchNote | null = null;
+  for (const n of notes) {
+    if (n.note.instrument !== instrument || n.note.asOf > cutoff) continue;
+    if (!best || n.note.asOf > best.note.asOf) best = n;
+  }
+  return best;
+}
+
+/** One entry per instrument, its newest note (`notes` is already newest-`asOf`-first). */
+function newestPerInstrument(notes: readonly StoredResearchNote[]): StoredResearchNote[] {
+  const seen = new Set<string>();
+  const out: StoredResearchNote[] = [];
+  for (const n of notes) {
+    if (seen.has(n.note.instrument)) continue;
+    seen.add(n.note.instrument);
+    out.push(n);
+  }
+  return out;
+}
+
 /** Live-refreshes itself so "expired" status and conflicts stay current while the page is open. */
 const REFRESH_MS = 15_000;
 
 export function SignalsPage(p: SignalsPageProps) {
   const [drafts, setDrafts] = useState<StoredDraft[] | null>(null);
+  const [notes, setNotes] = useState<StoredResearchNote[] | null>(null);
   const [clock, setClock] = useState(p.now());
 
   useEffect(() => {
@@ -87,6 +159,14 @@ export function SignalsPage(p: SignalsPageProps) {
       clearInterval(id);
     };
   }, [p.research]);
+
+  const refreshNotes = useCallback(
+    () => p.research.listResearchNotes().then(setNotes),
+    [p.research],
+  );
+  useEffect(() => {
+    void refreshNotes();
+  }, [refreshNotes]);
 
   useEffect(() => {
     const id = setInterval(() => setClock(p.now()), REFRESH_MS);
@@ -111,13 +191,38 @@ export function SignalsPage(p: SignalsPageProps) {
       <h2>{t.title}</h2>
       <p className="hint">{t.intro}</p>
       <WebhookSettings {...p} />
+      <NoteImport
+        onImport={async (note) => {
+          await p.research.saveResearchNote({
+            id: `${note.instrument}:${note.asOf}`,
+            note,
+            importedAt: p.now(),
+          });
+          await refreshNotes();
+        }}
+      />
       {drafts === null && <p className="muted">{tr.app.loading}</p>}
-      {drafts !== null && drafts.length === 0 && <p className="muted">{t.empty}</p>}
+      {drafts !== null && drafts.length === 0 && (
+        <>
+          <p className="muted">{t.empty}</p>
+          {notes && notes.length > 0 && (
+            <div className="stack">
+              {newestPerInstrument(notes).map((n) => (
+                <div key={n.id} className="stack">
+                  <p className="muted-inline">{rt.noteFor(n.note.instrument)}</p>
+                  <ResearchNotePanel note={n} displayTz={p.displayTz} />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
       <ul className="levels">
         {(drafts ?? []).map((sd) => {
           const d = sd.draft;
           const active = d.expiresAt > clock;
           const conflictingWith = conflictPartner.get(d.id);
+          const note = notes ? nearestNote(notes, d.instrument, d.createdAt) : null;
           return (
             <li key={d.id} className="panel stack">
               <div className="field-row">
@@ -146,6 +251,7 @@ export function SignalsPage(p: SignalsPageProps) {
                 {t.conditions}: {d.conditions.map((c) => c.stepId).join(' ✓, ')}
                 {d.conditions.length > 0 ? ' ✓' : ''}
               </p>
+              {note && <ResearchNotePanel note={note} displayTz={p.displayTz} />}
             </li>
           );
         })}

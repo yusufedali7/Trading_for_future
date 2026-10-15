@@ -945,6 +945,38 @@ export const tr = {
       error: (msg: string) => `Son hata: ${msg}`,
     },
   },
+  researchNotes: {
+    title: 'Araştırma notu (AI özeti)',
+    warning:
+      'Bu yorumsal bir özettir; backtest edilmiş bir istatistik değildir, al/sat tavsiyesi değildir.',
+    importLabel: 'Araştırma notu içe aktar (JSON)',
+    importHint:
+      'tools/research-notes aracıyla ürettiğin bir research-note/v1 JSON dosyasını seç. Dosya bilinmeyen bir alan taşıyorsa tamamen reddedilir.',
+    importedAt: (when: string) => `İçe aktarıldı: ${when}`,
+    sections: {
+      technical: 'Teknik',
+      news: 'Haber',
+      sentiment: 'Duygu',
+      fundamentals: 'Temel',
+    },
+    debate: 'Boğa/ayı tartışması',
+    bull: 'Boğa',
+    bear: 'Ayı',
+    round: (n: number) => `Tur ${n}`,
+    model: (provider: string, model: string) => `Model: ${provider} / ${model}`,
+    usage: (inputTokens: number, outputTokens: number) =>
+      `Token: ${inputTokens} girdi, ${outputTokens} çıktı`,
+    noteFor: (instrument: string) => `${instrument} için en yeni araştırma notu`,
+    errors: {
+      NOT_JSON: () => 'Dosya okunamadı: geçerli bir JSON değil.',
+      WRONG_SCHEMA: () => 'Bu dosya bir araştırma notu değil (schema uyuşmuyor).',
+      UNKNOWN_FIELD: (field?: string) => `Beklenmeyen alan: ${field}`,
+      MISSING_FIELD: (field?: string) => `Eksik alan: ${field}`,
+      NO_REPORTS: () => 'Notta hiç analist raporu yok.',
+      BAD_DISCLAIMER: () => 'Uyarı metni değişmiş ya da eksik; dosya elle düzenlenmiş olabilir.',
+      UNKNOWN_INSTRUMENT: (field?: string) => `Bilinmeyen enstrüman: ${field}`,
+    } as Record<string, (field?: string) => string>,
+  },
   backtest: {
     title: 'Backtest',
     noData: (inst: string) =>
