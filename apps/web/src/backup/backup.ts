@@ -15,6 +15,7 @@ import { DEFAULT_PREFS, type Prefs, type PrefsRepo } from '../storage/db-user';
 import type { DrawingsRepo } from '../storage/drawings-repo';
 import type { JournalRepo } from '../storage/journal-repo';
 import type { SessionsRepo, UserSession } from '../storage/sessions-repo';
+import { validateResearchNote } from '../features/research-notes/parse';
 import type {
   PaperSession,
   ResearchRepo,
@@ -319,7 +320,9 @@ export async function planRestore(r: BackupRepos, f: BackupFile): Promise<Restor
     f.research.researchNotes,
     notes,
     id,
-    () => true,
+    // Runs the note through the same allowlist/type validator as a live import (D80 finding):
+    // a restore must not be a way to smuggle in an unknown or decision-like field.
+    (sn) => typeof sn.importedAt === 'number' && !!validateResearchNote(sn.note),
     (note) => r.research.saveResearchNote(note),
   );
   const drawingIds = merge(

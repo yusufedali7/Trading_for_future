@@ -68,6 +68,9 @@ def parse_args(argv: list[str]) -> Args:
     if as_of_date.weekday() >= 5:
         parser.error(f"--asof bir hafta sonu tarihi ({ns.asof}): forex kapalı, veri yok")
 
+    if as_of_date > date.today():
+        parser.error(f"--asof gelecekteki bir tarih ({ns.asof}): henüz veri yok (kural 1)")
+
     if not (1 <= ns.rounds <= 3):
         parser.error(f"--rounds 1 ile 3 arasında olmalı: {ns.rounds}")
 
@@ -83,6 +86,14 @@ def main(argv: list[str] | None = None) -> int:
         args = parse_args(sys.argv[1:] if argv is None else argv)
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 2
+
+    # Fail before any LLM call (and its cost), not after: an unwritable --out would otherwise
+    # lose a note that real tokens were just spent producing.
+    try:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        print(f"Hata: çıktı klasörü oluşturulamadı ({args.out.parent}): {exc}", file=sys.stderr)
+        return 1
 
     load_dotenv()
     provider = os.environ.get("TRW_LLM_PROVIDER", "anthropic")

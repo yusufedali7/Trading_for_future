@@ -205,6 +205,32 @@ describe('backup and restore', () => {
     expect((await target.drawings.listAll()).drawings.map((d) => d.id)).toEqual(['d1']);
   });
 
+  it('restore rejects a research note with a decision-like field instead of smuggling it in (D80)', async () => {
+    const file = await roundTrip(await filled());
+    file.research.researchNotes.push({
+      id: 'GBPUSD:2026-10-14',
+      note: {
+        schema: 'research-note/v1',
+        instrument: 'GBPUSD',
+        asOf: '2026-10-14',
+        generatedAt: '2026-10-14T09:12:00Z',
+        reports: { technical: 'teknik rapor' },
+        debate: { rounds: [] },
+        modelInfo: { llmProvider: 'anthropic', quickModel: 'claude-haiku-4-5' },
+        disclaimer: NOTE_DISCLAIMER,
+        decision: 'AL',
+      } as never,
+      importedAt: 2,
+    });
+    const target = repos();
+    const plan = await planRestore(target, file);
+    expect(plan.counts.researchNotes).toMatchObject({ add: 1, invalid: 1 });
+    await plan.apply();
+    const kept = await target.research.listResearchNotes();
+    expect(kept).toHaveLength(1);
+    expect(kept[0]!.note.instrument).toBe('EURUSD');
+  });
+
   it('still opens a backup made before research notes existed (D80)', async () => {
     const file = await roundTrip(await filled());
     expect(file.research.researchNotes).toHaveLength(1); // the fixture this session's own format has

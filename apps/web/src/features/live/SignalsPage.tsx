@@ -186,6 +186,20 @@ export function SignalsPage(p: SignalsPageProps) {
   }
   const nameOf = new Map((drafts ?? []).map((d) => [d.draft.id, d.strategyName]));
 
+  // Notes already shown inside a draft's panel (via nearestNote below) are not repeated here -
+  // but a note for an instrument with no draft yet, or dated after every draft's createdAt,
+  // must still appear somewhere (D80 finding: such a note was previously invisible).
+  const attachedNoteIds = new Set<string>();
+  if (notes) {
+    for (const sd of drafts ?? []) {
+      const n = nearestNote(notes, sd.draft.instrument, sd.draft.createdAt);
+      if (n) attachedNoteIds.add(n.id);
+    }
+  }
+  const unattachedNotes = notes
+    ? newestPerInstrument(notes.filter((n) => !attachedNoteIds.has(n.id)))
+    : [];
+
   return (
     <div className="signals-page stack">
       <h2>{t.title}</h2>
@@ -202,20 +216,16 @@ export function SignalsPage(p: SignalsPageProps) {
         }}
       />
       {drafts === null && <p className="muted">{tr.app.loading}</p>}
-      {drafts !== null && drafts.length === 0 && (
-        <>
-          <p className="muted">{t.empty}</p>
-          {notes && notes.length > 0 && (
-            <div className="stack">
-              {newestPerInstrument(notes).map((n) => (
-                <div key={n.id} className="stack">
-                  <p className="muted-inline">{rt.noteFor(n.note.instrument)}</p>
-                  <ResearchNotePanel note={n} displayTz={p.displayTz} />
-                </div>
-              ))}
+      {drafts !== null && drafts.length === 0 && <p className="muted">{t.empty}</p>}
+      {unattachedNotes.length > 0 && (
+        <div className="stack">
+          {unattachedNotes.map((n) => (
+            <div key={n.id} className="stack">
+              <p className="muted-inline">{rt.noteFor(n.note.instrument)}</p>
+              <ResearchNotePanel note={n} displayTz={p.displayTz} />
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
       <ul className="levels">
         {(drafts ?? []).map((sd) => {

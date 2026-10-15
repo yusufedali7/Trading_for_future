@@ -47,6 +47,19 @@ def test_weekend_asof_exits_2_with_a_weekend_message(capsys):
     assert "hafta sonu" in capsys.readouterr().err
 
 
+def test_future_asof_exits_2(capsys):
+    from datetime import date, timedelta
+
+    future = date.today() + timedelta(days=365)
+    while future.weekday() >= 5:  # keep it a weekday so only the future-date check fires
+        future += timedelta(days=1)
+
+    with pytest.raises(SystemExit) as exc:
+        cli.parse_args(argv(**{"--asof": future.isoformat()}))
+    assert exc.value.code == 2
+    assert "gelecek" in capsys.readouterr().err
+
+
 def test_rounds_zero_exits_2(capsys):
     with pytest.raises(SystemExit) as exc:
         cli.parse_args(argv(**{"--rounds": "0"}))
@@ -55,7 +68,11 @@ def test_rounds_zero_exits_2(capsys):
 
 
 def test_main_without_an_api_key_fails_without_writing_a_file(tmp_path, monkeypatch, capsys):
-    monkeypatch.chdir(tmp_path)  # no .env on the lookup path
+    # load_dotenv() searches upward from cli.py's own location (trw_notes/), not from cwd, so
+    # chdir alone does not hide a real tools/research-notes/.env the user has filled in per the
+    # README - stub it out so this test is isolated from that ambient file either way.
+    monkeypatch.setattr(cli, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.chdir(tmp_path)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     out = tmp_path / "out.json"
 
@@ -82,6 +99,32 @@ def test_main_writes_nothing_when_the_graph_run_fails(tmp_path, monkeypatch, cap
     assert code != 0
     assert not out.exists()
     assert capsys.readouterr().err
+
+
+def test_main_creates_a_missing_output_directory(tmp_path, monkeypatch):
+    # Matches the README's own example (--out out\eurusd.json): a fresh checkout has no out/
+    # directory (it's gitignored), so the write must not fail after an LLM call already ran.
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-not-real")
+    out = tmp_path / "out" / "eurusd.json"
+    assert not out.parent.exists()
+
+    class FakeGraph:
+        def invoke(self, _state):
+            return {
+                "market_report": "teknik rapor",
+                "sentiment_report": "",
+                "news_report": "",
+                "fundamentals_report": "",
+                "investment_debate_state": {"history": "\nBull Analyst: a\nBear Analyst: b"},
+            }
+
+    monkeypatch.setattr(cli, "build_research_graph", lambda *a, **k: FakeGraph())
+
+    code = cli.main(argv(**{"--out": str(out)}))
+
+    assert code == 0
+    assert out.exists()
 
 
 def test_main_writes_the_note_on_success(tmp_path, monkeypatch):

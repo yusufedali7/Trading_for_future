@@ -103,4 +103,62 @@ describe('parseResearchNote', () => {
     expect(err.code).toBe('UNKNOWN_INSTRUMENT');
     expect(err.field).toBe('DOGEUSD');
   });
+
+  it('rejects an unknown field inside debate, naming its path', () => {
+    const note = validNote();
+    (note.debate as Record<string, unknown>).judge_decision = 'BUY';
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('UNKNOWN_FIELD');
+    expect(err.field).toBe('debate.judge_decision');
+  });
+
+  it('rejects an unknown field inside a debate round, naming its path', () => {
+    const note = validNote();
+    (note.debate as { rounds: Record<string, unknown>[] }).rounds[0]!.decision = 'BUY';
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('UNKNOWN_FIELD');
+    expect(err.field).toBe('debate.rounds[0].decision');
+  });
+
+  it('rejects a non-string report value instead of crashing the panel later', () => {
+    const err = errorOf(() =>
+      parseResearchNote(JSON.stringify(validNote({ reports: { technical: 42 } }))),
+    );
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('reports.technical');
+  });
+
+  it('rejects a non-string asOf (would break the newest-first sort and backups)', () => {
+    const err = errorOf(() => parseResearchNote(JSON.stringify(validNote({ asOf: 20261014 }))));
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('asOf');
+  });
+
+  it('rejects a null debate round', () => {
+    const note = validNote({ debate: { rounds: [null] } });
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('debate.rounds[0]');
+  });
+
+  it('rejects a non-string bull/bear turn', () => {
+    const note = validNote({ debate: { rounds: [{ bull: 1, bear: 'satim gorusu' }] } });
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('debate.rounds[0].bull');
+  });
+
+  it('rejects a non-number usage token count', () => {
+    const note = validNote({ usage: { inputTokens: '120', outputTokens: 40 } });
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('usage.inputTokens');
+  });
+
+  it('rejects a non-string modelInfo field', () => {
+    const note = validNote({ modelInfo: { llmProvider: 'anthropic', quickModel: null } });
+    const err = errorOf(() => parseResearchNote(JSON.stringify(note)));
+    expect(err.code).toBe('BAD_TYPE');
+    expect(err.field).toBe('modelInfo.quickModel');
+  });
 });
