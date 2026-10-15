@@ -1,7 +1,8 @@
 # tradingagents Araştırma Notu Entegrasyonu — Tasarım
 
 Tarih: 2026-10-14
-Durum: Onaylandı (kullanıcı, bu tasarım metnini "uygun" dedi), uygulama planı bekleniyor.
+Durum: Onaylandı; uygulama planı `docs/superpowers/plans/2026-10-15-tradingagents-research-notes.md`.
+D79 Görev 1'de fizibilite doğrulandı (bkz. "Fizibilite sonucu" ve "Açık riskler").
 
 ## Bağlam ve motivasyon
 
@@ -73,25 +74,41 @@ klasörüdür; `packages/engine` ve `apps/web`'in derlemesine/testine dahil değ
 
 ## Bileşen 1: Python script (`tools/research-notes/`)
 
-- `generate_report.py --instrument <SYMBOL> --asof <ISO date> --out <path>.json`
-- Kullanıcının kendi LLM API anahtarını kullanır (ortam değişkeni); anahtar
-  projeye hiç girmez, repoya commit edilmez.
-- tradingagents'tan **yalnızca** şu node'ları çağırır: fundamentals_analyst,
-  sentiment_analyst, news_analyst, technical_analyst, bull_researcher,
-  bear_researcher (yapılandırılmış `max_debate_rounds` kadar tur).
-  `trader_node`, `risk_manager_node`, `portfolio_manager_node` ve
-  `TradingAgentsGraph.propagate()` (tam graph) **hiç import edilmez, hiç
-  çağrılmaz.**
-- **Açık fizibilite riski:** tradingagents'ın analist/tartışma node'larının
-  tam graph'tan bağımsız, tek tek import edilip çağrılabilir fonksiyonlar
-  olup olmadığı kaynak koddan doğrulanmadı (yalnızca README/doküman okundu).
-  Uygulama planının ilk adımı bu kontrol olmalı:
-  - Eğer node'lar bağımsız çağrılabiliyorsa: tradingagents'ı pip bağımlılığı
-    olarak ekleyip o fonksiyonları doğrudan import ederiz.
-  - Eğer değilse: yalnızca ilgili node fonksiyonlarının kaynak kodunu
-    `tools/research-notes/vendor/` altına, Apache-2.0 atıf notuyla kopyalarız
-    (trader/risk/pm kodunu hiç kopyalamadan) ve kendi küçük LangGraph akışımızı
-    kurarız.
+- `python -m trw_notes --instrument <SYMBOL> --asof <ISO date> --out <path>.json`
+- Kullanıcının kendi LLM API anahtarını kullanır (`.env`, repoya commit
+  edilmez); anahtar hiç loglanmaz/yazdırılmaz.
+- tradingagents'tan **yalnızca** seçili analistleri (varsayılan: `market`,
+  `news` — `fundamentals` forex'te anlamlı değil, bkz. aşağıda) ve
+  boğa/ayı tartışmasını çalıştırır (yapılandırılmış tur sayısı kadar).
+  Karar katmanı (`create_research_manager`, `create_trader`,
+  `create_aggressive_debator`, `create_conservative_debator`,
+  `create_neutral_debator`, `create_portfolio_manager`,
+  `TradingAgentsGraph`) **hiç import edilmez, hiç çağrılmaz, kodumuzda adı
+  geçmez** — bu, `tools/research-notes/tests/test_graph.py`'de üç ayrı testle
+  kanıtlanır (derlenmiş graph'ta yasak düğüm yok; fabrikalar çağrılırsa
+  hata fırlatan sahtelerle değiştirildiğinde bile hata vermiyor; kaynak
+  kodda isimleri hiç geçmiyor).
+- **Fizibilite sonucu (D79 Görev 1'de doğrulandı, önceden açık risk
+  'analist/tartışma düğümleri tam graph'tan ayrılabilir mi' idi):**
+  Ayrılabiliyor, **vendoring gerekmedi**. tradingagents (`pyproject.toml`,
+  Apache-2.0) analist fabrikalarını (`create_market_analyst` vb.),
+  boğa/ayı araştırmacı fabrikalarını (`create_bull_researcher`,
+  `create_bear_researcher`) ve iki yardımcıyı dışa aktarıyor:
+  `graph.analyst_execution.build_analyst_execution_plan` (hangi analistin
+  hangi düğüm adını/rapor alanını/aracını kullandığını veren plan) ve
+  `graph.setup._analyst_graph` (bir analist fabrikasını, kendi araç-çağırma
+  döngüsü olan bağımsız bir alt-graph'a saran iç fonksiyon — isimdeki alt
+  çizgiye rağmen modülden normal şekilde import edilebiliyor). Kendi
+  `StateGraph`'ımızı bunlarla kuruyoruz: seçili analistler (paralel) →
+  boğa/ayı tartışması → kendi `END`'imiz — `ConditionalLogic.
+  should_continue_debate`'in aynısı ama "Research Manager"a değil `END`'e
+  yönlendiren bir `route_debate` fonksiyonuyla. tradingagents
+  `requirements.txt`'te commit'e sabitli bir pip bağımlılığı
+  (`tradingagents @ git+https://...@1394a3f7...`). Paketin kendi
+  `__init__.py`'si (dolaylı olarak) karar katmanı modüllerini de yüklüyor —
+  bu kaçınılmaz (paket böyle yazılmış) ve zararsız: hiçbir fabrika
+  **çağrılmıyor**, yalnızca içe aktarılıyor; yukarıdaki üç test bunu
+  kanıtlıyor.
 - Çıktı: tek bir `research-note/v1` şemalı JSON dosyası (bkz. aşağıda).
 
 ### Şema: `research-note/v1`
@@ -103,10 +120,10 @@ klasörüdür; `packages/engine` ve `apps/web`'in derlemesine/testine dahil değ
   "asOf": "2026-10-14T00:00:00Z",
   "generatedAt": "2026-10-14T09:12:00Z",
   "reports": {
-    "fundamentals": "string (serbest metin)",
-    "sentiment": "string",
-    "news": "string",
-    "technical": "string"
+    "technical": "string (serbest metin, varsa)",
+    "news": "string (varsa)",
+    "sentiment": "string (varsa)",
+    "fundamentals": "string (varsa — forex'te genelde yok)"
   },
   "debate": {
     "rounds": [
@@ -115,8 +132,11 @@ klasörüdür; `packages/engine` ve `apps/web`'in derlemesine/testine dahil değ
   },
   "modelInfo": {
     "llmProvider": "string",
-    "deepThinkModel": "string",
-    "quickThinkModel": "string"
+    "quickModel": "string"
+  },
+  "usage": {
+    "inputTokens": 0,
+    "outputTokens": 0
   },
   "disclaimer": "Bu bir AI yorum özetidir; al/sat tavsiyesi veya ölçülmüş bir olasılık değildir. Trading Research Workstation Kural 6/9."
 }
@@ -130,9 +150,10 @@ Alan tablosu:
 | `instrument` | string | evet | registry'deki sembol |
 | `asOf` | ISO UTC | evet | hangi tarihe ait analiz |
 | `generatedAt` | ISO UTC | evet | script ne zaman çalıştı |
-| `reports.*` | string | evet (4'ü de) | serbest metin, modelin ürettiği |
+| `reports.*` | string | **en az biri** | boş/çalıştırılmayan analistler alanı hiç taşımaz (hepsi zorunlu değil — fundamentals forex'te anlamlı değil, D79 Görev 1 kararı) |
 | `debate.rounds[]` | dizi | evet, en az 1 | boğa/ayı turları |
-| `modelInfo.*` | string | evet | şeffaflık: hangi model, determinizm yok |
+| `modelInfo.*` | string | evet | şeffaflık: hangi sağlayıcı/model (yalnızca hızlı-düşünme modeli kullanılıyor — karar katmanının kullandığı "derin düşünme" modeli bu araçta hiç yok) |
+| `usage.*` | integer | hayır | token sayısı, ölçülebiliyorsa; yoksa alan hiç yok |
 | `disclaimer` | sabit string | evet | eksikse içe aktarma reddedilir |
 
 **Şemada bilerek olmayan alanlar:** `decision`, `action`, `signal`, `buy`,
@@ -192,12 +213,15 @@ anlama gelebilecek herhangi bir alan.
 
 ## Lisans ve bağımlılık notu
 
-- tradingagents: Apache-2.0 — vendor edilirse kaynak dosyalarda orijinal
-  lisans/atıf başlığı korunur, `NOTICE`'a bir satır eklenir.
-- Yeni bağımlılık: `tools/research-notes/` için Python 3.11+ ve (vendor
-  edilmezse) `tradingagents` pip paketi. `packages/engine`/`apps/web`'in
+- tradingagents: Apache-2.0, vendoring yok — `NOTICE`'a pip bağımlılığı
+  olarak bir satır eklendi (D79 Görev 3).
+- Yeni bağımlılık: `tools/research-notes/` için Python 3.13 (venv,
+  `tools/research-notes/.venv/`, git'e girmez) ve `requirements.txt`'te
+  commit'e sabitli `tradingagents` pip paketi. `packages/engine`/`apps/web`'in
   `package.json`'ına hiçbir şey eklenmez.
-- LLM API maliyeti kullanıcıya aittir, kendi anahtarıyla çalışır.
+- LLM API maliyeti kullanıcıya aittir, kendi anahtarıyla (`.env`) çalışır.
+  Varsayılan sağlayıcı Anthropic `claude-haiku-4-5`; Ollama'ya (yerel,
+  ücretsiz) geçiş `TRW_LLM_PROVIDER=ollama` ile desteklenir.
 
 ## CLAUDE.md kurallarıyla eşleme
 
@@ -213,9 +237,14 @@ anlama gelebilecek herhangi bir alan.
 
 ## Açık riskler
 
-1. **Analist node ayrıştırma fizibilitesi** (yukarıda detaylı) — planın ilk
-   adımı bir spike olmalı.
-2. tradingagents'ın güncellemeleri node imzalarını değiştirebilir — vendor
-   edilirse bu risk daha kontrollü (biz ne zaman güncelleyeceğimize karar
-   veririz), pip bağımlılığı olarak kullanılırsa sürüm sabitlenmeli
-   (`tradingagents==<pinned>`).
+1. ~~Analist node ayrıştırma fizibilitesi~~ — **kapatıldı, D79 Görev 1.**
+   Yukarıdaki "Fizibilite sonucu"na bakın.
+2. tradingagents'ın güncellemeleri `_analyst_graph` (alt çizgili, iç amaçlı
+   bir fonksiyon) ve `build_analyst_execution_plan`'ın imzalarını
+   değiştirebilir — commit'e sabitleme (`@1394a3f7...`) bu riski
+   dondurdu; güncelleme yalnızca bilinçli bir kararla, yeniden test
+   edilerek yapılır.
+3. **Ağ kararlılığı (D79 Görev 1'de gözlendi):** Bu ortamda GitHub'a
+   `git clone` ve PyPI'ye büyük paket indirmeleri (pandas, numpy) zaman
+   zaman kesiliyor/çok yavaşlıyor; kullanıcının kendi makinesinde bu sorun
+   olmayabilir. README'de "kurulum uzun sürerse yeniden dene" notu var.

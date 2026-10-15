@@ -1,0 +1,3 @@
+# tradingagents pinned to the commit the feasibility check and this tool were built against.
+tradingagents @ git+https://github.com/TauricResearch/TradingAgents.git@1394a3f72aa4393e1a98f51b382434c4b4c2d972
+python-dotenv>=1.0.0

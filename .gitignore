@@ -4,6 +4,10 @@ dist/
 coverage/
 .vite/
 
+# Python
+__pycache__/
+*.pyc
+
 # Market data — never committed (size + data provider terms, see docs/DECISIONS.md D12/D15)
 # Anchored to the repo root: source folders named "data" (packages/engine/src/data) are code.
 /data/
@@ -17,3 +21,9 @@ coverage/
 .env.*
 .DS_Store
 Thumbs.db
+
+# tools/research-notes (D79): Python venv, the user's own .env, generated reports.
+# .env.* above would also hide the checked-in example — un-ignore it explicitly.
+tools/research-notes/.venv/
+tools/research-notes/out/
+!tools/research-notes/.env.example
