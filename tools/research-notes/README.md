@@ -43,5 +43,46 @@ içindeki yorumlu satırları aç.
 
 ## Çalıştırma
 
-Komut satırı arayüzü henüz yok (sıradaki adımda ekleniyor); bu dilimde yalnızca
-`trw_notes.graph` modülü ve testleri var.
+```bash
+cd tools/research-notes
+.venv\Scripts\python -m trw_notes --instrument EURUSD --asof 2026-10-14 --out out\eurusd.json
+```
+
+- `--instrument`: `EURUSD`, `GBPUSD`, `USDJPY`, `XAUUSD`.
+- `--asof`: `YYYY-MM-DD`, hafta içi (forex hafta sonu kapalı — hafta sonu tarihi reddedilir).
+- `--out`: yazılacak JSON dosyası. Yalnızca araştırma notu gerçekten üretilebilirse yazılır;
+  anahtar eksikse ya da bir analist/LLM çağrısı başarısız olursa **hiçbir dosya yazılmaz**
+  (Kural 1 — veri yoksa sonuç yok) ve komut sıfırdan farklı bir çıkış koduyla biter.
+- `--analysts` (virgüllü, varsayılan `market,news`): `market`, `social`, `news`,
+  `fundamentals` arasından seçilir. `fundamentals` forex'te genelde anlamlı değil (şirket
+  bilançosu/kazanç verisi yok), bu yüzden varsayılanda yok; istersen `--analysts
+market,news,fundamentals,social` ile hepsini açabilirsin.
+- `--rounds` (1–3, varsayılan 1): boğa/ayı tartışmasının kaç tur süreceği.
+
+Çıktı, Sinyaller sayfasına içe aktarılabilecek `research-note/v1` şemalı bir JSON dosyasıdır
+(bkz. tasarım belgesi). Çıktıda hiçbir al/sat kararı, olasılık ya da güven skoru yoktur —
+yalnızca analist raporları ve tartışma metni.
+
+## Ollama'ya geçiş (yerel, ücretsiz)
+
+`.env` dosyanda:
+
+```bash
+TRW_LLM_PROVIDER=ollama
+TRW_QUICK_MODEL=llama3.1:8b
+```
+
+Ollama'nın kendisi ayrıca kurulu ve çalışır olmalı (`ollama serve`, varsayılan
+`http://localhost:11434`). API anahtarı gerekmez. 6–8 GB RAM'de küçük modeller
+çalışabilir ama rapor kalitesi Claude/GPT ailesine göre belirgin biçimde daha zayıf ve
+daha yavaş olur — ilk denemede bunu gözlemleyeceksin, normal.
+
+## Maliyet notu
+
+Her çalıştırma, seçtiğin analist sayısı kadar LLM çağrısı yapar (+ boğa/ayı turları). Varsayılan
+ayarla (2 analist, 1 tur, Claude Haiku 4.5) tek bir çalıştırma birkaç bin token civarındadır —
+Haiku 4.5'in güncel fiyatıyla (girdi/çıktı token başına, bkz. Anthropic'in fiyat sayfası) tek
+seferlik maliyet kuruşluk mertebededir; günde bir kez çalıştırırsan aylık maliyet birkaç dolar
+seviyesinde kalır (kesin rakam modelin güncel fiyatına ve rapor uzunluğuna göre değişir —
+doğrulamak için Anthropic konsolundaki kullanım sayfana bak). `--out` dosyası yazıldıktan sonra,
+çalıştırmanın gerçek token sayısı notun `usage` alanında (varsa) görünür.
