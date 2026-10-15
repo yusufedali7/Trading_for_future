@@ -626,6 +626,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Doğrulama:** 8 motor testi (pozitif, gecikmeli onay, iptal, seri sınırı, düşüş aynası, doji, varsayılanlar, kesme değişmezliği), grafik yerleşim testi, ders/sözlük tutarlılık testleri. Testlerden biri ilk yazıldığında yanlıştı: ara bir düşüş mumu tanım gereği kendi başına bir düşüş CISD'si üretiyordu — senaryo düzeltildi (davranış doğru, beklenti yanlıştı).
 ---
 
+## D78 — Shark harmonik formasyonu (9/9 harmonik tamamlandı)
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (onaylı plan: "önce XAB için ikinci kaynak; yoksa BLOCKED kalır")
+- **Araştırma sonucu:** djoffrey/HarmonicPatterns'ın Shark tablosundaki dört orandan üçü (AB/XA 1,13–1,618; BC/AB 1,618–2,24; C, 0X'in 0,886–1,13'ü) zaten FXOpen ve Algorush ile eşleşmişti; bu turda LuxAlgo ve HowToTrade da aynı üç oranı verdi. Dördüncü oran (ilk bacak XA/0X 0,5–0,886) için ikinci kaynak **bulunamadı** — aksine LuxAlgo ve HowToTrade ilk bacak için **hiçbir oran şartı koymuyor** (Carney'nin özgün tanımıyla uyumlu).
+- **Karar:** Shark, iki bağımsız kaynakla doğrulanmış üç oranla uygulandı; tek kaynaklı ilk bacak oranı **bilerek uygulanmadı** (Kural 8: doğrulanmamış eşik koda girmez). Bu, plandaki "ikinci kaynak bulunursa ekle / bulunmazsa engelli kalsın" ikiliğinin üçüncü bir sonucu: kullanılan her sayı doğrulandı, doğrulanamayan sayı kullanılmadı. Tanım daha gevşek (ilk bacak serbest), bu da belgelendi.
+- **Kod:** `patterns/harmonic.ts` `detectShark()` — Cypher gibi özel dedektör, pivot etiketleri `0-X-A-B-C` (`HarmonicPatternPivot.label`'a `'0'` eklendi), B'nin X'i aşma şartı açıkça kontrol ediliyor, tolerans diğer harmoniklerle aynı (`PCT_ERROR` 0,05). `catalog/patterns/harmonic.json` Shark: `IMPLEMENTED`, kaynak/doğrulama notu. Sözlükteki eskimiş "Shark neden yok" girdisi güncellendi.
+- **Bilinen sınır:** Harmonik formasyonların hiçbiri henüz web'e (grafik/Kavramlar/strateji) bağlı değil — ayrı bir iş.
+- **Doğrulama:** 5 yeni test (yükseliş, düşüş aynası, B'nin X'i aşma şartı, C'nin 0X oranı, tek kaynaklı ilk bacak oranının uygulanmadığı) + mevcut "ileriye bakmama" testine Shark eklendi. Kaynaklar: luxalgo.com/library/concept/shark, howtotrade.com/chart-patterns/shark-harmonic-pattern, fxopen.com/blog/en/how-to-trade-the-shark-harmonic-pattern.
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|

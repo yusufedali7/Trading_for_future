@@ -630,8 +630,10 @@ Diğerlerinden farklı: C noktası A'nın **ötesine** taşıyor (daha yüksek b
 ### AB=CD
 En basit harmonik şekil — X yok, sadece A-B-C-D dört nokta. Adından da anlaşılacağı gibi, CD bacağının uzunluğu AB bacağına **yaklaşık eşit** olmalı.
 
-### Shark neden yok
-Kataloğun kendisi Shark formasyonunu "güvenilir bir kaynaktan oran alınmadan uygulanmayacak" diye işaretlemiş. Güvenilir bir kaynak bulunana kadar bu formasyon motora eklenmiyor — tahmin yürütmek yerine, kuralın kendisine uyuldu.
+### Shark (Köpekbalığı)
+Beş noktalı (0-X-A-B-C) bir harmonik formasyon; D yerine C'de tamamlanır. B, X'in ötesine taşar (AB, XA'nın 1,13–1,618 katı); C, AB'nin 1,618–2,24 katı kadar ilerler ve 0X bacağının 0,886–1,13'ü civarına döner.
+Uzun süre "güvenilir kaynak yok" diye eklenmedi; D78'de bu üç oranın her biri en az iki bağımsız kaynakta eşleşince eklendi. Bir kaynağın ilk bacak için koyduğu ek oran (0,5–0,886) tek kaynaklı olduğu için **uygulanmadı** — tahmin yürütmek yerine kurala uyuldu.
+*Uygulamada:* Motorda `detectShark`; harmonik formasyonlar henüz grafiğe bağlı değil.
 
 ## Eğitim fazında eklenenler: Öğren sayfası
 

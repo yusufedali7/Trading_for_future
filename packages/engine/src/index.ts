@@ -235,6 +235,7 @@ export {
   detectCypher,
   detectDeepCrab,
   detectGartley,
+  detectShark,
 } from './patterns/harmonic';
 export { CISD_DEFAULTS, detectCisd } from './features/cisd';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';

@@ -1,6 +1,6 @@
 # DEVIR — Oturum Devir Notu
 
-_Son güncelleme: 2026-10-15 (D77: CISD — yeni SMC kavramı)_
+_Son güncelleme: 2026-10-15 (D78: Shark — 9/9 harmonik; D71–D78 planı tamamlandı)_
 
 ## Durum özeti
 - **M1–M5, M6.1, M6.2:** tamamlandı. Planlar `docs/PLAN-M2..M6-2.md`, kararlar D23–D38.
@@ -44,6 +44,7 @@ _Son güncelleme: 2026-10-15 (D77: CISD — yeni SMC kavramı)_
 - **Faz B, 1. dilim: lot kuralları enstrümanda (D75):** tamamlandı. `Instrument.lotStep/minLot` + `lotRules()`; uygulamadaki dört sabit kodlu `{0.01, 0.01}` kaldırıldı (davranış aynı). **Sıradaki:** D76 n8n webhook.
 - **Faz B, 2. dilim: webhook bildirimi (D76):** tamamlandı — **M11'in webhook parçası kapandı.** Sinyaller sayfasında webhook adresi + "Test bildirimi gönder"; her yeni ve hâlâ geçerli taslak `signal-draft-notice/v1` JSON'u olarak POST ediliyor (biçim `docs/AI-BOT-TASLAK.md`'de, n8n'i buna göre kurabilirsin). Süresi geçmiş taslaklar gönderilmiyor, aynı taslak iki kez gönderilmiyor, hatalar sayfada görünüyor. CORS ayarı doğrulanmadı (test düğmesiyle denenebilir). **Sıradaki:** D77 CISD — başlamadan önce parametreleri soracağım.
 - **Faz B, 3. dilim: CISD (D77):** tamamlandı. Senin seçimlerinle (süpürme şartı yok, seviye = serinin ilk açılışı, seri 1–5 mum) motor + grafik katmanı + Kavramlar + sözlük + ders + katalog. Kaynak tek bir EA yorumu, doğrulanmadı. Gerçek veride çok sık (≈ her 4 mumdan biri) — eşik eklemek istersen v2. Strateji adımı ve "beklendiği gibi gitmedi" ölçümü yok (geçersizleşme fiyatı tanımlanmadı). **Sıradaki:** D78 Shark (önce XAB bacağı için ikinci kaynak).
+- **Faz B, 4. dilim: Shark (D78):** tamamlandı — **harmonik katalog 9/9, D71–D78 planı bitti.** Üç oranın her biri en az iki bağımsız kaynakla doğrulandı; ilk bacak için tek kaynaklı oran uygulanmadı (iki kaynak ilk bacağa şart koymuyor). Harmonikler henüz web'e bağlı değil. **Sonraki adaylar (plan dışı, ayrı karar):** harmonikleri grafiğe/Kavramlar'a bağlamak, tradingagents araştırma notları (onaylı spec, önce spike), CISD için eşik (v2), VCP, test kararlılığı görevi.
 **M8 tamamlandı (D47):** moving min/maks/toplam, lag, diff, yüzde değişim, z-score de motorda — genel seri dönüşümleri (`Bars` değil, herhangi bir sayı dizisi alır), henüz grafiğe/stratejiye bağlı değil.
 - **M7.2 (Yedek ve dışa aktarma):** tamamlandı (plan `docs/PLAN-M7-2.md`, karar D43). Başlıkta "Yedek": JSON yedek indir, yedekten geri yükle (özet → onay, hiçbir şeyin üzerine yazmaz), günlük CSV, kalıcı depolama durumu ve isteği, 7 günlük hatırlatıcı; backtest raporunda "İşlemleri CSV indir". **Sırada: M8 indikatörler** (plan → kullanıcı onayı).
 - **M7.1 (TradingView tarzı çizim araç takımı):** tamamlandı (plan `docs/PLAN-M7.md`, karar D41). Sol şeritte 6 grup, 23 araç; mıknatıs, çizimde kal, tümünü kilitle/gizle/sil, geri al/yinele (Ctrl+Z/Y). Dar ekranda şerit yatay satıra döner. Çizim 2. aşama artık M10.

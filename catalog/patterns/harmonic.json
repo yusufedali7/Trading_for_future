@@ -317,9 +317,21 @@
       "name_tr": "Köpekbalığı",
       "ratio_sets": [
         {
-          "source": "henüz belirlenmedi",
-          "verification": "missing",
-          "note": "0-X-A-B-C yapısı kullanır. Oranlar güvenilir bir kaynaktan alınmadan uygulanmayacak."
+          "source": "Scott Carney (2011); oranlar djoffrey/HarmonicPatterns kodu, FXOpen, Algorush, LuxAlgo ve HowToTrade ile çapraz kontrol edildi",
+          "verification": "cross-checked (2026-10-15, D78 - üç oranın her biri en az iki bağımsız kaynakta eşleşti)",
+          "AB_XA": [
+            1.13,
+            1.618
+          ],
+          "BC_AB": [
+            1.618,
+            2.24
+          ],
+          "XC_0X": [
+            0.886,
+            1.13
+          ],
+          "note": "0-X-A-B-C yapısı; C'de tamamlanır. B, X'in ötesine geçmek zorunda. İlk bacak (XA/0X) için oran şartı yok: LuxAlgo ve HowToTrade şart koymuyor; djoffrey'in 0.5–0.886'sı tek kaynaklı olduğu için uygulanmadı."
         }
       ],
       "version": "1.0.0",
@@ -331,10 +343,10 @@
         "atr_period": 14,
         "pct_error": 0.05
       },
-      "known_at": "D noktasının pivot olarak onaylandığı mum",
-      "direction": "bullish (D dip) / bearish (D tepe), iki yön ayrı olay",
-      "prz": "D çevresindeki oran kümesi (potential reversal zone)",
-      "status": "BLOCKED_NEEDS_SOURCE"
+      "known_at": "C noktasının pivot olarak onaylandığı mum",
+      "direction": "bullish (C dip) / bearish (C tepe), iki yön ayrı olay",
+      "prz": "C çevresindeki oran kümesi (potential reversal zone)",
+      "status": "IMPLEMENTED"
     },
     {
       "id": "ab_cd",

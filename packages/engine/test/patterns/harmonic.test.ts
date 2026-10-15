@@ -11,6 +11,7 @@ import {
   detectCypher,
   detectDeepCrab,
   detectGartley,
+  detectShark,
 } from '../../src/patterns/harmonic';
 import { CHART_PIVOT_PARAMS } from '../../src/patterns/chart-shared';
 import { randomWalk } from '../helpers/synthetic-bars';
@@ -171,6 +172,59 @@ describe('detectCypher', () => {
   });
 });
 
+describe('detectShark (D78)', () => {
+  // SYNTHETIC: a bullish Shark 0(low) X(high) A(low) B(high, beyond X) C(low, back near 0).
+  const bullish = [
+    fakeSwing('LOW', 100, 0), // 0
+    fakeSwing('HIGH', 110, 10), // X (0X = 10)
+    fakeSwing('LOW', 105, 20), // A (XA = 5)
+    fakeSwing('HIGH', 111.5, 30), // B (AB = 6.5 = 1.3 × XA, beyond X)
+    fakeSwing('LOW', 100, 40), // C (BC = 11.5 = 1.77 × AB; X→C = 10 = 1.0 × 0X)
+  ];
+
+  it('finds a bullish Shark from the three cross-checked ratios, labelled 0-X-A-B-C', () => {
+    const found = detectShark(bullish);
+    expect(found).toHaveLength(1);
+    expect(found[0]).toMatchObject({ patternId: 'shark', direction: 'BULLISH', formedIndex: 40 });
+    expect(found[0]!.pivots.map((p) => p.label)).toEqual(['0', 'X', 'A', 'B', 'C']);
+    expect(found[0]!.ratios.AB_XA).toBeCloseTo(1.3, 9);
+    expect(found[0]!.ratios.BC_AB).toBeCloseTo(1.769231, 5);
+    expect(found[0]!.ratios.XC_0X).toBeCloseTo(1.0, 9);
+  });
+
+  it('mirrors for a bearish Shark', () => {
+    const bearish = bullish.map((s) =>
+      fakeSwing(s.kind === 'HIGH' ? 'LOW' : 'HIGH', 300 - s.price, s.formedIndex),
+    );
+    expect(detectShark(bearish)).toMatchObject([{ patternId: 'shark', direction: 'BEARISH' }]);
+  });
+
+  it('needs B beyond X (AB at least 1.13 × XA)', () => {
+    const notBeyond = [...bullish];
+    notBeyond[3] = fakeSwing('HIGH', 109, 30); // AB = 0.8 × XA
+    expect(detectShark(notBeyond)).toEqual([]);
+  });
+
+  it('needs C at 0.886–1.13 of 0X', () => {
+    const shallow = [...bullish];
+    shallow[4] = fakeSwing('LOW', 104, 40); // X→C = 6 = 0.6 × 0X (BC_AB = 1.15 also off)
+    expect(detectShark(shallow)).toEqual([]);
+  });
+
+  it('does not apply the single-source first-leg ratio (XA/0X 0.5–0.886)', () => {
+    // XA/0X = 0.45: outside djoffrey's 0.5–0.886 (± 5%), but Carney/LuxAlgo/HowToTrade set no
+    // first-leg ratio, so the pattern still counts.
+    const s = [
+      fakeSwing('LOW', 100, 0),
+      fakeSwing('HIGH', 110, 10),
+      fakeSwing('LOW', 105.5, 20), // XA = 4.5
+      fakeSwing('HIGH', 112.25, 30), // AB = 6.75 = 1.5 × XA
+      fakeSwing('LOW', 98.75, 40), // BC = 13.5 = 2.0 × AB; X→C = 11.25 = 1.125 × 0X
+    ];
+    expect(detectShark(s)).toHaveLength(1);
+  });
+});
+
 describe('detectAbCd', () => {
   it('finds a bullish AB=CD (A high, B low, C high, D low, CD ≈ AB)', () => {
     const swings = [
@@ -210,6 +264,7 @@ describe('no lookahead (all harmonic detectors together)', () => {
         ...detectDeepCrab(s),
         ...detectCypher(s),
         ...detectAbCd(s),
+        ...detectShark(s),
       ];
     };
     const full = all(w);

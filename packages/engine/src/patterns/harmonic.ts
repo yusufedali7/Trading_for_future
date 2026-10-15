@@ -7,9 +7,8 @@ import type { HarmonicPattern, HarmonicPatternPivot } from './types';
  * swing engine (v1), with the catalog's own `left=right=5` setting (`CHART_PIVOT_PARAMS` from
  * `chart-shared.ts` - callers pass the same swings used for the chart-pattern family).
  *
- * `shark` is deliberately **not** implemented: the catalog marks it `BLOCKED_NEEDS_SOURCE` /
- * `verification: "missing"` and says explicitly "ratios will not be implemented without a
- * reliable source" (CLAUDE.md rule 8). The other 8 patterns' ratio sets were cross-checked this
+ * `shark` was blocked until D78: its three ratios are now cross-checked across four sources (see
+ * `detectShark`). The other 8 patterns' ratio sets were cross-checked this
  * session against independent sources (LuxAlgo, HarmonicTrader.com, HowToTrade, LiteFinance,
  * TradingSim - see D58) before being coded; all matched the catalog exactly except Crab's
  * `CD_BC` lower bound, where sources disagree (2.24 vs. 2.618 - the catalog's 2.24 was kept
@@ -66,6 +65,7 @@ interface XabcdRatios {
 }
 
 const XABCD_LABELS = ['X', 'A', 'B', 'C', 'D'] as const;
+const SHARK_LABELS = ['0', 'X', 'A', 'B', 'C'] as const;
 
 /** The standard Gartley/Butterfly/Bat/Crab-family XABCD ratio check, one zigzag direction. */
 function detectXabcdDirection(
@@ -253,6 +253,49 @@ export function detectCypher(swings: readonly Swing[]): HarmonicPattern[] {
             XC_XA,
             XD_XC,
           },
+        ),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * Shark (Carney 2011), 5 points labelled 0-X-A-B-C - completes at C, not D (D78). Ratios used,
+ * each matched by at least two independent sources (djoffrey/HarmonicPatterns code, FXOpen,
+ * Algorush, LuxAlgo, HowToTrade - docs/arastirma/entegrasyon-bulgulari-2026-10-14.md):
+ * AB = 1.13–1.618 × XA (so B goes beyond X), BC = 1.618–2.24 × AB, and C at 0.886–1.13 of 0X
+ * measured from X. **No first-leg (XA/0X) ratio:** LuxAlgo and HowToTrade set none; djoffrey's
+ * 0.5–0.886 is single-source and deliberately not applied (rule 8).
+ */
+export function detectShark(swings: readonly Swing[]): HarmonicPattern[] {
+  const out: HarmonicPattern[] = [];
+  for (const direction of ['BULLISH', 'BEARISH'] as const) {
+    const kinds =
+      direction === 'BULLISH'
+        ? (['LOW', 'HIGH', 'LOW', 'HIGH', 'LOW'] as const)
+        : (['HIGH', 'LOW', 'HIGH', 'LOW', 'HIGH'] as const);
+    for (const [o, x, a, b, c] of pivotWindows(swings, kinds)) {
+      const OX = Math.abs(x!.price - o!.price);
+      const XA = Math.abs(a!.price - x!.price);
+      const AB = Math.abs(b!.price - a!.price);
+      if (OX === 0 || XA === 0 || AB === 0) continue;
+      const AB_XA = AB / XA;
+      const BC_AB = Math.abs(c!.price - b!.price) / AB;
+      const XC_0X = Math.abs(c!.price - x!.price) / OX;
+      // B must take out X: a higher high for the bullish pattern, a lower low for the bearish.
+      if (direction === 'BULLISH' ? b!.price <= x!.price : b!.price >= x!.price) continue;
+      if (!inRange(AB_XA, [1.13, 1.618], PCT_ERROR)) continue;
+      if (!inRange(BC_AB, [1.618, 2.24], PCT_ERROR)) continue;
+      if (!inRange(XC_0X, [0.886, 1.13], PCT_ERROR)) continue;
+      out.push(
+        makeHarmonicPattern(
+          'shark',
+          'Carney (cross-checked D78)',
+          direction,
+          [o!, x!, a!, b!, c!],
+          SHARK_LABELS,
+          { AB_XA, BC_AB, XC_0X },
         ),
       );
     }

@@ -52,9 +52,9 @@ export interface ChartPattern {
   invalidationRef: number | null;
 }
 
-/** A harmonic pattern's labelled swing point (X, A, B, C, or D). */
+/** A harmonic pattern's labelled swing point (X, A, B, C, D; Shark uses 0, X, A, B, C). */
 export interface HarmonicPatternPivot extends ChartPatternPivot {
-  label: 'X' | 'A' | 'B' | 'C' | 'D';
+  label: '0' | 'X' | 'A' | 'B' | 'C' | 'D';
 }
 
 /**
