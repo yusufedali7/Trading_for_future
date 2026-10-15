@@ -4,6 +4,7 @@ import {
   defaultSpec,
   runBacktest,
   getInstrument,
+  harmonicsAsOf,
   previousPeriods,
   randomEntryBaseline,
   replayCandles,
@@ -140,6 +141,20 @@ describe('replay through the candle source', () => {
           sessions: view.sessions,
         }),
       );
+    }
+  });
+
+  it('cuts harmonic candidates at the cursor the same way as the other candidate layers (D82)', async () => {
+    const src = await source2();
+    const full = await src.load(meta2, '1m');
+    expect(Array.isArray(full.harmonics)).toBe(true);
+    for (const cursor of [
+      '2026-01-06T13:42:00Z',
+      '2026-01-06T14:10:00Z',
+      '2026-01-06T14:59:00Z',
+    ].map(Date.parse)) {
+      const view = composeReplay(full, await src.replay(meta2, '1m', cursor), cursor);
+      expect(view.harmonics).toEqual(harmonicsAsOf(full.harmonics, cursor));
     }
   });
 

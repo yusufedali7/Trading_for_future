@@ -101,6 +101,16 @@ describe('concept library', () => {
     expect(screen.queryByRole('article')).toBeNull();
   });
 
+  it('shows a harmonic concept with no chart layer and no outcome measurement yet (D82)', async () => {
+    await setup(true);
+    fireEvent.click(screen.getByRole('button', { name: /^Gartley/ }));
+    const gartley = card('Gartley');
+    expect(gartley.getByText(/Bu veride \d+ aday\.|Bu veride aday yok\./)).toBeTruthy();
+    // No outcome measurement wired for harmonics yet (unlike swing/FVG above): no yardstick text.
+    expect(gartley.queryByText(/Yaygın beklenti/)).toBeNull();
+    expect(gartley.getByText('catalog/patterns/harmonic.json', { exact: false })).toBeTruthy();
+  });
+
   it('turns on the layer of the concept it shows', async () => {
     const { prefs } = await setup(true);
     expect(latest!.featureLayers).not.toContain('FVG');

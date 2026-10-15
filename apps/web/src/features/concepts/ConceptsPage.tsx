@@ -8,6 +8,7 @@ import {
   type CandidateOutcome,
   type DataSetMeta,
   type FeatureSet,
+  type HarmonicPattern,
   type IanaTz,
   type Instrument,
   type ResampledCandle,
@@ -36,6 +37,7 @@ export interface ConceptsPageProps {
     features: FeatureSet;
     sessions: SessionLevels[];
     smc: SmcSet;
+    harmonics: HarmonicPattern[];
   } | null;
   meta: DataSetMeta | null;
   instrument: Instrument | null;
@@ -58,6 +60,19 @@ interface Example {
 
 const k = t.kinds;
 
+/** Concept id -> `catalog/patterns/harmonic.json` id, for the 9 harmonic concepts (D82). */
+const HARMONIC_CONCEPT_PATTERN_ID: Record<string, string> = {
+  GARTLEY: 'gartley',
+  BUTTERFLY: 'butterfly',
+  BAT: 'bat',
+  ALT_BAT: 'alt_bat',
+  CRAB: 'crab',
+  DEEP_CRAB: 'deep_crab',
+  CYPHER: 'cypher',
+  SHARK: 'shark',
+  AB_CD: 'ab_cd',
+};
+
 function examplesOf(
   c: Concept,
   data: NonNullable<ConceptsPageProps['data']>,
@@ -65,8 +80,21 @@ function examplesOf(
 ): Example[] {
   const f = data.features;
   const smc = data.smc;
+  const harmonics = data.harmonics;
   const layer = c.layer;
   switch (c.id) {
+    case 'GARTLEY':
+    case 'BUTTERFLY':
+    case 'BAT':
+    case 'ALT_BAT':
+    case 'CRAB':
+    case 'DEEP_CRAB':
+    case 'CYPHER':
+    case 'SHARK':
+    case 'AB_CD':
+      return harmonics
+        .filter((h) => h.patternId === HARMONIC_CONCEPT_PATTERN_ID[c.id])
+        .map((h) => ({ id: h.id, at: h.formedAt, what: k[h.direction]! }));
     case 'DISPLACEMENT':
       return smc.displacements.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]! }));
     case 'CISD':

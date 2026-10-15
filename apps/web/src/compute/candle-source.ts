@@ -7,7 +7,9 @@ import {
   CHART_PIVOT_PARAMS,
   computeSmc,
   detectAllChartPatterns,
+  detectAllHarmonicPatterns,
   detectSwings,
+  harmonicsAsOf,
   draftFor,
   findSetups,
   runBacktest,
@@ -32,6 +34,7 @@ import {
   type ChartPattern,
   type DataSetMeta,
   type FeatureSet,
+  type HarmonicPattern,
   type LotRules,
   type PeriodLevel,
   type ResampledCandle,
@@ -59,6 +62,8 @@ export interface ChartData {
   features: FeatureSet;
   /** SMC candidates (M9 2.–3. dilim), as of the last stored bar; decoupled from `features`. */
   smc: SmcSet;
+  /** Harmonic (XABCD) candidates (M9 11. dilim, D82: bağlandı), as of the last stored bar. */
+  harmonics: HarmonicPattern[];
 }
 
 /**
@@ -130,6 +135,7 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
     sessions,
     features: featuresAsOf(full.features, cursor),
     smc: smcAsOf(full.smc, cursor),
+    harmonics: harmonicsAsOf(full.harmonics, cursor),
   };
 }
 
@@ -246,8 +252,13 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
         sessions,
         sessionDefs: defs,
       });
-      const smc = computeSmc(toBars(candles, inst, tf), inst);
-      return { candles, sessions, features, smc };
+      const bars = toBars(candles, inst, tf);
+      const smc = computeSmc(bars, inst);
+      // Harmonic candidates (D82): same "cheap enough, keep it consistent" reasoning as smc
+      // above, and the same CHART_PIVOT_PARAMS swings the chart-pattern family already uses
+      // (the catalog's harmonic.json pins pivot_left/right to 5, matching that family exactly).
+      const harmonics = detectAllHarmonicPatterns(detectSwings(bars, CHART_PIVOT_PARAMS));
+      return { candles, sessions, features, smc, harmonics };
     },
     async replay(meta, tf, cursor, userSessions = []) {
       const c = await get(meta);

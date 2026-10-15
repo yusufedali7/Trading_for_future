@@ -237,6 +237,12 @@ export {
   detectGartley,
   detectShark,
 } from './patterns/harmonic';
+export {
+  HARMONIC_PATTERN_DETECTORS,
+  HARMONIC_PATTERN_IDS,
+  detectAllHarmonicPatterns,
+  harmonicsAsOf,
+} from './patterns/harmonic-registry';
 export { CISD_DEFAULTS, detectCisd } from './features/cisd';
 export { DISPLACEMENT_DEFAULTS, detectDisplacement } from './features/displacement';
 export { ORDER_BLOCK_DEFAULTS, detectOrderBlocks } from './features/order-block';

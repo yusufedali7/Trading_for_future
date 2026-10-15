@@ -18,7 +18,16 @@ export type ConceptId =
   | 'PREMIUM_DISCOUNT'
   | 'OTE'
   | 'CANDIDATE_SR'
-  | 'CISD';
+  | 'CISD'
+  | 'GARTLEY'
+  | 'BUTTERFLY'
+  | 'BAT'
+  | 'ALT_BAT'
+  | 'CRAB'
+  | 'DEEP_CRAB'
+  | 'CYPHER'
+  | 'SHARK'
+  | 'AB_CD';
 
 export interface Concept {
   id: ConceptId;
@@ -479,5 +488,308 @@ export const CONCEPTS: readonly Concept[] = [
     ],
     layer: 'CISD',
     doc: 'docs/definitions/cisd-v1.md',
+  },
+  {
+    id: 'GARTLEY',
+    name: 'Gartley',
+    short: 'Beş noktalı (X-A-B-C-D) bir fiyat yapısı, belirli Fibonacci oranlarıyla.',
+    what: [
+      'Harmonik formasyonlar, fiyatın birbirini izleyen beş dönüş noktası (X, A, B, C, D) arasındaki uzunluk oranlarının belirli Fibonacci değerlerine yakın olmasını arar. Gartley bunların en eski ve en bilinenidir (H. M. Gartley, 1935).',
+      'Diğer grafik formasyonlarından farkı: bir kırılım beklenmez. Oranlar D noktasında tamamlanınca formasyonun kendisi "aday tersinme bölgesi" (PRZ) sayılır.',
+      'Motor iki farklı kaynaktan alınan oran kümesini ayrı ayrı dener (ikisi de aynı geometriye uyabilir, iki ayrı aday üretir).',
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D (zigzag: tepe-dip-tepe-dip-tepe ya da aynası).',
+      'AB/XA oranı 0,618 ±%5.',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 1,13–1,618 (kaynağa göre üst sınır 1,27 ya da 1,618) ±%5.',
+      'AD/XA oranı 0,786 ±%5.',
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'İki kaynaktan alınan oran kümesi de "sourced" (tek kaynaklı, ikinci bir kaynakla çapraz kontrol edilmedi) — bağımsız doğrulanmış değil.',
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok — v1 bir geçersizleşme fiyatı tanımlamıyor.',
+      'Katı 5 mumluk swing ayarı kısa zaman dilimlerinde az, uzun zaman dilimlerinde (1 dakika gibi) gürültülü aday üretebilir.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'BUTTERFLY',
+    name: 'Kelebek (Butterfly)',
+    short: "Gartley'e benzer ama D, X'in ötesine uzanır (1,27 katı).",
+    what: [
+      "Kelebek de beş noktalı bir harmonik formasyondur; Gartley'den farkı D'nin X'in ötesine taşmasıdır (AD/XA oranı 1'in üzerinde).",
+      "Bu sürümde CD/BC oranı için bir sınır yok — formasyon yalnızca AB/XA ve AD/XA ile belirleniyor (katalogdaki iki kaynak da CD_BC'yi boş bırakıyor).",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,786 ±%5.',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      "AD/XA oranı 1,27–1,41 (kaynağa göre üst sınır 1,27 ya da 1,41) ±%5; D, X'in ötesine taşar.",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'İki kaynaktan alınan oran kümesi de "partial" (CD/BC oranı hiç kontrol edilmiyor) — Gartley\'den daha gevşek bir tanım.',
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'BAT',
+    name: 'Yarasa (Bat)',
+    short: "D, X'in oldukça yakınında (0,886 katı) tamamlanan bir harmonik formasyon.",
+    what: [
+      'Yarasa formasyonunda B, XA hareketinin yalnızca sığ bir kısmını (0,382-0,5) geri çeker ve D, X\'e yakın (0,886 katı) tamamlanır — Gartley/Kelebek\'ten daha "sıkı" bir geometri.',
+      "Oranları Scott Carney'nin yaygın harmonik literatüründen alınıyor; D58'de dört bağımsız kaynakla (LuxAlgo, HarmonicTrader.com, HowToTrade, TradingSim) çapraz kontrol edildi, hepsi eşleşti.",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,382–0,5 arası ±%5.',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 1,618–2,618 arası ±%5.',
+      "AD/XA oranı 0,886 ±%5 (D, X'e yakın).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'ALT_BAT',
+    name: 'Alternatif Yarasa (Alt Bat)',
+    short: "Yarasa'nın bir çeşidi: B daha sığ (0,382), D daha uzak (1,13 katı).",
+    what: [
+      "Alternatif Yarasa, Yarasa'nın bir çeşididir: B sabit 0,382'de, ve D X'in biraz ötesinde (1,13 katı) tamamlanır — Kelebek kadar uzak değil, Yarasa kadar yakın da değil.",
+      "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,382 ±%5 (sabit).',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 2,0–3,618 arası ±%5.',
+      "AD/XA oranı 1,13 ±%5 (D, X'in biraz ötesinde).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'CRAB',
+    name: 'Yengeç (Crab)',
+    short: 'D, X\'in epey ötesinde (1,618 katı) tamamlanan, "aşırı uzamış" bir harmonik formasyon.',
+    what: [
+      "Yengeç, bu ailenin en \"uzamış\" üyesidir: D, X'in 1,618 katı ötesinde tamamlanır. Derin Yengeç'in (DEEP_CRAB) farkı B'nin daha derin geri çekilmesidir.",
+      'CD/BC oranının alt sınırı kaynaklar arasında ayrışıyor (bazı kaynaklar 2,24, bazıları 2,618 der); katalog 2,24 değerini koruyor, bu çözülmeden not edildi.',
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,382–0,618 arası ±%5.',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 2,24–3,618 arası ±%5.',
+      "AD/XA oranı 1,618 ±%5 (D, X'in epey ötesinde).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'CD/BC oranının alt sınırı (2,24) kaynaklar arasında tartışmalı; bazı kaynaklar 2,618 der. Çözülmedi, katalogdaki değer kullanılıyor.',
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'DEEP_CRAB',
+    name: 'Derin Yengeç (Deep Crab)',
+    short: "Yengeç'in bir çeşidi: B daha derin (0,886) geri çekiliyor.",
+    what: [
+      "Derin Yengeç, Yengeç'in bir çeşididir: B, XA hareketinin neredeyse tamamını (0,886) geri çeker; D yine X'in 1,618 katı ötesinde tamamlanır.",
+      "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,886 ±%5 (sabit, derin geri çekilme).',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 2,0–3,618 arası ±%5.',
+      "AD/XA oranı 1,618 ±%5 (D, X'in epey ötesinde).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'CYPHER',
+    name: 'Cypher',
+    short:
+      "Ailenin geri kalanından farklı: oranlar XC bacağına göre tanımlanır, C, A'nın ötesine taşar.",
+    what: [
+      "Cypher, bu ailenin diğer üyelerinden farklı ölçülür: BC/AB yerine XC/XA ve XD/XC oranları kullanılır; C noktası A'nın ötesine taşar (diğerlerinde taşmaz).",
+      "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla X, A, B, C, D.',
+      'AB/XA oranı 0,382–0,618 arası ±%5.',
+      'XC/XA oranı 1,272–1,414 arası ±%5.',
+      'XD/XC oranı 0,786 ±%5.',
+      "C, A'nın ötesine geçmelidir (geçmezse aday reddedilir — Cypher'i tanımlayan özellik budur).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'SHARK',
+    name: 'Köpekbalığı (Shark)',
+    short: "Beş noktalı ama 0-X-A-B-C etiketli; D yerine C'de tamamlanan, ailenin en yeni üyesi.",
+    what: [
+      "Köpekbalığı diğer harmonik formasyonlardan iki şekilde farklı: pivotlar 0-X-A-B-C diye etiketlenir (D yok) ve formasyon C noktasında tamamlanır; B, X'in ötesine geçmek zorundadır.",
+      "İlk bacağın (XA'nın 0X'e oranı) bu sürümde bir şartı yok: üç bağımsız kaynak (LuxAlgo, HowToTrade, FXOpen/Algorush) ilk bacağa hiç oran şartı koymuyor; tek kaynaklı bir dördüncü oran (0,5–0,886) bu yüzden bilerek uygulanmadı (D78).",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla 0, X, A, B, C (D yok).',
+      'AB/XA oranı 1,13–1,618 arası ±%5.',
+      'BC/AB oranı 1,618–2,24 arası ±%5.',
+      "XC/0X oranı 0,886–1,13 arası ±%5 (C'nin kendisi için).",
+      "B, X'in ötesine geçmelidir (geçmezse aday reddedilir).",
+      'Yükseliş yönlü: C bir dip. Düşüş yönlü: C bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "C'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'İlk bacak için oran şartı yok (üç kaynak koymuyor); tek kaynaklı bir dördüncü oran bilerek atlandı (Kural 8).',
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
+  },
+  {
+    id: 'AB_CD',
+    name: 'AB=CD',
+    short: "Dört noktalı en sade harmonik formasyon: CD uzunluğu yaklaşık AB'ye eşit.",
+    what: [
+      'AB=CD, ailenin en basit üyesidir: yalnızca dört nokta (A, B, C, D), X yok. Adını CD bacağının uzunluğunun AB bacağına yaklaşık eşit olmasından alır.',
+      "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
+    ],
+    onChart:
+      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+    rule: [
+      'Pivotlar sırayla A, B, C, D.',
+      'BC/AB oranı 0,382–0,886 arası ±%5.',
+      'CD/BC oranı 1,13–2,618 arası ±%5.',
+      "CD/AB oranı 1,0 ±%5 (CD, AB'ye yaklaşık eşit uzunlukta).",
+      'Yükseliş yönlü: D bir dip. Düşüş yönlü: D bir tepe (ayna).',
+    ],
+    params: [
+      {
+        name: 'pivot_left/right',
+        value: '5',
+        meaning: 'Grafik formasyonu ailesiyle aynı swing ayarı',
+      },
+      { name: 'pct_error', value: '0,05', meaning: 'Her oran için izin verilen sapma payı (±%5)' },
+    ],
+    delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
+    limits: [
+      'En az noktalı harmonik formasyon olduğu için diğerlerine göre daha sık aday üretir.',
+      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
+    ],
+    doc: 'catalog/patterns/harmonic.json',
   },
 ];
