@@ -20,6 +20,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemorySessionsRepo } from '../src/storage/sessions-repo';
+import { NOTE_DISCLAIMER } from '../src/features/research-notes/parse';
 import {
   createMemoryResearchRepo,
   createMemoryStrategyRepo,
@@ -119,6 +120,20 @@ async function filled(): Promise<BackupRepos> {
   } as unknown as StoredBacktest);
   await r.research.saveHypothesis({ id: 'h1', createdAt: 1 } as Hypothesis);
   await r.research.savePaperSession({ id: 'p1', createdAt: 1 } as PaperSession);
+  await r.research.saveResearchNote({
+    id: 'EURUSD:2026-10-14',
+    note: {
+      schema: 'research-note/v1',
+      instrument: 'EURUSD',
+      asOf: '2026-10-14',
+      generatedAt: '2026-10-14T09:12:00Z',
+      reports: { technical: 'teknik rapor' },
+      debate: { rounds: [] },
+      modelInfo: { llmProvider: 'anthropic', quickModel: 'claude-haiku-4-5' },
+      disclaimer: NOTE_DISCLAIMER,
+    },
+    importedAt: 1,
+  });
   return r;
 }
 
@@ -188,6 +203,22 @@ describe('backup and restore', () => {
     expect(plan.counts.levels).toMatchObject({ add: 1, invalid: 1 });
     await plan.apply();
     expect((await target.drawings.listAll()).drawings.map((d) => d.id)).toEqual(['d1']);
+  });
+
+  it('still opens a backup made before research notes existed (D80)', async () => {
+    const file = await roundTrip(await filled());
+    expect(file.research.researchNotes).toHaveLength(1); // the fixture this session's own format has
+    const legacy = JSON.parse(JSON.stringify(file));
+    delete legacy.research.researchNotes;
+
+    const parsed = parseBackup(JSON.stringify(legacy));
+    expect(parsed.research.researchNotes).toEqual([]);
+
+    const target = repos();
+    const plan = await planRestore(target, parsed);
+    expect(plan.counts.researchNotes).toMatchObject({ add: 0 });
+    await plan.apply();
+    expect(await target.research.listResearchNotes()).toEqual([]);
   });
 
   it('refuses files that are not our backups', () => {

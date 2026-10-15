@@ -1,4 +1,5 @@
 import Dexie, { type Table } from 'dexie';
+import type { ResearchNote } from '../features/research-notes/parse';
 import {
   setVersionStatus,
   type AmbiguityRule,
@@ -69,6 +70,18 @@ export interface ResearchRepo {
   listDrafts(): Promise<StoredDraft[]>;
   /** Upserts by id (deterministic per strategy+version+setup, same shape as `saveEvents`). */
   saveDrafts(drafts: readonly StoredDraft[]): Promise<void>;
+  /** Imported research notes (D80), newest `asOf` first; narrows to one instrument when given. */
+  listResearchNotes(instrument?: string): Promise<StoredResearchNote[]>;
+  /** Upserts by id (= `instrument:asOf`) - re-importing the same note replaces it. */
+  saveResearchNote(n: StoredResearchNote): Promise<void>;
+}
+
+/** An imported research-note/v1 (D79/D80, a separate Python tool), so it survives a page
+ * reload. `id` is `instrument:asOf` - importing the same instrument+date again replaces it. */
+export interface StoredResearchNote {
+  id: string;
+  note: ResearchNote;
+  importedAt: UtcMs;
 }
 
 /**
@@ -170,6 +183,7 @@ class ResearchDb extends Dexie {
   events!: Table<EventRecord, string>;
   watched!: Table<WatchedStrategy, string>;
   drafts!: Table<StoredDraft, string>;
+  researchNotes!: Table<ResearchNoteRow, string>;
   constructor(name: string) {
     super(name);
     this.version(1).stores({ runs: 'id, strategyId, runAt' });
@@ -208,8 +222,27 @@ class ResearchDb extends Dexie {
       watched: 'id, strategyId',
       drafts: 'id',
     });
+    // v7 (D80): imported tradingagents research notes.
+    this.version(7).stores({
+      runs: 'id, strategyId, runAt, hypothesisId',
+      hypotheses: 'id, strategyId',
+      paperSessions: 'id',
+      events: 'id, datasetId, concept',
+      watched: 'id, strategyId',
+      drafts: 'id',
+      researchNotes: 'id, instrument',
+    });
   }
 }
+
+/** `instrument` is duplicated from `note.instrument` only so Dexie can index on it (same
+ * pattern as `RunRow` duplicating `strategyId`); stripped back out in `listResearchNotes`. */
+interface ResearchNoteRow extends StoredResearchNote {
+  instrument: string;
+}
+
+const newestAsOfFirst = (a: StoredResearchNote, b: StoredResearchNote) =>
+  b.note.asOf.localeCompare(a.note.asOf) || a.id.localeCompare(b.id);
 
 const strip = ({ key: _key, ...v }: VersionRow): StrategyVersion => v;
 
@@ -347,6 +380,15 @@ export function createDexieResearchRepo(dbName = 'trw-research'): ResearchRepo {
     async saveDrafts(list) {
       await db.drafts.bulkPut(list as StoredDraft[]);
     },
+    async listResearchNotes(instrument) {
+      const rows = instrument
+        ? await db.researchNotes.where('instrument').equals(instrument).toArray()
+        : await db.researchNotes.toArray();
+      return rows.map(({ instrument: _i, ...n }) => n).sort(newestAsOfFirst);
+    },
+    async saveResearchNote(n) {
+      await db.researchNotes.put({ ...n, instrument: n.note.instrument });
+    },
   };
 }
 
@@ -408,6 +450,7 @@ export function createMemoryResearchRepo(): ResearchRepo {
   const events = new Map<string, EventRecord>();
   const watched = new Map<string, WatchedStrategy>();
   const drafts = new Map<string, StoredDraft>();
+  const researchNotes = new Map<string, StoredResearchNote>();
   return {
     saveRun: async (b) => {
       runs.set(b.run.id, b);
@@ -458,6 +501,13 @@ export function createMemoryResearchRepo(): ResearchRepo {
       ),
     saveDrafts: async (list) => {
       for (const d of list) drafts.set(d.id, d);
+    },
+    listResearchNotes: async (instrument) =>
+      [...researchNotes.values()]
+        .filter((n) => !instrument || n.note.instrument === instrument)
+        .sort(newestAsOfFirst),
+    saveResearchNote: async (n) => {
+      researchNotes.set(n.id, n);
     },
   };
 }

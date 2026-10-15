@@ -210,3 +210,65 @@ describe.each(repos)('%s research repo: watched strategies (M11/D69)', (_name, m
     expect(list[0]).toMatchObject({ watchedSince: 30, stoppedAt: null });
   });
 });
+
+describe.each(repos)('%s research repo: imported research notes (D80)', (_name, make) => {
+  const note = (instrument: string, asOf: string) => ({
+    schema: 'research-note/v1' as const,
+    instrument,
+    asOf,
+    generatedAt: `${asOf}T09:12:00Z`,
+    reports: { technical: 'teknik rapor' },
+    debate: { rounds: [] },
+    modelInfo: { llmProvider: 'anthropic', quickModel: 'claude-haiku-4-5' },
+    disclaimer:
+      'Bu bir AI yorum özetidir; al/sat tavsiyesi veya ölçülmüş bir olasılık değildir. Trading Research Workstation Kural 6/9.',
+  });
+
+  it('saves and lists notes, newest asOf first, narrowed by instrument', async () => {
+    const { r } = make();
+    await r.saveResearchNote({
+      id: 'EURUSD:2026-10-10',
+      note: note('EURUSD', '2026-10-10'),
+      importedAt: 1,
+    });
+    await r.saveResearchNote({
+      id: 'EURUSD:2026-10-14',
+      note: note('EURUSD', '2026-10-14'),
+      importedAt: 2,
+    });
+    await r.saveResearchNote({
+      id: 'GBPUSD:2026-10-12',
+      note: note('GBPUSD', '2026-10-12'),
+      importedAt: 3,
+    });
+
+    const all = await r.listResearchNotes();
+    expect(all.map((n) => n.id)).toEqual([
+      'EURUSD:2026-10-14',
+      'GBPUSD:2026-10-12',
+      'EURUSD:2026-10-10',
+    ]);
+
+    const eur = await r.listResearchNotes('EURUSD');
+    expect(eur.map((n) => n.id)).toEqual(['EURUSD:2026-10-14', 'EURUSD:2026-10-10']);
+  });
+
+  it('re-importing the same instrument+asOf replaces the previous note', async () => {
+    const { r } = make();
+    await r.saveResearchNote({
+      id: 'EURUSD:2026-10-14',
+      note: note('EURUSD', '2026-10-14'),
+      importedAt: 1,
+    });
+    await r.saveResearchNote({
+      id: 'EURUSD:2026-10-14',
+      note: { ...note('EURUSD', '2026-10-14'), reports: { technical: 'güncellenmiş rapor' } },
+      importedAt: 2,
+    });
+
+    const all = await r.listResearchNotes();
+    expect(all).toHaveLength(1);
+    expect(all[0]!.note.reports).toEqual({ technical: 'güncellenmiş rapor' });
+    expect(all[0]!.importedAt).toBe(2);
+  });
+});

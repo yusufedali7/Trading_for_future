@@ -15,7 +15,12 @@ import { DEFAULT_PREFS, type Prefs, type PrefsRepo } from '../storage/db-user';
 import type { DrawingsRepo } from '../storage/drawings-repo';
 import type { JournalRepo } from '../storage/journal-repo';
 import type { SessionsRepo, UserSession } from '../storage/sessions-repo';
-import type { PaperSession, ResearchRepo, StrategyRepo } from '../storage/strategy-repo';
+import type {
+  PaperSession,
+  ResearchRepo,
+  StoredResearchNote,
+  StrategyRepo,
+} from '../storage/strategy-repo';
 
 /** Everything the user created, in one file (rule 10). Price data is not included. */
 export interface BackupFile {
@@ -33,7 +38,12 @@ export interface BackupFile {
     sessions: UserSession[];
   };
   strategy: { strategies: Strategy[]; versions: StrategyVersion[] };
-  research: { runs: StoredBacktest[]; hypotheses: Hypothesis[]; paperSessions: PaperSession[] };
+  research: {
+    runs: StoredBacktest[];
+    hypotheses: Hypothesis[];
+    paperSessions: PaperSession[];
+    researchNotes: StoredResearchNote[];
+  };
 }
 
 export interface BackupRepos {
@@ -52,6 +62,7 @@ export const BACKUP_KINDS = [
   'hypotheses',
   'runs',
   'paperSessions',
+  'researchNotes',
   'drawings',
   'levels',
   'trades',
@@ -85,18 +96,29 @@ function fromBase64(b64: string): ArrayBuffer {
 }
 
 export async function createBackup(r: BackupRepos, now: number): Promise<BackupFile> {
-  const [prefs, all, trades, journal, sessions, strategies, runs, hypotheses, paperSessions] =
-    await Promise.all([
-      r.prefs.load(),
-      r.drawings.listAll(),
-      r.journal.listAllTrades(),
-      r.journal.listEntries(),
-      r.sessions.list(),
-      r.strategies.listStrategies(),
-      r.research.listRuns(),
-      r.research.listHypotheses(),
-      r.research.listPaperSessions(),
-    ]);
+  const [
+    prefs,
+    all,
+    trades,
+    journal,
+    sessions,
+    strategies,
+    runs,
+    hypotheses,
+    paperSessions,
+    researchNotes,
+  ] = await Promise.all([
+    r.prefs.load(),
+    r.drawings.listAll(),
+    r.journal.listAllTrades(),
+    r.journal.listEntries(),
+    r.sessions.list(),
+    r.strategies.listStrategies(),
+    r.research.listRuns(),
+    r.research.listHypotheses(),
+    r.research.listPaperSessions(),
+    r.research.listResearchNotes(),
+  ]);
   const versions = (
     await Promise.all(strategies.map((s) => r.strategies.listVersions(s.id)))
   ).flat();
@@ -120,7 +142,7 @@ export async function createBackup(r: BackupRepos, now: number): Promise<BackupF
       sessions,
     },
     strategy: { strategies, versions },
-    research: { runs, hypotheses, paperSessions },
+    research: { runs, hypotheses, paperSessions, researchNotes },
   };
 }
 
@@ -141,15 +163,24 @@ export function parseBackup(text: string): BackupFile {
   }
   const { user, strategy, research } = data;
   const arrays = (o: unknown, keys: string[]) => isObj(o) && keys.every((k) => Array.isArray(o[k]));
+  // researchNotes (D80) is checked separately, tolerating its absence: a backup made before it
+  // existed must still open (it is normalized to [] below), but a present-and-malformed value
+  // is still rejected.
   if (
     !arrays(user, ['drawings', 'levels', 'trades', 'journal', 'screenshots', 'sessions']) ||
     !isObj((user as Record<string, unknown>).prefs) ||
     !arrays(strategy, ['strategies', 'versions']) ||
-    !arrays(research, ['runs', 'hypotheses', 'paperSessions'])
+    !arrays(research, ['runs', 'hypotheses', 'paperSessions']) ||
+    (isObj(research) && 'researchNotes' in research && !Array.isArray(research.researchNotes))
   ) {
     throw new BackupError('MALFORMED');
   }
-  return data as unknown as BackupFile;
+  const researchNotes =
+    isObj(research) && Array.isArray(research.researchNotes)
+      ? (research.researchNotes as StoredResearchNote[])
+      : [];
+  const file = data as unknown as BackupFile;
+  return { ...file, research: { ...file.research, researchNotes } };
 }
 
 export interface KindCount {
@@ -179,7 +210,7 @@ export async function planRestore(r: BackupRepos, f: BackupFile): Promise<Restor
   ) as Record<BackupKind, KindCount>;
   const writes: (() => Promise<void>)[] = [];
 
-  const [prefs, all, trades, journal, sessions, strategies, runs, hypotheses, papers] =
+  const [prefs, all, trades, journal, sessions, strategies, runs, hypotheses, papers, notes] =
     await Promise.all([
       r.prefs.load(),
       r.drawings.listAll(),
@@ -190,6 +221,7 @@ export async function planRestore(r: BackupRepos, f: BackupFile): Promise<Restor
       r.research.listRuns(),
       r.research.listHypotheses(),
       r.research.listPaperSessions(),
+      r.research.listResearchNotes(),
     ]);
   const versions = (
     await Promise.all(strategies.map((s) => r.strategies.listVersions(s.id)))
@@ -281,6 +313,14 @@ export async function planRestore(r: BackupRepos, f: BackupFile): Promise<Restor
     id,
     () => true,
     (p) => r.research.savePaperSession(p),
+  );
+  merge(
+    'researchNotes',
+    f.research.researchNotes,
+    notes,
+    id,
+    () => true,
+    (note) => r.research.saveResearchNote(note),
   );
   const drawingIds = merge(
     'drawings',
