@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import {
   defaultSpec,
@@ -8,9 +8,6 @@ import {
   type Strategy,
 } from '@trw/engine';
 import { App } from '../src/App';
-
-/** Backtests run in these tests; allow for a busy machine when the whole suite runs. */
-const waitLong = <T,>(fn: () => T | Promise<T>) => vi.waitFor(fn, { timeout: 8000 });
 import type { ChartViewProps } from '../src/chart/types';
 import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
@@ -19,6 +16,7 @@ import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 import { createMemoryResearchRepo, createMemoryStrategyRepo } from '../src/storage/strategy-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: 25 hours of wave-shaped 1m bars from Mon 2026-01-05 12:00Z (30-minute cycle).
 const rows = Array.from({ length: 1500 }, (_, i) => {
@@ -127,7 +125,7 @@ describe('research lab', () => {
     fireEvent.change(screen.getAllByLabelText(/Değerler/)[0]!, { target: { value: '1; 1,5; 2' } });
     const go = screen.getByRole('button', { name: /3 kombinasyon = 3 deneme/ });
     fireEvent.click(go);
-    await screen.findByText('In-sample deneme sayısı (bu hipotez): 4', {}, { timeout: 5000 });
+    await screen.findByText('In-sample deneme sayısı (bu hipotez): 4');
 
     const grid = within(screen.getByRole('table', { name: /Tarama sonuçları/ }));
     expect(grid.getAllByRole('row')).toHaveLength(4); // header + 3 values
@@ -150,7 +148,7 @@ describe('research lab', () => {
     fireEvent.change(screen.getByLabelText('Parametre'), { target: { value: 'target.r' } });
     fireEvent.change(screen.getAllByLabelText(/Değerler/)[0]!, { target: { value: '1; 3' } });
     fireEvent.click(screen.getByRole('button', { name: /2 kombinasyon/ }));
-    const grid = await screen.findByRole('table', { name: /Tarama sonuçları/ }, { timeout: 8000 });
+    const grid = await screen.findByRole('table', { name: /Tarama sonuçları/ });
     fireEvent.click(within(grid).getAllByRole('button')[0]!); // target.r = 1
 
     fireEvent.click(screen.getByRole('button', { name: /yeni strateji versiyonu/ }));

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of wave-shaped 1m bars from Tue 2026-01-06 18:00Z (2-hour cycle).
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -54,7 +55,7 @@ async function setup() {
       ChartComponent={FakeChart}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
   return { prefs };
 }
 
@@ -74,7 +75,7 @@ describe('engine candidate layers', () => {
     fireEvent.click(toggles().getByRole('button', { name: 'FVG' }));
     fireEvent.click(toggles().getByRole('button', { name: 'Swing' }));
     expect(latest!.featureLayers).toEqual(['STRUCTURE', 'PREV_DAY', 'FVG']);
-    await vi.waitFor(async () =>
+    await waitLong(async () =>
       expect((await prefs.load()).features).toEqual(['STRUCTURE', 'PREV_DAY', 'FVG']),
     );
   });
@@ -86,7 +87,7 @@ describe('engine candidate layers', () => {
       target: { value: '2026-01-07' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Replay başlat' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('12'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('12'));
     const cursor = Date.parse('2026-01-06T21:00:00Z');
     const f = latest!.features!;
     expect(f.swings.length).toBeLessThan(all);

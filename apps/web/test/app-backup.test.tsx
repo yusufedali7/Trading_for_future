@@ -11,9 +11,9 @@ import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 import { createMemoryResearchRepo, createMemoryStrategyRepo } from '../src/storage/strategy-repo';
+import { waitLong } from './helpers/wait';
 
 const NOW = Date.parse('2026-10-06T12:00:00Z');
-const waitLong = <T,>(fn: () => T | Promise<T>) => vi.waitFor(fn, { timeout: 8000 });
 
 function FakeChart(p: ChartViewProps) {
   return <span data-testid="count">{p.candles.length}</span>;

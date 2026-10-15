@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of wave-shaped 1m bars.
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -54,7 +55,7 @@ async function setup() {
       ChartComponent={FakeChart}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
   return { prefs };
 }
 
@@ -68,7 +69,7 @@ describe('indicator toolbar', () => {
     open(/^İndikatörler/);
     fireEvent.click(screen.getByRole('checkbox', { name: 'SMA' }));
     expect(latest!.indicators!.sma.on).toBe(true);
-    await vi.waitFor(async () => expect((await prefs.load()).indicators.sma.on).toBe(true));
+    await waitLong(async () => expect((await prefs.load()).indicators.sma.on).toBe(true));
 
     fireEvent.change(screen.getByLabelText('Period'), { target: { value: '9' } });
     expect(latest!.indicators!.sma.period).toBe(9);

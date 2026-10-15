@@ -11,8 +11,8 @@ import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 import { createMemoryResearchRepo, createMemoryStrategyRepo } from '../src/storage/strategy-repo';
+import { waitLong } from './helpers/wait';
 
-const waitLong = <T,>(fn: () => T | Promise<T>) => vi.waitFor(fn, { timeout: 8000 });
 const H = 3_600_000;
 const MIN = 60_000;
 const t = (iso: string) => Date.parse(iso);

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App, type AppProps } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of 1m bars from Tue 2026-01-06 18:00Z; mids between 1.1000 and 1.1028.
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -60,13 +61,13 @@ async function setup() {
     newId: () => `id-${++id}`,
   };
   render(<App {...props} />);
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
   // 2026-01-07 00:00 Istanbul = 21:00Z: last known 1m bar is 20:59 (close 1.1008).
   fireEvent.change(screen.getByLabelText('Replay başlangıcı'), {
     target: { value: '2026-01-07' },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Replay başlat' }));
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('12'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('12'));
   return { journalRepo };
 }
 
@@ -98,7 +99,7 @@ describe('replay trade panel', () => {
         ChartComponent={FakeChart}
       />,
     );
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
     expect(panel().getByText(/replay başlat/i)).toBeTruthy();
     expect(panel().queryByRole('button', { name: /emri ver/ })).toBeNull();
   });
@@ -110,7 +111,7 @@ describe('replay trade panel', () => {
     expect(panel().getByText(/Maliyetsiz/)).toBeTruthy();
     fireEvent.click(panel().getByRole('button', { name: 'Long emri ver' }));
 
-    await vi.waitFor(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
+    await waitLong(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
     expect(screen.getByTestId('lines').textContent).toBe('STOP:1.0988 TARGET:1.1048');
     // No going back while the order is live.
     expect(screen.getByRole('button', { name: 'Geri' })).toHaveProperty('disabled', true);
@@ -118,13 +119,13 @@ describe('replay trade panel', () => {
 
     // One 15m step: fills at the 21:00 open (1.1020); 21:14 closes at 1.1029 → +0.28R.
     fireEvent.click(screen.getByRole('button', { name: 'İleri' }));
-    await vi.waitFor(() => expect(panel().getByText('Açık pozisyon')).toBeTruthy());
+    await waitLong(() => expect(panel().getByText('Açık pozisyon')).toBeTruthy());
     expect(panel().getByTestId('trade-r').textContent).toBe('+0,28R');
     expect(screen.getByTestId('lines').textContent).toBe('ENTRY:1.102 STOP:1.0988 TARGET:1.1048');
     expect((await journalRepo.listTrades('EURUSD'))[0]!.result.status).toBe('OPEN');
 
     fireEvent.click(panel().getByRole('button', { name: 'Pozisyonu kapat' }));
-    await vi.waitFor(() => expect(panel().getByText('Kapandı · elle kapatıldı')).toBeTruthy());
+    await waitLong(() => expect(panel().getByText('Kapandı · elle kapatıldı')).toBeTruthy());
     expect(panel().getByTestId('trade-r').textContent).toBe('+0,28R');
     const [saved] = await journalRepo.listTrades('EURUSD');
     expect(saved!.result).toMatchObject({
@@ -145,11 +146,11 @@ describe('replay trade panel', () => {
     fireEvent.change(panel().getByLabelText('Emir tipi'), { target: { value: 'LIMIT' } });
     fireEvent.change(panel().getByLabelText('Emir fiyatı'), { target: { value: '1.0950' } });
     fireEvent.click(panel().getByRole('button', { name: 'Long emri ver' }));
-    await vi.waitFor(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
+    await waitLong(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
     expect(screen.getByTestId('lines').textContent).toBe('ORDER:1.095 STOP:1.093 TARGET:1.099');
 
     fireEvent.click(panel().getByRole('button', { name: 'Emri iptal et' }));
-    await vi.waitFor(() => expect(panel().getByText('İptal edildi')).toBeTruthy());
+    await waitLong(() => expect(panel().getByText('İptal edildi')).toBeTruthy());
     expect((await journalRepo.listTrades('EURUSD'))[0]!.result.status).toBe('CANCELLED');
   });
 

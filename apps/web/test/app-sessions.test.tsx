@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -12,6 +12,7 @@ import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 import { createMemorySessionsRepo } from '../src/storage/sessions-repo';
 import { createMemoryStrategyRepo } from '../src/storage/strategy-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: 1m bars from Tue 2026-01-06 00:00Z to 12:00Z (ICT Asia range 01:00–05:00Z inside).
 const rows = Array.from({ length: 720 }, (_, i) => {
@@ -64,7 +65,7 @@ async function setup() {
       newId={() => `id-${++id}`}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count')).toBeTruthy());
+  await waitLong(() => expect(screen.getByTestId('count')).toBeTruthy());
   return { sessions, strategies };
 }
 
@@ -75,7 +76,7 @@ async function addIctAsia() {
   fireEvent.click(screen.getByRole('button', { name: 'Seanslar…' }));
   fireEvent.click(manager().getByRole('button', { name: /ICT Asya aralığı/ }));
   fireEvent.click(manager().getByRole('button', { name: 'Kaydet' }));
-  await vi.waitFor(() => expect(manager().getByText(/ICT_ASIA/)).toBeTruthy());
+  await waitLong(() => expect(manager().getByText(/ICT_ASIA/)).toBeTruthy());
   fireEvent.click(manager().getByRole('button', { name: 'Kapat' }));
 }
 
@@ -91,7 +92,7 @@ describe('user sessions', () => {
     expect((await sessions.list()).map((s) => [s.id, s.tz, s.start, s.end])).toEqual([
       ['ICT_ASIA', 'America/New_York', '20:00', '00:00'],
     ]);
-    await vi.waitFor(() =>
+    await waitLong(() =>
       expect(latest!.sessions.some((s) => s.sessionId === 'ICT_ASIA')).toBe(true),
     );
     expect(latest!.sessionStyles).toEqual({
@@ -125,7 +126,7 @@ describe('user sessions', () => {
     fireEvent.change(b.getByLabelText('Ad'), { target: { value: 'ICT Asya dibi süpürme' } });
     fireEvent.click(b.getByLabelText('ICT Asya aralığı D'));
     fireEvent.click(b.getByRole('button', { name: 'Versiyonu kaydet' }));
-    await vi.waitFor(() => expect(screen.getByRole('region', { name: 'v1' })).toBeTruthy());
+    await waitLong(() => expect(screen.getByRole('region', { name: 'v1' })).toBeTruthy());
     const [v] = await strategies.listVersions('id-1');
     expect(v!.spec.steps[0]).toMatchObject({ levels: ['ICT_ASIA_LOW'] });
     expect(v!.spec.sessions).toEqual([

@@ -633,6 +633,15 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 - **Kod:** `patterns/harmonic.ts` `detectShark()` — Cypher gibi özel dedektör, pivot etiketleri `0-X-A-B-C` (`HarmonicPatternPivot.label`'a `'0'` eklendi), B'nin X'i aşma şartı açıkça kontrol ediliyor, tolerans diğer harmoniklerle aynı (`PCT_ERROR` 0,05). `catalog/patterns/harmonic.json` Shark: `IMPLEMENTED`, kaynak/doğrulama notu. Sözlükteki eskimiş "Shark neden yok" girdisi güncellendi.
 - **Bilinen sınır:** Harmonik formasyonların hiçbiri henüz web'e (grafik/Kavramlar/strateji) bağlı değil — ayrı bir iş.
 - **Doğrulama:** 5 yeni test (yükseliş, düşüş aynası, B'nin X'i aşma şartı, C'nin 0X oranı, tek kaynaklı ilk bacak oranının uygulanmadığı) + mevcut "ileriye bakmama" testine Shark eklendi. Kaynaklar: luxalgo.com/library/concept/shark, howtotrade.com/chart-patterns/shark-harmonic-pattern, fxopen.com/blog/en/how-to-trade-the-shark-harmonic-pattern.
+
+## D81 — Tam test paketinde ara sıra düşen uygulama testleri: daha uzun bekleme + yarım işçi sayısı
+- **Tarih:** 2026-10-15 · **Durum:** Kabul edildi (yalnızca test altyapısı; ürün kodu değişmedi) · D79–D80 tradingagents planına ayrılmış olduğu için D81
+- **Belirti:** `npm test` (108 dosya, 810 test) ara sıra 1–3 `app-*` testini düşürüyordu, her seferinde farklı olanları; tek başına çalıştırınca hepsi geçiyordu. Hata imzası hep aynı: `Unable to find an element by: [data-testid="count"]` vb. — kurulumdaki `vi.waitFor` / `findBy*` 1 sn'lik varsayılan sürede veri yüklenip özellikler hesaplanamıyordu.
+- **Kök neden:** Vitest varsayılan olarak çekirdek − 1 (bu makinede ~15) işçi açıyor; her biri tam uygulamayı jsdom'da çiziyor. ~6 GB RAM'de bu, hesaplamayı 1 sn'nin çok üstüne itiyor. Ölçüm: normal yükte 3/3 yeşil; aynı anda iki tam paket çalıştırınca (yük testi) 22 ve 26 hata, hepsi bu imza + bazıları 20 sn test zaman aşımı.
+- **Değişiklik:** (1) `apps/web/test/helpers/wait.ts`: ortak `waitLong` (8 sn) — `app-*`, `app.test`, `import-wizard` testlerindeki tüm `vi.waitFor` çağrıları buna geçti, dosyalardaki kopya tanımlar silindi. (2) `test/setup.ts`: Testing Library `asyncUtilTimeout` = aynı 8 sn (`findBy*`). (3) Kök `vitest.config.ts`: `maxWorkers: '50%'`.
+- **Neden ikisi birden:** Yalnızca (1)+(2) ile yük testinde hata 9–12'ye indi ama kalanların neredeyse hepsi 20 sn test zaman aşımıydı (makine doymuş). (3) eklenince yük testi 2/2 tamamen yeşil ve daha hızlı (≈115 sn → ≈70 sn); normal tam koşu süresi değişmedi (≈38–49 sn).
+- **İddialar zayıflamadı:** Bekleme yalnızca daha uzun; koşul hiç sağlanmazsa test yine düşer. Hiçbir beklenti değiştirilmedi ya da silinmedi.
+- **Doğrulama:** Önce 3×`npm test` yeşil + yük testi 22/26 hata; sonra 3×`npm test` yeşil (810/810) + yük testi 2/2 yeşil.
 ---
 
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)

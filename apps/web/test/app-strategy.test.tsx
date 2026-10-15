@@ -1,10 +1,7 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
-
-/** Backtests run in these tests; allow for a busy machine when the whole suite runs. */
-const waitLong = <T,>(fn: () => T | Promise<T>) => vi.waitFor(fn, { timeout: 8000 });
 import type { ChartViewProps } from '../src/chart/types';
 import { createInProcessCandleSource } from '../src/compute/candle-source';
 import { createInProcessImporter } from '../src/import/importer';
@@ -13,6 +10,7 @@ import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
 import { createMemoryResearchRepo, createMemoryStrategyRepo } from '../src/storage/strategy-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of wave-shaped 1m bars from Tue 2026-01-06 18:00Z (30-minute cycle).
 const rows = Array.from({ length: 360 }, (_, i) => {

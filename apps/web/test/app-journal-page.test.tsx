@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta, type JournalEntry } from '@trw/engine';
 import { App } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: a few 1m bars so the app has a dataset, and three hand-written journal entries.
 const rows = Array.from({ length: 30 }, (_, i) => ({
@@ -97,9 +98,9 @@ async function setup() {
       ChartComponent={FakeChart}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count')).toBeTruthy());
+  await waitLong(() => expect(screen.getByTestId('count')).toBeTruthy());
   fireEvent.click(screen.getByRole('button', { name: 'Günlük' }));
-  await vi.waitFor(() => expect(screen.getByText('3 / 3 kayıt')).toBeTruthy());
+  await waitLong(() => expect(screen.getByText('3 / 3 kayıt')).toBeTruthy());
   return { journalRepo };
 }
 
@@ -157,7 +158,7 @@ describe('journal page', () => {
     fireEvent.click(detail.getByRole('button', { name: 'Kaydı sil' }));
     expect(await journalRepo.listEntries()).toHaveLength(3);
     fireEvent.click(detail.getByRole('button', { name: 'Evet, sil' }));
-    await vi.waitFor(() => expect(screen.getByText('2 / 2 kayıt')).toBeTruthy());
+    await waitLong(() => expect(screen.getByText('2 / 2 kayıt')).toBeTruthy());
     expect((await journalRepo.listEntries()).map((e) => e.id)).toEqual(['c', 'b']);
     expect(await journalRepo.getScreenshot('shot-a')).toBeUndefined();
   });

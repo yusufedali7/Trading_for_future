@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -10,6 +10,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of wave-shaped 1m bars from Tue 2026-01-06 18:00Z (2-hour cycle).
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -57,7 +58,7 @@ async function setup(withData: boolean) {
       ChartComponent={FakeChart}
     />,
   );
-  if (withData) await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  if (withData) await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
   fireEvent.click(await screen.findByRole('button', { name: 'Öğren' }));
   fireEvent.click(screen.getByRole('button', { name: 'Kavramlar' }));
   expect(screen.getByRole('button', { name: 'Kavramlar' }).getAttribute('aria-pressed')).toBe(
@@ -96,7 +97,7 @@ describe('concept library', () => {
 
     const examples = within(swing.getByRole('group', { name: 'Örnekler' }));
     fireEvent.click(examples.getByRole('button', { name: 'Grafikte göster' }));
-    await vi.waitFor(() => expect(latest!.focus).toEqual({ at: swings.at(-1)!.formedAt, seq: 1 }));
+    await waitLong(() => expect(latest!.focus).toEqual({ at: swings.at(-1)!.formedAt, seq: 1 }));
     expect(screen.queryByRole('article')).toBeNull();
   });
 
@@ -112,7 +113,7 @@ describe('concept library', () => {
         name: 'Grafikte göster',
       }),
     );
-    await vi.waitFor(() => expect(latest!.featureLayers).toContain('FVG'));
-    await vi.waitFor(async () => expect((await prefs.load()).features).toContain('FVG'));
+    await waitLong(() => expect(latest!.featureLayers).toContain('FVG'));
+    await waitLong(async () => expect((await prefs.load()).features).toContain('FVG'));
   });
 });

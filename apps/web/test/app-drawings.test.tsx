@@ -1,4 +1,4 @@
-﻿import { describe, expect, it, vi } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App, type AppProps } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: three 1m bars so the app has a dataset to show.
 const rows = [0, 1, 2].map((i) => ({
@@ -84,7 +85,7 @@ describe('drawing workflow', () => {
     pickTool('Çizgiler', 'Yatay çizgi');
     expect(screen.getByTestId('tool').textContent).toBe('HLINE');
     fireEvent.click(screen.getByRole('button', { name: 'fake-draw-hline' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('1'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('1'));
     expect(screen.getByTestId('tool').textContent).toBe('SELECT');
     expect(screen.getByRole('heading', { name: 'Seçili çizim' })).toBeTruthy();
     const { drawings } = await drawingsRepo.list('EURUSD');
@@ -108,7 +109,7 @@ describe('drawing workflow', () => {
     expect(within(list).getByText(/Destek · 15m · Aktif/)).toBeTruthy();
 
     fireEvent.change(screen.getByLabelText('Durum'), { target: { value: 'BROKEN' } });
-    await vi.waitFor(async () => {
+    await waitLong(async () => {
       const { levels } = await drawingsRepo.list('EURUSD');
       expect(levels[0]!.statusHistory.map((h) => h.status)).toEqual(['ACTIVE', 'BROKEN']);
     });
@@ -122,7 +123,7 @@ describe('drawing workflow', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Destek/direnç olarak kaydet' }));
     await screen.findByRole('list', { name: 'Destek / direnç seviyeleri' });
     fireEvent.keyDown(window, { key: 'Delete' });
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('0'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('0'));
     expect(await drawingsRepo.list('EURUSD')).toEqual({ drawings: [], levels: [] });
   });
 
@@ -135,18 +136,18 @@ describe('drawing workflow', () => {
     const saved = await drawingsRepo.list('EURUSD');
 
     fireEvent.keyDown(window, { key: 'Delete' });
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('0'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('0'));
     ctrl('z');
-    await vi.waitFor(async () => expect(await drawingsRepo.list('EURUSD')).toEqual(saved));
+    await waitLong(async () => expect(await drawingsRepo.list('EURUSD')).toEqual(saved));
     expect(screen.getByTestId('count').textContent).toBe('1');
 
     ctrl('z'); // the level
     ctrl('z'); // the line
-    await vi.waitFor(async () =>
+    await waitLong(async () =>
       expect(await drawingsRepo.list('EURUSD')).toEqual({ drawings: [], levels: [] }),
     );
     ctrl('y');
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('1'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('1'));
     expect((await drawingsRepo.list('EURUSD')).drawings).toEqual(saved.drawings);
     expect(screen.getByRole('button', { name: 'Yinele (Ctrl+Y)' })).toHaveProperty(
       'disabled',
@@ -158,15 +159,15 @@ describe('drawing workflow', () => {
     const { drawingsRepo } = await setup();
     pickTool('Çizgiler', 'Yatay çizgi');
     fireEvent.click(screen.getByRole('button', { name: 'fake-draw-hline' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('1'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('1'));
     pickTool('İmleçler', 'Silgi');
     expect(screen.getByTestId('tool').textContent).toBe('ERASER');
     fireEvent.click(screen.getByRole('button', { name: 'fake-erase' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('0'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('0'));
 
     fireEvent.click(screen.getByRole('button', { name: 'fake-draw-hline' }));
     fireEvent.click(screen.getByRole('button', { name: 'fake-draw-hline' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('2'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('2'));
     fireEvent.click(screen.getByRole('button', { name: 'Tüm çizimleri gizle' }));
     expect(screen.getByTestId('count').textContent).toBe('0');
     fireEvent.click(screen.getByRole('button', { name: 'Çizimleri göster' }));
@@ -176,7 +177,7 @@ describe('drawing workflow', () => {
     const dialog = within(screen.getByRole('alertdialog', { name: 'Tüm çizimleri sil' }));
     expect(dialog.getByText(/2 çizim silinsin mi/)).toBeTruthy();
     fireEvent.click(dialog.getByRole('button', { name: 'Evet, sil' }));
-    await vi.waitFor(async () => expect((await drawingsRepo.list('EURUSD')).drawings).toEqual([]));
+    await waitLong(async () => expect((await drawingsRepo.list('EURUSD')).drawings).toEqual([]));
   });
 
   it('keeps the tool after drawing when asked; the text tool starts with editable text', async () => {
@@ -184,7 +185,7 @@ describe('drawing workflow', () => {
     fireEvent.click(screen.getByRole('button', { name: /Çizimde kal/ }));
     pickTool('Notlar', 'Metin');
     fireEvent.click(screen.getByRole('button', { name: 'fake-draw-text' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('1'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('1'));
     expect(screen.getByTestId('tool').textContent).toBe('TEXT');
     expect((await drawingsRepo.list('EURUSD')).drawings[0]).toMatchObject({
       kind: 'TEXT',
@@ -195,7 +196,7 @@ describe('drawing workflow', () => {
     const input = panel.getByLabelText('Metin');
     fireEvent.change(input, { target: { value: 'Londra açılışı' } });
     fireEvent.blur(input);
-    await vi.waitFor(async () =>
+    await waitLong(async () =>
       expect((await drawingsRepo.list('EURUSD')).drawings[0]!.text).toBe('Londra açılışı'),
     );
   });

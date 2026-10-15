@@ -1,4 +1,4 @@
-﻿import { describe, expect, it, vi } from 'vitest';
+﻿import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { App, type AppProps } from '../src/App';
 import { createInProcessCandleSource } from '../src/compute/candle-source';
@@ -7,6 +7,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 function renderApp(overrides: Partial<AppProps> = {}) {
   const repo = createMemoryRepo();
@@ -64,7 +65,7 @@ describe('App shell', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Analiz et' }));
     await screen.findByRole('heading', { name: 'Doğrulama raporu' });
     fireEvent.click(screen.getByRole('button', { name: 'Kaydet' }));
-    await vi.waitFor(() => expect(screen.getByTestId('chart')).toBeTruthy());
+    await waitLong(() => expect(screen.getByTestId('chart')).toBeTruthy());
     expect(screen.queryByText('Henüz veri yok')).toBeNull();
     expect(screen.queryByRole('dialog')).toBeNull();
   });

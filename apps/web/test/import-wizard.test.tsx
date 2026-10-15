@@ -3,6 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import type { CandleSeries, DataSetMeta } from '@trw/engine';
 import { ImportWizard } from '../src/features/import/ImportWizard';
 import { createInProcessImporter } from '../src/import/importer';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: hand-written CSV rows used only to drive the wizard.
 const HEADER = 'Gmt time,Open,High,Low,Close,Volume';
@@ -41,7 +42,7 @@ describe('ImportWizard', () => {
     await readAndAnalyze();
     expect(screen.getByText('Düzeltme gerekmiyor.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Kaydet' }));
-    await vi.waitFor(() => expect(onSaved).toHaveBeenCalled());
+    await waitLong(() => expect(onSaved).toHaveBeenCalled());
     const [meta, series] = save.mock.calls[0]!;
     expect(meta).toMatchObject({
       id: 'ds-1',
@@ -69,7 +70,7 @@ describe('ImportWizard', () => {
     fireEvent.click(screen.getByRole('checkbox', { name: /zamana göre sırala/i }));
     expect(saveButton.disabled).toBe(false);
     fireEvent.click(saveButton);
-    await vi.waitFor(() => expect(save).toHaveBeenCalled());
+    await waitLong(() => expect(save).toHaveBeenCalled());
     expect(save.mock.calls[0]![0].acceptedIssues).toEqual(['SORT_BY_TIME']);
   });
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of 1m bars from Tue 2026-01-06 18:00Z; mids between 1.1000 and 1.1028.
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -59,13 +60,13 @@ async function setup() {
       newId={() => `id-${++id}`}
     />,
   );
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
   // Cursor 21:00Z (00:00 Istanbul), inside the New York session; last close 1.1008.
   fireEvent.change(screen.getByLabelText('Replay başlangıcı'), {
     target: { value: '2026-01-07' },
   });
   fireEvent.click(screen.getByRole('button', { name: 'Replay başlat' }));
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('12'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('12'));
   return { journalRepo };
 }
 
@@ -76,9 +77,9 @@ const form = () => within(screen.getByRole('dialog', { name: 'Günlük kaydı' }
 async function loseOneTrade() {
   fireEvent.change(panel().getByLabelText('Stop'), { target: { value: '5' } });
   fireEvent.click(panel().getByRole('button', { name: 'Long emri ver' }));
-  await vi.waitFor(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
+  await waitLong(() => expect(panel().getByText('Bekleyen emir')).toBeTruthy());
   fireEvent.click(screen.getByRole('button', { name: 'İleri' }));
-  await vi.waitFor(() => expect(screen.getByRole('dialog', { name: 'Günlük kaydı' })).toBeTruthy());
+  await waitLong(() => expect(screen.getByRole('dialog', { name: 'Günlük kaydı' })).toBeTruthy());
 }
 
 describe('journal form', () => {
@@ -102,7 +103,7 @@ describe('journal form', () => {
     });
     fireEvent.click(form().getByRole('button', { name: 'Kaydet' }));
 
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitLong(() => expect(screen.queryByRole('dialog')).toBeNull());
     const [entry] = await journalRepo.listEntries();
     expect(entry).toMatchObject({
       instrument: 'EURUSD',
@@ -145,7 +146,7 @@ describe('journal form', () => {
     fireEvent.click(form().getByLabelText('Grafiğin ekran görüntüsünü ekle'));
     fireEvent.click(form().getByRole('button', { name: 'Kaydet' }));
 
-    await vi.waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitLong(() => expect(screen.queryByRole('dialog')).toBeNull());
     const [entry] = await journalRepo.listEntries();
     expect(entry).toMatchObject({
       decision: 'NO_TRADE',

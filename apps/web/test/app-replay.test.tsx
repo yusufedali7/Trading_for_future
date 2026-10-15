@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App, type AppProps } from '../src/App';
@@ -9,6 +9,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: six hours of 1m bars from Tue 2026-01-06 18:00Z (24 bars at 15m).
 const rows = Array.from({ length: 360 }, (_, i) => {
@@ -55,7 +56,7 @@ async function setup() {
     ChartComponent: FakeChart,
   };
   render(<App {...props} />);
-  await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('24'));
+  await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('24'));
 }
 
 const count = () => screen.getByTestId('count').textContent;
@@ -68,13 +69,13 @@ describe('replay mode', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Replay başlat' }));
     // 2026-01-07 00:00 Istanbul = 2026-01-06 21:00Z → 12 bars (18:00-20:45) are known
-    await vi.waitFor(() => expect(count()).toBe('12'));
+    await waitLong(() => expect(count()).toBe('12'));
     expect(screen.getByTestId('last').textContent).toBe('2026-01-06T20:45:00.000Z');
 
     fireEvent.click(screen.getByRole('button', { name: 'İleri' }));
-    await vi.waitFor(() => expect(count()).toBe('13'));
+    await waitLong(() => expect(count()).toBe('13'));
     fireEvent.click(screen.getByRole('button', { name: 'Geri' }));
-    await vi.waitFor(() => expect(count()).toBe('12'));
+    await waitLong(() => expect(count()).toBe('12'));
   });
 
   it('supports the keyboard and restores the full chart when replay ends', async () => {
@@ -83,11 +84,11 @@ describe('replay mode', () => {
       target: { value: '2026-01-07' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Replay başlat' }));
-    await vi.waitFor(() => expect(count()).toBe('12'));
+    await waitLong(() => expect(count()).toBe('12'));
     fireEvent.keyDown(window, { key: 'ArrowRight' });
     fireEvent.keyDown(window, { key: 'ArrowRight' });
-    await vi.waitFor(() => expect(count()).toBe('14'));
+    await waitLong(() => expect(count()).toBe('14'));
     fireEvent.click(screen.getByRole('button', { name: "Replay'i bitir" }));
-    await vi.waitFor(() => expect(count()).toBe('24'));
+    await waitLong(() => expect(count()).toBe('24'));
   });
 });

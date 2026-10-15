@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { seriesFromRows, type DataSetMeta } from '@trw/engine';
 import { App } from '../src/App';
@@ -10,6 +10,7 @@ import { createMemoryPrefsRepo } from '../src/storage/db-user';
 import { createMemoryDrawingsRepo } from '../src/storage/drawings-repo';
 import { createMemoryJournalRepo } from '../src/storage/journal-repo';
 import { createMemoryRepo } from '../src/storage/memory-repo';
+import { waitLong } from './helpers/wait';
 
 // SYNTHETIC: two hours of wave-shaped 1m bars from Tue 2026-01-06 18:00Z.
 const rows = Array.from({ length: 120 }, (_, i) => {
@@ -58,7 +59,7 @@ async function setup(withData: boolean) {
       ChartComponent={FakeChart}
     />,
   );
-  if (withData) await vi.waitFor(() => expect(screen.getByTestId('count')).toBeTruthy());
+  if (withData) await waitLong(() => expect(screen.getByTestId('count')).toBeTruthy());
   return { prefs };
 }
 
@@ -96,7 +97,7 @@ describe('learning path (D73)', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Öğren' }));
     expect(screen.getByText(`0 / ${LESSONS.length} ders tamamlandı`)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Tamamladım' }));
-    await vi.waitFor(async () =>
+    await waitLong(async () =>
       expect((await prefs.load()).learning.completed).toEqual([first!.id]),
     );
     expect(screen.getByText(`1 / ${LESSONS.length} ders tamamlandı`)).toBeTruthy();
@@ -115,7 +116,7 @@ describe('learning path (D73)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Öğrenme yolu' }));
     fireEvent.click(screen.getByRole('button', { name: 'Grafikte aç: FVG' }));
     expect(pressed('Grafik')).toBe(true);
-    await vi.waitFor(async () => expect((await prefs.load()).features).toContain('FVG'));
+    await waitLong(async () => expect((await prefs.load()).features).toContain('FVG'));
     expect(latest!.featureLayers).toContain('FVG');
   });
 
@@ -123,13 +124,13 @@ describe('learning path (D73)', () => {
     const { prefs } = await setup(true);
     fireEvent.click(screen.getByRole('button', { name: 'Ders önerisini gizle' }));
     expect(screen.queryByRole('button', { name: /Sıradaki ders/ })).toBeNull();
-    await vi.waitFor(async () => expect((await prefs.load()).learning.hideHint).toBe(true));
+    await waitLong(async () => expect((await prefs.load()).learning.hideHint).toBe(true));
   });
 
   it('runs a seeded practice round on the loaded data and keeps its score (D74)', async () => {
     const { prefs } = await setup(true);
     fireEvent.click(screen.getByRole('button', { name: '1m' }));
-    await vi.waitFor(() => expect(screen.getByTestId('count').textContent).toBe('120'));
+    await waitLong(() => expect(screen.getByTestId('count').textContent).toBe('120'));
     fireEvent.click(screen.getByRole('button', { name: 'Öğren' }));
     fireEvent.click(screen.getByRole('button', { name: 'Alıştırma' }));
     fireEvent.click(screen.getByRole('button', { name: /Yeni tur başlat/ }));
@@ -147,7 +148,7 @@ describe('learning path (D73)', () => {
     expect(
       screen.getByText(`${answered} sorudan ${right} doğru (bu veride, bu turda).`),
     ).toBeTruthy();
-    await vi.waitFor(async () => {
+    await waitLong(async () => {
       const [round] = (await prefs.load()).learning.exercises;
       expect(round).toMatchObject({
         datasetId: 'ds',
