@@ -159,7 +159,11 @@ def main() -> int:
         print("MetaTrader5 paketi yok. Kurulum: py -m pip install MetaTrader5", file=sys.stderr)
         return 1
     if not mt5.initialize():
-        print("MetaTrader 5 terminaline bağlanılamadı. MT5 açık ve hesaba giriş yapılmış mı?", file=sys.stderr)
+        print(
+            "MetaTrader 5 terminaline bağlanılamadı. MT5 açık ve hesaba giriş yapılmış mı? "
+            f"(paketin kendi hata kodu: {mt5.last_error()})",
+            file=sys.stderr,
+        )
         return 1
     try:
         mode = account_mode(mt5)
