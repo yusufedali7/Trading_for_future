@@ -124,6 +124,35 @@ export class FeaturesPrimitive implements ISeriesPrimitive<Time> {
             ctx.textBaseline = 'bottom';
             ctx.fillText(it.label, x1 + 2, y - 1);
           }
+        } else if (it.shape === 'PATH') {
+          ctx.strokeStyle = withAlpha(color, 0.8);
+          ctx.setLineDash(it.dashed ? [4, 3] : []);
+          // Each point is checked on its own (Review Focus #2): a pivot scrolled off-screen
+          // breaks the line at that point instead of connecting straight across the gap or
+          // discarding the whole path.
+          let prev: { x: number; y: number } | null = null;
+          for (const pt of it.points) {
+            const x = toX(pt.p);
+            const y = toY(pt.price);
+            if (x === null || y === null) {
+              prev = null;
+              continue;
+            }
+            if (prev) {
+              ctx.beginPath();
+              ctx.moveTo(prev.x, prev.y);
+              ctx.lineTo(x, y);
+              ctx.stroke();
+            }
+            if (showText) {
+              ctx.fillStyle = withAlpha(color, 0.95);
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              ctx.fillText(pt.label, x, y - 4);
+              ctx.textAlign = 'start';
+            }
+            prev = { x, y };
+          }
         } else if (showMarks) {
           const x = toX(it.p);
           const y = toY(it.price);

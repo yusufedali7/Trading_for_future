@@ -101,9 +101,15 @@ describe('concept library', () => {
     expect(screen.queryByRole('article')).toBeNull();
   });
 
-  it('shows a harmonic concept with no chart layer and no outcome measurement yet (D82)', async () => {
+  it('shows a harmonic concept with no outcome measurement yet (D82)', async () => {
     await setup(true);
-    fireEvent.click(screen.getByRole('button', { name: /^Gartley/ }));
+    // Scoped to the nav: a chart layer toggle button with the same plain name ("Gartley",
+    // D83) now also exists in the Katmanlar panel.
+    fireEvent.click(
+      within(screen.getByRole('navigation', { name: 'Kavramlar' })).getByRole('button', {
+        name: /^Gartley/,
+      }),
+    );
     const gartley = card('Gartley');
     expect(gartley.getByText(/Bu veride \d+ aday\.|Bu veride aday yok\./)).toBeTruthy();
     // No outcome measurement wired for harmonics yet (unlike swing/FVG above): no yardstick text.
