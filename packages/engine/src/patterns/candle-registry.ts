@@ -1,3 +1,4 @@
+import type { UtcMs } from '../core/types';
 import type { Bars } from '../features/bars';
 import {
   detect2Crows,
@@ -149,4 +150,9 @@ export const CANDLE_PATTERN_IDS: readonly string[] = Object.keys(CANDLE_PATTERN_
 /** Every candlestick detector run once, concatenated - the `CANDLE_PATTERN_EVENT` candidate source. */
 export function detectAllCandlePatterns(b: Bars): CandlePattern[] {
   return Object.values(CANDLE_PATTERN_DETECTORS).flatMap((fn) => fn(b));
+}
+
+/** The candle-pattern candidates known at `cutoff` (the replay cursor) - mirrors `harmonicsAsOf`. */
+export function candlePatternsAsOf(ps: readonly CandlePattern[], cutoff: UtcMs): CandlePattern[] {
+  return ps.filter((p) => p.confirmedAt <= cutoff);
 }

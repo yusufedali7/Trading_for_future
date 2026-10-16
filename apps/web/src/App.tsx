@@ -786,6 +786,7 @@ export function App({
                     smc={chartData.smc}
                     harmonics={chartData.harmonics}
                     chartPatterns={chartData.chartPatterns}
+                    candlePatterns={chartData.candlePatterns}
                     featureLayers={settings.features}
                     indicators={settings.indicators}
                     setups={setupMarks}

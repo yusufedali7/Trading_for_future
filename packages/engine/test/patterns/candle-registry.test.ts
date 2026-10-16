@@ -3,6 +3,7 @@ import { detectDoji } from '../../src/patterns/candlestick';
 import {
   CANDLE_PATTERN_DETECTORS,
   CANDLE_PATTERN_IDS,
+  candlePatternsAsOf,
   detectAllCandlePatterns,
 } from '../../src/patterns/candle-registry';
 import { bars } from '../helpers/synthetic-bars';
@@ -40,5 +41,16 @@ describe('CANDLE_PATTERN_DETECTORS / detectAllCandlePatterns (D67)', () => {
     expect(direct.length).toBeGreaterThan(0);
     const all = detectAllCandlePatterns(DOJI_BARS);
     expect(all.filter((p) => p.patternId === 'cdldoji')).toEqual(direct);
+  });
+});
+
+describe('candlePatternsAsOf (D85)', () => {
+  it('keeps only patterns confirmed at or before the cutoff', () => {
+    const found = detectDoji(DOJI_BARS);
+    expect(found.length).toBeGreaterThan(0);
+    const confirmedAt = found[0]!.confirmedAt;
+
+    expect(candlePatternsAsOf(found, confirmedAt - 1)).toEqual([]);
+    expect(candlePatternsAsOf(found, confirmedAt)).toEqual(found);
   });
 });

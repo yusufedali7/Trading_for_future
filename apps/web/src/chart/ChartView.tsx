@@ -18,6 +18,7 @@ import { positionToTime, timeToPosition } from './coords';
 import { indexAtOrAfter, startOfLocalDay } from './goto';
 import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from './lwc-adapter';
 import {
+  layoutCandlePatterns,
   layoutChartPatterns,
   layoutFeatures,
   layoutHarmonics,
@@ -199,7 +200,7 @@ export function ChartView(props: ChartViewProps) {
   }, [sessions, times, timeframe, sessionStyles]);
 
   // Engine candidates (M4 + M9 SMC) and strategy setups (M5), laid out once per data / layer change.
-  const { features, smc, harmonics, chartPatterns, featureLayers, setups } = props;
+  const { features, smc, harmonics, chartPatterns, candlePatterns, featureLayers, setups } = props;
   useEffect(() => {
     const layers = new Set(featureLayers ?? []);
     const empty = { swings: [], fvgs: [], breaks: [], sweeps: [], periods: [] };
@@ -248,11 +249,29 @@ export function ChartView(props: ChartViewProps) {
     const harmonicsItems =
       layers.size > 0 ? layoutHarmonics(harmonics ?? [], layers, times, tfMs) : [];
     const chartPatternItems = layoutChartPatterns(chartPatterns ?? [], layers, times, tfMs);
+    const candlePatternItems = layoutCandlePatterns(
+      candlePatterns ?? [],
+      candles,
+      layers,
+      times,
+      tfMs,
+    );
     featuresRef.current?.setData(
-      [...items, ...smcItems, ...harmonicsItems, ...chartPatternItems],
+      [...items, ...smcItems, ...harmonicsItems, ...chartPatternItems, ...candlePatternItems],
       times.length,
     );
-  }, [features, smc, harmonics, chartPatterns, featureLayers, setups, times, timeframe]);
+  }, [
+    features,
+    smc,
+    harmonics,
+    chartPatterns,
+    candlePatterns,
+    candles,
+    featureLayers,
+    setups,
+    times,
+    timeframe,
+  ]);
 
   // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
   const screenshotRef = props.screenshotRef;

@@ -158,6 +158,7 @@ export type { CandlePattern } from './patterns/types';
 export {
   CANDLE_PATTERN_DETECTORS,
   CANDLE_PATTERN_IDS,
+  candlePatternsAsOf,
   detectAllCandlePatterns,
 } from './patterns/candle-registry';
 export {

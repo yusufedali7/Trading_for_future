@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
+import type { CandlePattern, ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import {
   FEATURE_LAYERS,
+  layoutCandlePatterns,
   layoutChartPatterns,
   layoutFeatures,
   layoutHarmonics,
@@ -562,5 +563,83 @@ describe('layoutChartPatterns (D84)', () => {
     const noExtras = { ...doubleBottom, targetPrice: null, invalidationRef: null };
     const items = layoutChartPatterns([noExtras], new Set(['CHART_PATTERNS']), times, TF);
     expect(items.map((i) => i.shape)).toEqual(['PATH', 'LINE']);
+  });
+});
+
+// SYNTHETIC: 10 bars' worth of {h,l} - enough to index a candle pattern confirmed on bar 4.
+const tenCandles = Array.from({ length: 10 }, (_, i) => ({ h: 1.1 + i / 100, l: 1.09 + i / 100 }));
+
+function fakeCandlePattern(
+  patternId: string,
+  direction: 'BULLISH' | 'BEARISH' | null,
+  confirmedIndex = 4,
+): CandlePattern {
+  return {
+    id: `cdl-${patternId}-${confirmedIndex}`,
+    type: 'CANDLE_PATTERN_EVENT',
+    patternId,
+    defVersion: 'v1',
+    direction,
+    formedAt: at(confirmedIndex),
+    formedIndex: confirmedIndex,
+    confirmedAt: at(confirmedIndex),
+    confirmedIndex,
+  };
+}
+
+describe('layoutCandlePatterns (D85)', () => {
+  it('returns nothing when its layer is off', () => {
+    const items = layoutCandlePatterns(
+      [fakeCandlePattern('cdldoji', null)],
+      tenCandles,
+      new Set(),
+      times,
+      TF,
+    );
+    expect(items).toEqual([]);
+  });
+
+  it('marks a bearish pattern above the bar at its high, toned DOWN', () => {
+    const items = layoutCandlePatterns(
+      [fakeCandlePattern('cdlshootingstar', 'BEARISH', 4)],
+      tenCandles,
+      new Set(['CANDLE_PATTERNS']),
+      times,
+      TF,
+    );
+    expect(items).toEqual([
+      {
+        shape: 'MARK',
+        layer: 'CANDLE_PATTERNS',
+        p: 4,
+        price: tenCandles[4]!.h,
+        above: true,
+        stack: 0,
+        tone: 'DOWN',
+        label: 'cdlshootingstar',
+      },
+    ]);
+  });
+
+  it('marks a bullish pattern below the bar at its low, toned UP', () => {
+    const items = layoutCandlePatterns(
+      [fakeCandlePattern('cdlhammer', 'BULLISH', 4)],
+      tenCandles,
+      new Set(['CANDLE_PATTERNS']),
+      times,
+      TF,
+    );
+    expect(items[0]).toMatchObject({ price: tenCandles[4]!.l, above: false, tone: 'UP' });
+  });
+
+  it('marks a direction-less pattern above the bar, toned NEUTRAL', () => {
+    const items = layoutCandlePatterns(
+      [fakeCandlePattern('cdldoji', null, 4)],
+      tenCandles,
+      new Set(['CANDLE_PATTERNS']),
+      times,
+      TF,
+    );
+    expect(items[0]).toMatchObject({ price: tenCandles[4]!.h, above: true, tone: 'NEUTRAL' });
   });
 });

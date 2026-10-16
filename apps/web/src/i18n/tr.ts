@@ -359,6 +359,7 @@ export const tr = {
       SHARK: 'Köpekbalığı',
       AB_CD: 'AB=CD',
       CHART_PATTERNS: 'Grafik formasyonları',
+      CANDLE_PATTERNS: 'Mum formasyonları',
     },
     layerHints: {
       SWING: 'Aday tepe ve dipler (sağda 3 mum oluşunca onaylanır)',
@@ -386,6 +387,8 @@ export const tr = {
       AB_CD: "Aday AB=CD: dört noktalı en sade harmonik formasyon, CD uzunluğu AB'ye yaklaşık eşit",
       CHART_PATTERNS:
         'Aday grafik formasyonları (ikili/üçlü tepe-dip, OBO, üçgen, kama, kanal, bayrak vb. — 21 tür, tek katmanda); her biri pivot yolu + kırılım/hedef/geçersizleşme seviyesiyle',
+      CANDLE_PATTERNS:
+        'Aday mum formasyonları (doji, engulfing, marubozu vb. — 61 tür, tek katmanda); onay mumunun üstünde ya da altında işaretlenir',
     },
     candidateNote: 'Motor adayları kesin sinyal değildir; tanımlar docs/definitions içinde.',
     labels: {

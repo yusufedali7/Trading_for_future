@@ -1,4 +1,4 @@
-import type { ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
+import type { CandlePattern, ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import { timeToPosition } from '../coords';
 
 /** Toggleable candidate layers (stored in prefs). */
@@ -27,6 +27,7 @@ export const FEATURE_LAYERS = [
   'SHARK',
   'AB_CD',
   'CHART_PATTERNS',
+  'CANDLE_PATTERNS',
 ] as const;
 export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 
@@ -499,6 +500,41 @@ export function layoutChartPatterns(
         dashed: true,
       });
     }
+  }
+  return out;
+}
+
+/** Candlestick patterns (M9 1./5./6. dilim, D85: drawn on the chart for the first time) - one
+ * bundled layer for all 61 (same crowding reasoning as chart patterns). Unlike the other
+ * families, a `CandlePattern` carries no price of its own (only a bar index), so this needs the
+ * chart's own candles to anchor the mark at the confirmed bar's high (bearish, above) or low
+ * (bullish, below); a direction-less pattern (e.g. Doji) is marked above, toned NEUTRAL. */
+export function layoutCandlePatterns(
+  ps: readonly CandlePattern[],
+  candles: readonly { h: number; l: number }[],
+  layers: ReadonlySet<FeatureLayer>,
+  times: ArrayLike<number>,
+  tfMs: number,
+): FeatureItem[] {
+  if (!layers.has('CANDLE_PATTERNS')) return [];
+  const bar = (t: number) => timeToPosition(times, tfMs, t) + 0.5;
+  const out: FeatureItem[] = [];
+  for (const p of ps) {
+    const c = candles[p.confirmedIndex];
+    if (!c) continue;
+    const above = p.direction !== 'BULLISH';
+    const tone: Tone =
+      p.direction === 'BULLISH' ? 'UP' : p.direction === 'BEARISH' ? 'DOWN' : 'NEUTRAL';
+    out.push({
+      shape: 'MARK',
+      layer: 'CANDLE_PATTERNS',
+      p: bar(p.confirmedAt),
+      price: above ? c.h : c.l,
+      above,
+      stack: 0,
+      tone,
+      label: p.patternId,
+    });
   }
   return out;
 }

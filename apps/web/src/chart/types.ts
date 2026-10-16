@@ -1,4 +1,5 @@
 import type {
+  CandlePattern,
   ChartPattern,
   FeatureSet,
   HarmonicPattern,
@@ -38,6 +39,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   harmonics?: HarmonicPattern[];
   /** Chart (price-action) pattern candidates on this timeframe (already cut at the cursor). */
   chartPatterns?: ChartPattern[];
+  /** Candlestick pattern candidates on this timeframe (already cut at the cursor). */
+  candlePatterns?: CandlePattern[];
   /** Setups of the strategy version shown on the chart (M5). */
   setups?: { signalBarsAt: readonly number[]; long: boolean; label: string } | null;
   /** Which candidate layers to draw. */

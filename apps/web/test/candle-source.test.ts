@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   computeFeatures,
+  candlePatternsAsOf,
   chartPatternsAsOf,
   defaultSpec,
   runBacktest,
@@ -170,6 +171,20 @@ describe('replay through the candle source', () => {
     ].map(Date.parse)) {
       const view = composeReplay(full, await src.replay(meta2, '1m', cursor), cursor);
       expect(view.chartPatterns).toEqual(chartPatternsAsOf(full.chartPatterns, cursor));
+    }
+  });
+
+  it('cuts candlestick-pattern candidates at the cursor the same way as the other candidate layers (D85)', async () => {
+    const src = await source2();
+    const full = await src.load(meta2, '1m');
+    expect(Array.isArray(full.candlePatterns)).toBe(true);
+    for (const cursor of [
+      '2026-01-06T13:42:00Z',
+      '2026-01-06T14:10:00Z',
+      '2026-01-06T14:59:00Z',
+    ].map(Date.parse)) {
+      const view = composeReplay(full, await src.replay(meta2, '1m', cursor), cursor);
+      expect(view.candlePatterns).toEqual(candlePatternsAsOf(full.candlePatterns, cursor));
     }
   });
 

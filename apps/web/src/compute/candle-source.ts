@@ -5,8 +5,10 @@ import {
   bucketStart,
   canonicalJson,
   CHART_PIVOT_PARAMS,
+  candlePatternsAsOf,
   chartPatternsAsOf,
   computeSmc,
+  detectAllCandlePatterns,
   detectAllChartPatterns,
   detectAllHarmonicPatterns,
   detectSwings,
@@ -31,6 +33,7 @@ import {
   type BacktestResult,
   type RandomBaselineInput,
   type BacktestStats,
+  type CandlePattern,
   type CandleSeries,
   type ChartPattern,
   type DataSetMeta,
@@ -67,6 +70,8 @@ export interface ChartData {
   harmonics: HarmonicPattern[];
   /** Chart (price-action) pattern candidates (M9 7.–10. dilim, D84: grafiğe bağlandı). */
   chartPatterns: ChartPattern[];
+  /** Candlestick pattern candidates (M9 1./5./6. dilim, D85: grafiğe bağlandı). */
+  candlePatterns: CandlePattern[];
 }
 
 /**
@@ -140,6 +145,7 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
     smc: smcAsOf(full.smc, cursor),
     harmonics: harmonicsAsOf(full.harmonics, cursor),
     chartPatterns: chartPatternsAsOf(full.chartPatterns, cursor),
+    candlePatterns: candlePatternsAsOf(full.candlePatterns, cursor),
   };
 }
 
@@ -264,7 +270,10 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       const chartSwings = detectSwings(bars, CHART_PIVOT_PARAMS);
       const harmonics = detectAllHarmonicPatterns(chartSwings);
       const chartPatterns = detectAllChartPatterns(bars, chartSwings);
-      return { candles, sessions, features, smc, harmonics, chartPatterns };
+      // Candlestick patterns (D85): no swings needed, pure OHLC shape - same "cheap, consistent"
+      // reasoning.
+      const candlePatterns = detectAllCandlePatterns(bars);
+      return { candles, sessions, features, smc, harmonics, chartPatterns, candlePatterns };
     },
     async replay(meta, tf, cursor, userSessions = []) {
       const c = await get(meta);
