@@ -4,6 +4,7 @@ import { detectDoubleBottom } from '../../src/patterns/chart';
 import {
   CHART_PATTERN_DETECTORS,
   CHART_PATTERN_IDS,
+  chartPatternsAsOf,
   detectAllChartPatterns,
 } from '../../src/patterns/chart-registry';
 import { CHART_PIVOT_PARAMS } from '../../src/patterns/chart-shared';
@@ -38,5 +39,17 @@ describe('CHART_PATTERN_DETECTORS / detectAllChartPatterns (D63)', () => {
     expect(direct.length).toBeGreaterThan(0);
     const all = detectAllChartPatterns(DOUBLE_BOTTOM_BARS, swings);
     expect(all.filter((p) => p.patternId === 'double_bottom')).toEqual(direct);
+  });
+});
+
+describe('chartPatternsAsOf (D84)', () => {
+  it('keeps only patterns confirmed at or before the cutoff', () => {
+    const swings = detectSwings(DOUBLE_BOTTOM_BARS, CHART_PIVOT_PARAMS);
+    const found = detectDoubleBottom(DOUBLE_BOTTOM_BARS, swings);
+    expect(found.length).toBeGreaterThan(0);
+    const confirmedAt = found[0]!.confirmedAt;
+
+    expect(chartPatternsAsOf(found, confirmedAt - 1)).toEqual([]);
+    expect(chartPatternsAsOf(found, confirmedAt)).toEqual(found);
   });
 });

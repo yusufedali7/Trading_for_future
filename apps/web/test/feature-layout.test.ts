@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
+import type { ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import {
   FEATURE_LAYERS,
+  layoutChartPatterns,
   layoutFeatures,
   layoutHarmonics,
   layoutSmc,
@@ -481,5 +482,85 @@ describe('visibleItems — PATH', () => {
   });
   it('drops a path entirely outside the visible window', () => {
     expect(visibleItems([path], 10, 20, 10)).toEqual([]);
+  });
+});
+
+// SYNTHETIC: a bullish double_bottom-shaped ChartPattern (2 pivots, a target and an
+// invalidation level), 10 bars in. Values don't need to match a real detector's output - this
+// tests the layout/draw wiring, not detection (covered elsewhere).
+const doubleBottom: ChartPattern = {
+  id: 'cp1',
+  type: 'PATTERN_EVENT',
+  patternId: 'double_bottom',
+  defVersion: 'v1',
+  direction: 'BULLISH',
+  pivots: [
+    { at: at(2), index: 2, price: 1.09, kind: 'LOW' },
+    { at: at(6), index: 6, price: 1.095, kind: 'LOW' },
+  ],
+  formedAt: at(6),
+  formedIndex: 6,
+  confirmedAt: at(8),
+  confirmedIndex: 8,
+  confirmationRef: 1.1,
+  targetPrice: 1.11,
+  invalidationRef: 1.085,
+};
+
+describe('layoutChartPatterns (D84)', () => {
+  it('returns nothing when its layer is off', () => {
+    expect(layoutChartPatterns([doubleBottom], new Set(), times, TF)).toEqual([]);
+  });
+
+  it('lays out a pivot path (unlabelled) plus confirmation/target/invalidation lines', () => {
+    const items = layoutChartPatterns([doubleBottom], new Set(['CHART_PATTERNS']), times, TF);
+    expect(items).toEqual([
+      {
+        shape: 'PATH',
+        layer: 'CHART_PATTERNS',
+        points: [
+          { p: 2, price: 1.09, label: '' },
+          { p: 6, price: 1.095, label: '' },
+        ],
+        tone: 'UP',
+        dashed: false,
+      },
+      {
+        shape: 'LINE',
+        layer: 'CHART_PATTERNS',
+        p1: 6,
+        p2: 8,
+        price: 1.1,
+        tone: 'UP',
+        label: 'double_bottom',
+        dashed: false,
+      },
+      {
+        shape: 'LINE',
+        layer: 'CHART_PATTERNS',
+        p1: 8,
+        p2: null,
+        price: 1.11,
+        tone: 'UP',
+        label: 'double_bottom hedef',
+        dashed: true,
+      },
+      {
+        shape: 'LINE',
+        layer: 'CHART_PATTERNS',
+        p1: 6,
+        p2: 8,
+        price: 1.085,
+        tone: 'UP',
+        label: 'double_bottom geçersiz',
+        dashed: true,
+      },
+    ]);
+  });
+
+  it('omits the target/invalidation lines when the catalog defines none', () => {
+    const noExtras = { ...doubleBottom, targetPrice: null, invalidationRef: null };
+    const items = layoutChartPatterns([noExtras], new Set(['CHART_PATTERNS']), times, TF);
+    expect(items.map((i) => i.shape)).toEqual(['PATH', 'LINE']);
   });
 });

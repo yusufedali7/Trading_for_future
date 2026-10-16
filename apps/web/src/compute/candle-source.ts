@@ -5,6 +5,7 @@ import {
   bucketStart,
   canonicalJson,
   CHART_PIVOT_PARAMS,
+  chartPatternsAsOf,
   computeSmc,
   detectAllChartPatterns,
   detectAllHarmonicPatterns,
@@ -64,6 +65,8 @@ export interface ChartData {
   smc: SmcSet;
   /** Harmonic (XABCD) candidates (M9 11. dilim, D82: bağlandı), as of the last stored bar. */
   harmonics: HarmonicPattern[];
+  /** Chart (price-action) pattern candidates (M9 7.–10. dilim, D84: grafiğe bağlandı). */
+  chartPatterns: ChartPattern[];
 }
 
 /**
@@ -136,6 +139,7 @@ export function composeReplay(full: ChartData, tail: ReplayTail, cursor: UtcMs):
     features: featuresAsOf(full.features, cursor),
     smc: smcAsOf(full.smc, cursor),
     harmonics: harmonicsAsOf(full.harmonics, cursor),
+    chartPatterns: chartPatternsAsOf(full.chartPatterns, cursor),
   };
 }
 
@@ -254,11 +258,13 @@ export function createInProcessCandleSource(repo: MarketRepo): CandleSource {
       });
       const bars = toBars(candles, inst, tf);
       const smc = computeSmc(bars, inst);
-      // Harmonic candidates (D82): same "cheap enough, keep it consistent" reasoning as smc
-      // above, and the same CHART_PIVOT_PARAMS swings the chart-pattern family already uses
-      // (the catalog's harmonic.json pins pivot_left/right to 5, matching that family exactly).
-      const harmonics = detectAllHarmonicPatterns(detectSwings(bars, CHART_PIVOT_PARAMS));
-      return { candles, sessions, features, smc, harmonics };
+      // Harmonic (D82) and chart-pattern (D84) candidates: same "cheap enough, keep it
+      // consistent" reasoning as smc above, and the same CHART_PIVOT_PARAMS swings both families
+      // already use (chart.json and harmonic.json both pin pivot_left/right to 5).
+      const chartSwings = detectSwings(bars, CHART_PIVOT_PARAMS);
+      const harmonics = detectAllHarmonicPatterns(chartSwings);
+      const chartPatterns = detectAllChartPatterns(bars, chartSwings);
+      return { candles, sessions, features, smc, harmonics, chartPatterns };
     },
     async replay(meta, tf, cursor, userSessions = []) {
       const c = await get(meta);

@@ -223,6 +223,7 @@ export { roundness } from './patterns/chart-shared';
 export {
   CHART_PATTERN_DETECTORS,
   CHART_PATTERN_IDS,
+  chartPatternsAsOf,
   detectAllChartPatterns,
 } from './patterns/chart-registry';
 export type { HarmonicPattern, HarmonicPatternPivot } from './patterns/types';

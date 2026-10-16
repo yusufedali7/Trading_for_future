@@ -17,7 +17,12 @@ import { tr } from '../i18n/tr';
 import { positionToTime, timeToPosition } from './coords';
 import { indexAtOrAfter, startOfLocalDay } from './goto';
 import { fromChartTime, tickLabel, timeLabel, toCandleData, toVolumeData } from './lwc-adapter';
-import { layoutFeatures, layoutHarmonics, layoutSmc } from './primitives/feature-layout';
+import {
+  layoutChartPatterns,
+  layoutFeatures,
+  layoutHarmonics,
+  layoutSmc,
+} from './primitives/feature-layout';
 import { FeaturesPrimitive } from './primitives/features';
 import { SessionBoxesPrimitive } from './primitives/session-boxes';
 import { THEME } from './theme';
@@ -194,7 +199,7 @@ export function ChartView(props: ChartViewProps) {
   }, [sessions, times, timeframe, sessionStyles]);
 
   // Engine candidates (M4 + M9 SMC) and strategy setups (M5), laid out once per data / layer change.
-  const { features, smc, harmonics, featureLayers, setups } = props;
+  const { features, smc, harmonics, chartPatterns, featureLayers, setups } = props;
   useEffect(() => {
     const layers = new Set(featureLayers ?? []);
     const empty = { swings: [], fvgs: [], breaks: [], sweeps: [], periods: [] };
@@ -242,8 +247,12 @@ export function ChartView(props: ChartViewProps) {
       layers.size > 0 ? layoutSmc(smc ?? emptySmc, layers, times, tfMs, tr.features.smcLabels) : [];
     const harmonicsItems =
       layers.size > 0 ? layoutHarmonics(harmonics ?? [], layers, times, tfMs) : [];
-    featuresRef.current?.setData([...items, ...smcItems, ...harmonicsItems], times.length);
-  }, [features, smc, harmonics, featureLayers, setups, times, timeframe]);
+    const chartPatternItems = layoutChartPatterns(chartPatterns ?? [], layers, times, tfMs);
+    featuresRef.current?.setData(
+      [...items, ...smcItems, ...harmonicsItems, ...chartPatternItems],
+      times.length,
+    );
+  }, [features, smc, harmonics, chartPatterns, featureLayers, setups, times, timeframe]);
 
   // Screenshot for the journal: chart canvas including primitives (sessions, drawings), no crosshair.
   const screenshotRef = props.screenshotRef;

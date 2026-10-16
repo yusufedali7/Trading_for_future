@@ -1,3 +1,4 @@
+import type { UtcMs } from '../core/types';
 import type { Bars } from '../features/bars';
 import type { Swing } from '../features/types';
 import { detectBearFlag, detectBullFlag, detectPennant } from './chart-continuation';
@@ -68,4 +69,9 @@ export const CHART_PATTERN_IDS: readonly string[] = Object.keys(CHART_PATTERN_DE
 /** Every chart-pattern detector run once, concatenated - the `PATTERN_EVENT` candidate source. */
 export function detectAllChartPatterns(b: Bars, swings: readonly Swing[]): ChartPattern[] {
   return Object.values(CHART_PATTERN_DETECTORS).flatMap((fn) => fn(b, swings));
+}
+
+/** The chart-pattern candidates known at `cutoff` (the replay cursor) - mirrors `harmonicsAsOf`. */
+export function chartPatternsAsOf(ps: readonly ChartPattern[], cutoff: UtcMs): ChartPattern[] {
+  return ps.filter((p) => p.confirmedAt <= cutoff);
 }

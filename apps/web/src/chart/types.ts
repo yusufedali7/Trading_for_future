@@ -1,4 +1,5 @@
 import type {
+  ChartPattern,
   FeatureSet,
   HarmonicPattern,
   IanaTz,
@@ -35,6 +36,8 @@ export interface ChartViewProps extends DrawingLayerProps {
   smc?: SmcSet;
   /** Harmonic (XABCD) candidates on this timeframe (already cut at the cursor in replay). */
   harmonics?: HarmonicPattern[];
+  /** Chart (price-action) pattern candidates on this timeframe (already cut at the cursor). */
+  chartPatterns?: ChartPattern[];
   /** Setups of the strategy version shown on the chart (M5). */
   setups?: { signalBarsAt: readonly number[]; long: boolean; label: string } | null;
   /** Which candidate layers to draw. */

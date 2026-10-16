@@ -1,4 +1,4 @@
-import type { FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
+import type { ChartPattern, FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import { timeToPosition } from '../coords';
 
 /** Toggleable candidate layers (stored in prefs). */
@@ -26,6 +26,7 @@ export const FEATURE_LAYERS = [
   'CYPHER',
   'SHARK',
   'AB_CD',
+  'CHART_PATTERNS',
 ] as const;
 export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 
@@ -436,6 +437,68 @@ export function layoutHarmonics(
       tone: h.direction === 'BULLISH' ? 'UP' : 'DOWN',
       dashed: false,
     });
+  }
+  return out;
+}
+
+/** Chart (price-action) patterns (M9 7.–10. dilim, D84: drawn on the chart for the first time) -
+ * one bundled layer for all 21 (unlike harmonics' one-per-pattern, which would have pushed the
+ * Katmanlar panel to 44 buttons). Each candidate becomes an unlabelled pivot path plus a
+ * confirmation/breakout line (always), a target line (if the catalog defines one, open-ended)
+ * and an invalidation line (if defined); all three lines carry the catalog `patternId` so the
+ * family is distinguishable even sharing one toggle. */
+export function layoutChartPatterns(
+  ps: readonly ChartPattern[],
+  layers: ReadonlySet<FeatureLayer>,
+  times: ArrayLike<number>,
+  tfMs: number,
+): FeatureItem[] {
+  if (!layers.has('CHART_PATTERNS')) return [];
+  const bar = (t: number) => timeToPosition(times, tfMs, t) + 0.5;
+  const out: FeatureItem[] = [];
+  for (const p of ps) {
+    const tone: Tone = p.direction === 'BULLISH' ? 'UP' : 'DOWN';
+    out.push({
+      shape: 'PATH',
+      layer: 'CHART_PATTERNS',
+      points: p.pivots.map((pv) => ({ p: bar(pv.at), price: pv.price, label: '' })),
+      tone,
+      dashed: false,
+    });
+    out.push({
+      shape: 'LINE',
+      layer: 'CHART_PATTERNS',
+      p1: bar(p.formedAt),
+      p2: bar(p.confirmedAt),
+      price: p.confirmationRef,
+      tone,
+      label: p.patternId,
+      dashed: false,
+    });
+    if (p.targetPrice !== null) {
+      out.push({
+        shape: 'LINE',
+        layer: 'CHART_PATTERNS',
+        p1: bar(p.confirmedAt),
+        p2: null,
+        price: p.targetPrice,
+        tone,
+        label: `${p.patternId} hedef`,
+        dashed: true,
+      });
+    }
+    if (p.invalidationRef !== null) {
+      out.push({
+        shape: 'LINE',
+        layer: 'CHART_PATTERNS',
+        p1: bar(p.formedAt),
+        p2: bar(p.confirmedAt),
+        price: p.invalidationRef,
+        tone,
+        label: `${p.patternId} geçersiz`,
+        dashed: true,
+      });
+    }
   }
   return out;
 }
