@@ -784,6 +784,7 @@ export function App({
                     followLatest={inReplay}
                     features={chartData.features}
                     smc={chartData.smc}
+                    harmonics={chartData.harmonics}
                     featureLayers={settings.features}
                     indicators={settings.indicators}
                     setups={setupMarks}

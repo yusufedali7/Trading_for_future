@@ -499,7 +499,7 @@ export const CONCEPTS: readonly Concept[] = [
       'Motor iki farklı kaynaktan alınan oran kümesini ayrı ayrı dener (ikisi de aynı geometriye uyabilir, iki ayrı aday üretir).',
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D (zigzag: tepe-dip-tepe-dip-tepe ya da aynası).',
       'AB/XA oranı 0,618 ±%5.',
@@ -519,10 +519,11 @@ export const CONCEPTS: readonly Concept[] = [
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
       'İki kaynaktan alınan oran kümesi de "sourced" (tek kaynaklı, ikinci bir kaynakla çapraz kontrol edilmedi) — bağımsız doğrulanmış değil.',
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok — v1 bir geçersizleşme fiyatı tanımlamıyor.',
       'Katı 5 mumluk swing ayarı kısa zaman dilimlerinde az, uzun zaman dilimlerinde (1 dakika gibi) gürültülü aday üretebilir.',
     ],
+    layer: 'GARTLEY',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -534,7 +535,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Bu sürümde CD/BC oranı için bir sınır yok — formasyon yalnızca AB/XA ve AD/XA ile belirleniyor (katalogdaki iki kaynak da CD_BC'yi boş bırakıyor).",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,786 ±%5.',
@@ -553,9 +554,10 @@ export const CONCEPTS: readonly Concept[] = [
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
       'İki kaynaktan alınan oran kümesi de "partial" (CD/BC oranı hiç kontrol edilmiyor) — Gartley\'den daha gevşek bir tanım.',
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'BUTTERFLY',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -567,7 +569,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Oranları Scott Carney'nin yaygın harmonik literatüründen alınıyor; D58'de dört bağımsız kaynakla (LuxAlgo, HarmonicTrader.com, HowToTrade, TradingSim) çapraz kontrol edildi, hepsi eşleşti.",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,382–0,5 arası ±%5.',
@@ -586,9 +588,10 @@ export const CONCEPTS: readonly Concept[] = [
     ],
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'BAT',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -600,7 +603,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,382 ±%5 (sabit).',
@@ -619,9 +622,10 @@ export const CONCEPTS: readonly Concept[] = [
     ],
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'ALT_BAT',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -633,7 +637,7 @@ export const CONCEPTS: readonly Concept[] = [
       'CD/BC oranının alt sınırı kaynaklar arasında ayrışıyor (bazı kaynaklar 2,24, bazıları 2,618 der); katalog 2,24 değerini koruyor, bu çözülmeden not edildi.',
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,382–0,618 arası ±%5.',
@@ -653,9 +657,10 @@ export const CONCEPTS: readonly Concept[] = [
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
       'CD/BC oranının alt sınırı (2,24) kaynaklar arasında tartışmalı; bazı kaynaklar 2,618 der. Çözülmedi, katalogdaki değer kullanılıyor.',
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'CRAB',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -667,7 +672,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,886 ±%5 (sabit, derin geri çekilme).',
@@ -686,9 +691,10 @@ export const CONCEPTS: readonly Concept[] = [
     ],
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'DEEP_CRAB',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -701,7 +707,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla X, A, B, C, D.',
       'AB/XA oranı 0,382–0,618 arası ±%5.',
@@ -720,9 +726,10 @@ export const CONCEPTS: readonly Concept[] = [
     ],
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'CYPHER',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -734,7 +741,7 @@ export const CONCEPTS: readonly Concept[] = [
       "İlk bacağın (XA'nın 0X'e oranı) bu sürümde bir şartı yok: üç bağımsız kaynak (LuxAlgo, HowToTrade, FXOpen/Algorush) ilk bacağa hiç oran şartı koymuyor; tek kaynaklı bir dördüncü oran (0,5–0,886) bu yüzden bilerek uygulanmadı (D78).",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla 0, X, A, B, C (D yok).',
       'AB/XA oranı 1,13–1,618 arası ±%5.',
@@ -754,9 +761,10 @@ export const CONCEPTS: readonly Concept[] = [
     delay: "C'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
       'İlk bacak için oran şartı yok (üç kaynak koymuyor); tek kaynaklı bir dördüncü oran bilerek atlandı (Kural 8).',
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'SHARK',
     doc: 'catalog/patterns/harmonic.json',
   },
   {
@@ -768,7 +776,7 @@ export const CONCEPTS: readonly Concept[] = [
       "Oranları D58'de dört bağımsız kaynakla çapraz kontrol edildi, hepsi eşleşti.",
     ],
     onChart:
-      'Bu sürümde grafikte çizilmiyor; yalnızca bu sayfada gerçek veriden örnek olarak listelenir.',
+      'Pivotları birleştiren etiketli bir yol (X-A-B-C-D, Shark\'ta 0-X-A-B-C). "Katmanlar" ile açılır.',
     rule: [
       'Pivotlar sırayla A, B, C, D.',
       'BC/AB oranı 0,382–0,886 arası ±%5.',
@@ -787,9 +795,10 @@ export const CONCEPTS: readonly Concept[] = [
     delay: "D'nin kendi swing'i onaylandığında bilinir (sağda 5 mum kapanınca).",
     limits: [
       'En az noktalı harmonik formasyon olduğu için diğerlerine göre daha sık aday üretir.',
-      'Henüz grafikte çizilmiyor; henüz bir strateji adımı değil.',
+      'Henüz bir strateji adımı değil (D noktasında anlık sinyal, geçersizleşme fiyatı yok).',
       'Bu kavram için henüz "beklendiği gibi gitmedi" ölçüsü yok.',
     ],
+    layer: 'AB_CD',
     doc: 'catalog/patterns/harmonic.json',
   },
 ];

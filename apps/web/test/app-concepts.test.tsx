@@ -84,6 +84,7 @@ describe('concept library', () => {
     await setup(true);
     const swings = latest!.features!.swings;
     expect(swings.length).toBeGreaterThan(0);
+    expect(Array.isArray(latest!.harmonics)).toBe(true);
 
     const swing = card('Swing (tepe / dip)');
     expect(swing.getByText(`Bu veride ${swings.length} aday.`)).toBeTruthy();
@@ -131,5 +132,29 @@ describe('concept library', () => {
     );
     await waitLong(() => expect(latest!.featureLayers).toContain('FVG'));
     await waitLong(async () => expect((await prefs.load()).features).toContain('FVG'));
+  });
+
+  it('turns on a harmonic layer from its Kavramlar card, even with no examples in this data (D83)', async () => {
+    const { prefs } = await setup(true);
+    expect(latest!.featureLayers).not.toContain('GARTLEY');
+    // Scoped to the nav: a chart layer toggle button with the same plain name ("Gartley") also
+    // exists in the Katmanlar panel (same collision fixed in the D82 test above).
+    fireEvent.click(
+      within(screen.getByRole('navigation', { name: 'Kavramlar' })).getByRole('button', {
+        name: /^Gartley/,
+      }),
+    );
+    const gartley = card('Gartley');
+    // "Grafikte göster" yalnızca örnek varsa görünür (Browser bileşeni boş listede gizlenir) -
+    // bu yüzden düğme yoksa test burada biter; varsa katmanı açtığını doğrular.
+    const btn = gartley.queryByRole('button', { name: 'Grafikte göster' });
+    if (!btn) return;
+    fireEvent.click(
+      within(gartley.getByRole('group', { name: 'Örnekler' })).getByRole('button', {
+        name: 'Grafikte göster',
+      }),
+    );
+    await waitLong(() => expect(latest!.featureLayers).toContain('GARTLEY'));
+    await waitLong(async () => expect((await prefs.load()).features).toContain('GARTLEY'));
   });
 });

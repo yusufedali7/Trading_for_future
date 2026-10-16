@@ -377,7 +377,7 @@ export const tr = {
       GARTLEY: 'Aday Gartley: beş noktalı (X-A-B-C-D) Fibonacci oranlı harmonik formasyon',
       BUTTERFLY: "Aday Kelebek: Gartley'e benzer ama D, X'in ötesine uzanır",
       BAT: "Aday Yarasa: D, X'in oldukça yakınında (0,886 katı) tamamlanır",
-      ALT_BAT: "Aday Alternatif Yarasa: B daha sığ (0,382), D daha uzak (1,13 katı)",
+      ALT_BAT: 'Aday Alternatif Yarasa: B daha sığ (0,382), D daha uzak (1,13 katı)',
       CRAB: "Aday Yengeç: D, X'in epey ötesinde (1,618 katı) tamamlanan uzamış formasyon",
       DEEP_CRAB: "Aday Derin Yengeç: Yengeç'in bir çeşidi, B daha derin (0,886) geri çekiliyor",
       CYPHER: "Aday Cypher: oranlar XC bacağına göre tanımlanır, C A'nın ötesine taşar",
