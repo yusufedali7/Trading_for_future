@@ -699,6 +699,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 
 ---
 
+## D85 — Mum formasyonları grafiğe çizildi (61 tür, tek katman) — M9'un çizim kısmı tamamen bitti
+
+- **Tarih:** 2026-10-16 · **Durum:** Kabul edildi (bounded, D84'ün devamı, kullanıcı "şimdi bitirmeye odaklan" dedi — ek onay turu olmadan devam edildi)
+- **Yeni çizim şekli yine gerekmedi:** `CandlePattern`'in kendi fiyatı yok (yalnızca bar index'i) — D83'ün `PATH`'i/D84'ün `LINE`'ı yerine zaten var olan `MARK` (SWING'in kullandığı aynı şekil) yeterli oldu. Mark, onay mumunun yüksek/düşük fiyatına ("above"/"below") oturuyor: düşüş yönlü → yüksek üstüne, yükseliş yönlü → düşük altına, yönsüz (ör. Doji) → üstüne + NEUTRAL ton. Bu, `CandlePattern`'in kendi fiyat bilgisi taşımadığı için `layoutCandlePatterns()`'ın (diğer üç `layoutX` fonksiyonundan farklı olarak) grafiğin kendi `candles` dizisini de parametre alması gerektirdi.
+- **Tek katman (D84 ile aynı gerekçe, daha güçlü):** 61 ayrı düğme Katmanlar panelini 105'e çıkarırdı; tek "Mum formasyonları" düğmesi, hangi formasyon olduğu markın etiketindeki ham `patternId`'den (ör. "cdlshootingstar") anlaşılıyor.
+- **Veri bedava:** `detectAllCandlePatterns(bars)` swing gerektirmiyor (saf OHLC şekli) — D83/D84'ün swing hesabına bile ihtiyaç yok, en ucuz üçüncü aile.
+- **Bilerek dışarıda bırakılan:** Kavramlar bağlantısı (D84 ile aynı gerekçe).
+- **M9'un çizim kısmı burada tamamen bitti:** mum (61) + grafik (21) + harmonik (9) formasyonlarının hepsi artık grafikte "aday" olarak görünüyor, hepsi lookahead'siz replay'de doğru kesiliyor. Kavramlar bağlantısı (82 kavram) ve harmonikleri stratejiye bağlamak hâlâ ayrı, plan dışı kararlar.
+- **Doğrulama:** 871/871 test yeşil (9 yeni: motor 1, candle-source 1, feature-layout 4 test), tip kontrolü ve lint temiz, gömülü tarayıcıda konsol hatasız (veri yokluğu kısıtı D83/D84'teki gibi devam ediyor).
+
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
