@@ -1,4 +1,4 @@
-import type { FeatureSet, SmcSet } from '@trw/engine';
+import type { FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import { timeToPosition } from '../coords';
 
 /** Toggleable candidate layers (stored in prefs). */
@@ -17,6 +17,15 @@ export const FEATURE_LAYERS = [
   'OTE',
   'CANDIDATE_SR',
   'CISD',
+  'GARTLEY',
+  'BUTTERFLY',
+  'BAT',
+  'ALT_BAT',
+  'CRAB',
+  'DEEP_CRAB',
+  'CYPHER',
+  'SHARK',
+  'AB_CD',
 ] as const;
 export type FeatureLayer = (typeof FEATURE_LAYERS)[number];
 
@@ -65,6 +74,13 @@ export type FeatureItem =
       price: number;
       tone: Tone;
       label: string;
+      dashed: boolean;
+    }
+  | {
+      shape: 'PATH';
+      layer: FeatureLayer | 'SETUP';
+      points: { p: number; price: number; label: string }[];
+      tone: Tone;
       dashed: boolean;
     };
 
@@ -385,6 +401,45 @@ export function layoutSmc(
   return out;
 }
 
+/** Harmonic (XABCD) `patternId` (`catalog/patterns/harmonic.json`) -> its own toggle layer (D82's
+ * Kavramlar entries use the same names) - the reverse of `ConceptsPage.tsx`'s
+ * `HARMONIC_CONCEPT_PATTERN_ID`, kept separate on purpose (both are small, independent lookups). */
+const HARMONIC_PATTERN_LAYER: Record<string, FeatureLayer> = {
+  gartley: 'GARTLEY',
+  butterfly: 'BUTTERFLY',
+  bat: 'BAT',
+  alt_bat: 'ALT_BAT',
+  crab: 'CRAB',
+  deep_crab: 'DEEP_CRAB',
+  cypher: 'CYPHER',
+  shark: 'SHARK',
+  ab_cd: 'AB_CD',
+};
+
+/** Each harmonic pattern as a labelled pivot path (X-A-B-C-D, Shark's 0-X-A-B-C), one per its own
+ * toggle layer (D83: drawn on the chart for the first time; data has been ready since D82). */
+export function layoutHarmonics(
+  hs: readonly HarmonicPattern[],
+  layers: ReadonlySet<FeatureLayer>,
+  times: ArrayLike<number>,
+  tfMs: number,
+): FeatureItem[] {
+  const bar = (t: number) => timeToPosition(times, tfMs, t) + 0.5;
+  const out: FeatureItem[] = [];
+  for (const h of hs) {
+    const layer = HARMONIC_PATTERN_LAYER[h.patternId];
+    if (!layer || !layers.has(layer)) continue;
+    out.push({
+      shape: 'PATH',
+      layer,
+      points: h.pivots.map((pv) => ({ p: bar(pv.at), price: pv.price, label: pv.label })),
+      tone: h.direction === 'BULLISH' ? 'UP' : 'DOWN',
+      dashed: false,
+    });
+  }
+  return out;
+}
+
 /** Items that overlap the visible logical range; open-ended items run to `lastPos`. */
 export function visibleItems(
   items: readonly FeatureItem[],
@@ -394,6 +449,10 @@ export function visibleItems(
 ): FeatureItem[] {
   return items.filter((it) => {
     if (it.shape === 'MARK') return it.p >= from - 1 && it.p <= to + 1;
+    if (it.shape === 'PATH') {
+      const ps = it.points.map((pt) => pt.p);
+      return Math.max(...ps) >= from && Math.min(...ps) <= to;
+    }
     const end = it.p2 ?? lastPos;
     return end >= from && it.p1 <= to;
   });

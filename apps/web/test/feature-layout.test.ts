@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { FeatureSet, SmcSet } from '@trw/engine';
+import type { FeatureSet, HarmonicPattern, SmcSet } from '@trw/engine';
 import {
   FEATURE_LAYERS,
   layoutFeatures,
+  layoutHarmonics,
   layoutSmc,
   visibleItems,
 } from '../src/chart/primitives/feature-layout';
@@ -194,7 +195,9 @@ describe('layoutFeatures', () => {
 
   it('keeps items that overlap the visible range; open boxes run to the newest bar', () => {
     const shown = visibleItems(items, 7, 9, 9.5);
-    expect(shown.map((i) => i.label)).toEqual([
+    // layoutFeatures never produces a PATH item (that's layoutHarmonics' shape, which has no
+    // single top-level label); narrow so .label stays well-typed for the others.
+    expect(shown.filter((i) => i.shape !== 'PATH').map((i) => i.label)).toEqual([
       'PDH',
       'PDL',
       'Aday FVG ↓',
@@ -381,5 +384,102 @@ describe('layoutSmc', () => {
   it('draws only the enabled SMC layers', () => {
     const only = layoutSmc(smcSet, new Set(['BREAKER'] as const), times, TF, tr.features.smcLabels);
     expect(only.map((i) => i.layer)).toEqual(['BREAKER']);
+  });
+});
+
+// SYNTHETIC: bullish Gartley (X,A,B,C,D) ve bearish Shark (0,X,A,B,C), 10 bar içinde.
+const gartley: HarmonicPattern = {
+  id: 'h1',
+  patternId: 'gartley',
+  ratioSetSource: 'test',
+  defVersion: 'v1',
+  direction: 'BULLISH',
+  pivots: [
+    { at: at(0), index: 0, price: 1.1, kind: 'LOW', label: 'X' },
+    { at: at(2), index: 2, price: 1.2, kind: 'HIGH', label: 'A' },
+    { at: at(4), index: 4, price: 1.14, kind: 'LOW', label: 'B' },
+    { at: at(6), index: 6, price: 1.18, kind: 'HIGH', label: 'C' },
+    { at: at(8), index: 8, price: 1.116, kind: 'LOW', label: 'D' },
+  ],
+  formedAt: at(8),
+  formedIndex: 8,
+  confirmedAt: at(9),
+  confirmedIndex: 9,
+  ratios: {},
+};
+const shark: HarmonicPattern = {
+  ...gartley,
+  id: 'h2',
+  patternId: 'shark',
+  direction: 'BEARISH',
+  pivots: [
+    { at: at(0), index: 0, price: 1.0, kind: 'HIGH', label: '0' },
+    { at: at(2), index: 2, price: 0.9, kind: 'LOW', label: 'X' },
+    { at: at(4), index: 4, price: 0.95, kind: 'HIGH', label: 'A' },
+    { at: at(6), index: 6, price: 0.88, kind: 'LOW', label: 'B' },
+    { at: at(8), index: 8, price: 0.92, kind: 'HIGH', label: 'C' },
+  ],
+};
+
+describe('layoutHarmonics', () => {
+  it('returns nothing when given no patterns (Review Focus #1: empty/missing harmonics)', () => {
+    expect(layoutHarmonics([], new Set(['GARTLEY']), times, TF)).toEqual([]);
+  });
+
+  it('returns nothing when its layer is off', () => {
+    expect(layoutHarmonics([gartley], new Set(), times, TF)).toEqual([]);
+  });
+
+  it('lays out a path with one point per pivot, labelled, toned by direction', () => {
+    const items = layoutHarmonics([gartley], new Set(['GARTLEY']), times, TF);
+    expect(items).toEqual([
+      {
+        shape: 'PATH',
+        layer: 'GARTLEY',
+        points: [
+          { p: 0, price: 1.1, label: 'X' },
+          { p: 2, price: 1.2, label: 'A' },
+          { p: 4, price: 1.14, label: 'B' },
+          { p: 6, price: 1.18, label: 'C' },
+          { p: 8, price: 1.116, label: 'D' },
+        ],
+        tone: 'UP',
+        dashed: false,
+      },
+    ]);
+  });
+
+  it("includes Shark's leading '0' pivot label and BEARISH tone", () => {
+    const items = layoutHarmonics([shark], new Set(['SHARK']), times, TF);
+    const item = items[0]!;
+    if (item.shape !== 'PATH') throw new Error('expected a PATH item');
+    expect(item.points[0]).toEqual({ p: 0, price: 1.0, label: '0' });
+    expect(item.tone).toBe('DOWN');
+  });
+
+  it("only draws a pattern when its own layer is on, not another pattern's layer", () => {
+    expect(layoutHarmonics([gartley, shark], new Set(['SHARK']), times, TF)).toHaveLength(1);
+    expect(layoutHarmonics([gartley, shark], new Set(['SHARK']), times, TF)[0]!.layer).toBe(
+      'SHARK',
+    );
+  });
+});
+
+describe('visibleItems — PATH', () => {
+  const path = {
+    shape: 'PATH' as const,
+    layer: 'GARTLEY' as const,
+    points: [
+      { p: 1, price: 1, label: 'X' },
+      { p: 5, price: 1, label: 'D' },
+    ],
+    tone: 'UP' as const,
+    dashed: false,
+  };
+  it('keeps a path whose range overlaps the visible window', () => {
+    expect(visibleItems([path], 3, 10, 10)).toEqual([path]);
+  });
+  it('drops a path entirely outside the visible window', () => {
+    expect(visibleItems([path], 10, 20, 10)).toEqual([]);
   });
 });
