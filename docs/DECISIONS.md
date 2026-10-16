@@ -687,6 +687,18 @@ Her karar kısa ADR biçimindedir: bağlam, karar, sonuç. Bir karar değişirse
 
 ---
 
+## D84 — Grafik (fiyat hareketi) formasyonları grafiğe çizildi (21 tür, tek katman)
+
+- **Tarih:** 2026-10-16 · **Durum:** Kabul edildi (bounded, sohbette kısa tasarım onayı — D83'ün devamı: "grafik formasyonları + mum formasyonları" isteği önce ikiye bölündü, bu dilim yalnızca grafik formasyonları)
+- **Yeni çizim şekli gerekmedi:** `ChartPattern`'in kendi alanları (`pivots`, `confirmationRef`, `targetPrice`, `invalidationRef`) D83'ün `PATH`'i ve zaten var olan `LINE`'ıyla birebir örtüşüyor — her aday bir (etiketsiz) pivot yolu + kırılım seviyesi çizgisi (her zaman) + hedef çizgisi (varsa, açık uçlu, kesikli) + geçersizleşme çizgisi (varsa, kesikli) olarak çiziliyor. `features.ts`'in `draw()`'una yeni bir dal eklenmedi — PATH/LINE zaten şekle göre (katmana göre değil) çiziyor.
+- **Tek katman, harmoniklerin aksine:** 21 ayrı düğme Katmanlar panelini 44'e çıkarırdı (23 mevcut + 21); kullanıcıyla konuşulup tek "Grafik formasyonları" düğmesi seçildi. Hangi formasyon olduğu çizgilerin üzerindeki etikette (`catalog/patterns/chart.json`'daki ham `patternId`, ör. "double_bottom") görünüyor — Kavramlar henüz bağlı olmadığı için Türkçe ad yok, uydurulmadı (Kural 8).
+- **Veri bedava:** `candle-source.ts`'in `load()`'u D83'te harmonikler için zaten hesapladığı `CHART_PIVOT_PARAMS` swing'lerini grafik formasyonları için de kullanıyor (`detectAllChartPatterns`, tek ek fonksiyon çağrısı). `chartPatternsAsOf` (`harmonicsAsOf`'un deseni) `composeReplay`'e eklendi.
+- **Bilerek dışarıda bırakılan:** Kavramlar sayfası bağlantısı (21 yeni kavram içeriği ayrı, büyük bir yazma işi — ayrı karar).
+- **Gömülü tarayıcı sınırı:** D83'teki aynı kısıt (veri yok, Katmanlar paneli görünmüyor) — canlı çizim doğrulaması kullanıcının kendi tarayıcısında yapılmalı; typecheck/lint/konsol temizliği doğrulandı.
+- **Doğrulama:** 865/865 test yeşil (8 yeni: motor 1, candle-source 1, feature-layout 3×describe/6 test), tip kontrolü ve lint temiz.
+
+---
+
 ## Açık sorular (cevaplanınca buraya karar olarak işlenecek)
 | # | Soru | Cevap |
 |---|---|---|
