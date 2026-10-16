@@ -94,7 +94,7 @@ function examplesOf(
     case 'AB_CD':
       return harmonics
         .filter((h) => h.patternId === HARMONIC_CONCEPT_PATTERN_ID[c.id])
-        .map((h) => ({ id: h.id, at: h.formedAt, what: k[h.direction]! }));
+        .map((h) => ({ id: h.id, at: h.formedAt, what: k[h.direction]!, layer }));
     case 'DISPLACEMENT':
       return smc.displacements.map((d) => ({ id: d.id, at: d.formedAt, what: k[d.direction]! }));
     case 'CISD':
