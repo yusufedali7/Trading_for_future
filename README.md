@@ -6,10 +6,16 @@ service and does **not** trade real money.
 
 Loop: manual observation → rules → backtest → statistics → comparison → paper trade.
 
+- This repository: [github.com/yusufedali7/Trading_for_future](https://github.com/yusufedali7/Trading_for_future)
 - Project rules: [`CLAUDE.md`](CLAUDE.md)
 - Plan and decisions: [`docs/PLAN.md`](docs/PLAN.md), [`docs/DECISIONS.md`](docs/DECISIONS.md)
 - Session handover: [`DEVIR.md`](DEVIR.md)
 - Glossary (Turkish): [`docs/ogrenme/sozluk.md`](docs/ogrenme/sozluk.md)
+
+## Third-party repositories used by this project
+
+- [TradingView Lightweight Charts™](https://github.com/tradingview/lightweight-charts) — chart rendering (Apache 2.0)
+- [TauricResearch/TradingAgents](https://github.com/TauricResearch/TradingAgents) — used only by `tools/research-notes/` as a pip dependency (not vendored) to generate analyst/debate research notes; its decision/trading layer is never imported or called (see `docs/DECISIONS.md` D79). Apache 2.0.
 
 ## Layout
 
